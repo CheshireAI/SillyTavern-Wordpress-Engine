@@ -1,6 +1,6 @@
 <?php
 /**
- * PNG Metadata Viewer - Complete AJAX Handlers with Message Editing Support, Auto-save Integration, and Fixed Token Handling
+ * PNG Metadata Viewer - Complete AJAX Handlers with Enhanced Auto-save, Message Editing Support, and Fixed Token Handling
  */
 
 // Block direct access
@@ -25,7 +25,7 @@ add_action('wp_ajax_pmv_get_conversation_history', 'pmv_get_conversation_history
 add_action('wp_ajax_pmv_reorder_messages', 'pmv_reorder_messages_callback');
 add_action('wp_ajax_pmv_bulk_edit_messages', 'pmv_bulk_edit_messages_callback');
 
-// Auto-save specific AJAX hooks
+// Enhanced auto-save specific AJAX hooks
 add_action('wp_ajax_pmv_auto_save_conversation', 'pmv_auto_save_conversation_callback');
 add_action('wp_ajax_pmv_check_conversation_status', 'pmv_check_conversation_status_callback');
 add_action('wp_ajax_pmv_manual_save_conversation', 'pmv_manual_save_conversation_callback');
@@ -144,7 +144,7 @@ function pmv_handle_chat_request() {
             'max_tokens' => $max_tokens
         ];
 
-        error_log('PMV Chat - Request payload: ' . json_encode($payload));
+        error_log('PMV Chat - Request payload for user message (enhanced auto-save enabled)');
 
         $response = wp_remote_post(get_deepseek_endpoint(), [
             'headers' => get_api_headers(),
@@ -169,6 +169,7 @@ function pmv_handle_chat_request() {
         $user_id = get_current_user_id();
         do_action('pmv_after_chat_completion', $body, $user_id, $user_message);
 
+        // Enhanced response with auto-save info
         wp_send_json_success([
             'choices' => $body['choices'],
             'character' => [
@@ -180,7 +181,9 @@ function pmv_handle_chat_request() {
                 'temperature' => floatval(get_option('openai_temperature', 0.7))
             ],
             'message_editing_enabled' => true,
-            'auto_save_enabled' => true
+            'auto_save_enabled' => true,
+            'auto_save_requires_user_messages' => true,
+            'conversation_history_count' => count($conversation_history)
         ]);
 
     } catch (Exception $e) {
@@ -190,7 +193,7 @@ function pmv_handle_chat_request() {
 }
 
 /**
- * Auto-save conversation handler - optimized for frequent calls
+ * ENHANCED Auto-save conversation handler - FIXED VERSION with user message validation
  */
 function pmv_auto_save_conversation_callback() {
     global $wpdb;
@@ -212,9 +215,34 @@ function pmv_auto_save_conversation_callback() {
             throw new Exception('Invalid conversation data format');
         }
         
-        // Validate required fields for auto-save
+        // Enhanced validation for auto-save
         if (empty($conversation_data['character_id']) || empty($conversation_data['messages'])) {
             wp_send_json_success(['message' => 'Insufficient data for auto-save', 'skipped' => true]);
+            return;
+        }
+        
+        // CRITICAL: Validate that there's at least one user message
+        $messages = $conversation_data['messages'];
+        $has_user_messages = false;
+        $user_message_count = 0;
+        
+        foreach ($messages as $message) {
+            if (isset($message['role']) && $message['role'] === 'user' && 
+                isset($message['content']) && !empty(trim($message['content']))) {
+                $has_user_messages = true;
+                $user_message_count++;
+            }
+        }
+        
+        if (!$has_user_messages) {
+            error_log('PMV Auto-save skipped: no user messages found');
+            wp_send_json_success([
+                'message' => 'Auto-save skipped: no user messages',
+                'skipped' => true,
+                'reason' => 'no_user_messages',
+                'total_messages' => count($messages),
+                'user_messages' => 0
+            ]);
             return;
         }
         
@@ -228,6 +256,7 @@ function pmv_auto_save_conversation_callback() {
         
         // Check if this is an update to existing conversation
         $conversation_id = isset($conversation_data['id']) ? intval($conversation_data['id']) : null;
+        $is_update = false;
         
         $data = [
             'user_id' => $user_id,
@@ -238,7 +267,7 @@ function pmv_auto_save_conversation_callback() {
         ];
         
         if ($conversation_id) {
-            // Update existing conversation
+            // Verify this conversation exists and belongs to the user
             $owner_check = $wpdb->get_var(
                 $wpdb->prepare(
                     "SELECT id FROM $table_name WHERE id = %d AND user_id = %d",
@@ -248,6 +277,7 @@ function pmv_auto_save_conversation_callback() {
             );
             
             if ($owner_check) {
+                // Update existing conversation
                 $result = $wpdb->update(
                     $table_name,
                     $data,
@@ -257,14 +287,23 @@ function pmv_auto_save_conversation_callback() {
                 );
                 
                 if ($result !== false) {
+                    error_log("PMV Auto-save: Updated conversation $conversation_id for user $user_id with $user_message_count user messages");
                     wp_send_json_success([
                         'id' => $conversation_id,
-                        'message' => 'Auto-saved successfully',
+                        'message' => 'Auto-saved successfully (updated)',
                         'action' => 'updated',
-                        'timestamp' => current_time('mysql')
+                        'timestamp' => current_time('mysql'),
+                        'user_message_count' => $user_message_count,
+                        'total_messages' => count($messages)
                     ]);
                     return;
+                } else {
+                    error_log("PMV Auto-save: Failed to update conversation $conversation_id: " . $wpdb->last_error);
                 }
+            } else {
+                error_log("PMV Auto-save: Conversation $conversation_id not found or access denied for user $user_id");
+                // Conversation doesn't exist or doesn't belong to user, create new one
+                $conversation_id = null;
             }
         }
         
@@ -298,6 +337,7 @@ function pmv_auto_save_conversation_callback() {
                     ['id' => $oldest->id],
                     ['%d']
                 );
+                error_log("PMV Auto-save: Deleted oldest conversation {$oldest->id} to make room for user $user_id");
             }
         }
         
@@ -309,14 +349,18 @@ function pmv_auto_save_conversation_callback() {
         
         if ($result !== false) {
             $new_conversation_id = $wpdb->insert_id;
+            error_log("PMV Auto-save: Created new conversation $new_conversation_id for user $user_id with $user_message_count user messages");
+            
             wp_send_json_success([
                 'id' => $new_conversation_id,
-                'message' => 'Auto-saved successfully',
+                'message' => 'Auto-saved successfully (created)',
                 'action' => 'created',
-                'timestamp' => current_time('mysql')
+                'timestamp' => current_time('mysql'),
+                'user_message_count' => $user_message_count,
+                'total_messages' => count($messages)
             ]);
         } else {
-            throw new Exception('Failed to auto-save conversation');
+            throw new Exception('Failed to auto-save conversation: ' . $wpdb->last_error);
         }
         
     } catch (Exception $e) {
@@ -326,7 +370,7 @@ function pmv_auto_save_conversation_callback() {
 }
 
 /**
- * Manual save conversation handler - prompts for title, more validation
+ * Enhanced manual save conversation handler - with user message validation
  */
 function pmv_manual_save_conversation_callback() {
     global $wpdb;
@@ -341,7 +385,32 @@ function pmv_manual_save_conversation_callback() {
         }
         
         $conversation_data = json_decode(wp_unslash($_POST['conversation_data']), true);
-        validate_conversation_data($conversation_data);
+        
+        // Enhanced validation for manual save
+        if (!$conversation_data || !is_array($conversation_data)) {
+            throw new Exception('Invalid conversation data format');
+        }
+        
+        if (empty($conversation_data['character_id']) || empty($conversation_data['messages'])) {
+            throw new Exception('Missing required conversation data');
+        }
+        
+        // Check for user messages (required for manual save)
+        $messages = $conversation_data['messages'];
+        $has_user_messages = false;
+        $user_message_count = 0;
+        
+        foreach ($messages as $message) {
+            if (isset($message['role']) && $message['role'] === 'user' && 
+                isset($message['content']) && !empty(trim($message['content']))) {
+                $has_user_messages = true;
+                $user_message_count++;
+            }
+        }
+        
+        if (!$has_user_messages) {
+            throw new Exception('Cannot save conversation without user messages');
+        }
         
         $table_name = $wpdb->prefix . 'pmv_conversations';
         
@@ -381,6 +450,8 @@ function pmv_manual_save_conversation_callback() {
                 ['%d', '%s', '%s', '%s', '%s'],
                 ['%d', '%d']
             );
+            
+            $action = 'updated';
         } else {
             // Create new conversation
             $data['created_at'] = current_time('mysql');
@@ -403,19 +474,24 @@ function pmv_manual_save_conversation_callback() {
                 $data,
                 ['%d', '%s', '%s', '%s', '%s', '%s']
             );
+            
             $conversation_id = $wpdb->insert_id;
+            $action = 'created';
         }
         
         if ($result === false) {
-            throw new Exception('Database operation failed');
+            throw new Exception('Database operation failed: ' . $wpdb->last_error);
         }
+        
+        error_log("PMV Manual Save: $action conversation $conversation_id for user $user_id with $user_message_count user messages");
         
         wp_send_json_success([
             'id' => $conversation_id,
             'message' => 'Conversation saved successfully',
-            'action' => isset($conversation_data['id']) ? 'updated' : 'created',
+            'action' => $action,
             'manual_save' => true,
-            'timestamp' => current_time('mysql')
+            'timestamp' => current_time('mysql'),
+            'user_message_count' => $user_message_count
         ]);
         
     } catch (Exception $e) {
@@ -446,10 +522,10 @@ function pmv_check_conversation_status_callback() {
         $response = ['user_id' => $user_id];
         
         if ($conversation_id) {
-            // Check specific conversation
+            // Check specific conversation with user message validation
             $conversation = $wpdb->get_row(
                 $wpdb->prepare(
-                    "SELECT id, title, updated_at, 
+                    "SELECT id, title, updated_at, messages,
                      JSON_LENGTH(messages) as message_count
                      FROM $table_name 
                      WHERE id = %d AND user_id = %d",
@@ -460,6 +536,23 @@ function pmv_check_conversation_status_callback() {
             );
             
             if ($conversation) {
+                // Validate user messages
+                $messages = json_decode($conversation['messages'], true);
+                $user_message_count = 0;
+                if (is_array($messages)) {
+                    foreach ($messages as $message) {
+                        if (isset($message['role']) && $message['role'] === 'user' && 
+                            isset($message['content']) && !empty(trim($message['content']))) {
+                            $user_message_count++;
+                        }
+                    }
+                }
+                
+                $conversation['user_message_count'] = $user_message_count;
+                $conversation['has_user_messages'] = $user_message_count > 0;
+                $conversation['is_valid_for_autosave'] = $user_message_count > 0;
+                unset($conversation['messages']); // Don't send full messages in status check
+                
                 $response['conversation'] = $conversation;
                 $response['exists'] = true;
             } else {
@@ -709,7 +802,8 @@ function pmv_get_conversation_history_callback() {
             $messages = [];
         }
         
-        // Add metadata to messages for editing
+        // Add metadata to messages for editing and validate user messages
+        $user_message_count = 0;
         foreach ($messages as $index => &$message) {
             $message['index'] = $index;
             $message['can_edit'] = true;
@@ -717,6 +811,11 @@ function pmv_get_conversation_history_callback() {
             $message['can_regenerate'] = isset($message['role']) && $message['role'] === 'assistant';
             $message['is_edited'] = isset($message['edited']) && $message['edited'];
             $message['edited_at'] = $message['edited_at'] ?? null;
+            
+            // Count user messages
+            if (isset($message['role']) && $message['role'] === 'user') {
+                $user_message_count++;
+            }
         }
         
         wp_send_json_success([
@@ -727,7 +826,10 @@ function pmv_get_conversation_history_callback() {
             'created_at' => $conversation['created_at'],
             'updated_at' => $conversation['updated_at'],
             'message_editing_enabled' => true,
-            'auto_save_enabled' => true
+            'auto_save_enabled' => true,
+            'user_message_count' => $user_message_count,
+            'has_user_messages' => $user_message_count > 0,
+            'is_valid_for_autosave' => $user_message_count > 0
         ]);
         
     } catch (Exception $e) {
@@ -919,7 +1021,7 @@ function pmv_bulk_edit_messages_callback() {
 }
 
 /**
- * Save conversation handler with message editing support and auto-save integration
+ * Enhanced save conversation handler with message editing support and auto-save integration
  */
 function pmv_save_conversation_callback() {
     global $wpdb;
@@ -935,6 +1037,20 @@ function pmv_save_conversation_callback() {
 
         $conversation = json_decode(wp_unslash($_POST['conversation']), true);
         validate_conversation_data($conversation);
+
+        // Enhanced validation with user message check
+        $messages = $conversation['messages'];
+        $user_message_count = 0;
+        foreach ($messages as $message) {
+            if (isset($message['role']) && $message['role'] === 'user' && 
+                isset($message['content']) && !empty(trim($message['content']))) {
+                $user_message_count++;
+            }
+        }
+        
+        if ($user_message_count === 0) {
+            throw new Exception('Cannot save conversation without user messages');
+        }
 
         $table_name = $wpdb->prefix . 'pmv_conversations';
         
@@ -973,6 +1089,8 @@ function pmv_save_conversation_callback() {
                 ['%d', '%s', '%s', '%s', '%s'],
                 ['%d', '%d']
             );
+            
+            $action = 'updated';
         } else {
             // Create new conversation
             
@@ -1012,18 +1130,23 @@ function pmv_save_conversation_callback() {
                 ['%d', '%s', '%s', '%s', '%s', '%s']
             );
             $conversation_id = $wpdb->insert_id;
+            $action = 'created';
         }
 
         if ($result === false) {
             throw new Exception('Database operation failed');
         }
 
+        error_log("PMV Save Conversation: $action conversation $conversation_id with $user_message_count user messages");
+
         wp_send_json_success([
             'id' => $conversation_id,
             'message' => 'Conversation saved successfully',
             'message_editing_enabled' => true,
             'auto_save_enabled' => true,
-            'timestamp' => current_time('mysql')
+            'timestamp' => current_time('mysql'),
+            'action' => $action,
+            'user_message_count' => $user_message_count
         ]);
 
     } catch (Exception $e) {
@@ -1033,7 +1156,7 @@ function pmv_save_conversation_callback() {
 }
 
 /**
- * Get conversations list with message editing metadata and auto-save info
+ * Enhanced get conversations list with message editing metadata and auto-save info
  */
 function pmv_get_conversations_callback() {
     global $wpdb;
@@ -1044,13 +1167,15 @@ function pmv_get_conversations_callback() {
         $character_id = sanitize_text_field($_POST['character_id'] ?? '');
 
         if (!$user_id || !$character_id) {
-            throw new Exception('Invalid request');
+            throw new Exception('Invalid request parameters');
         }
 
         $table_name = $wpdb->prefix . 'pmv_conversations';
+        
+        // Enhanced query with user message validation
         $conversations = $wpdb->get_results(
             $wpdb->prepare(
-                "SELECT id, title, created_at, updated_at, 
+                "SELECT id, title, created_at, updated_at, messages,
                         JSON_LENGTH(messages) as message_count,
                         SUBSTRING(JSON_EXTRACT(messages, '$[-1].content'), 1, 100) as preview
                 FROM $table_name 
@@ -1062,12 +1187,33 @@ function pmv_get_conversations_callback() {
             ARRAY_A
         );
 
-        // Add editing metadata and clean up preview
+        // Add enhanced metadata and validate user messages
         foreach ($conversations as &$conversation) {
+            // Check if conversation has user messages
+            $messages = json_decode($conversation['messages'], true);
+            $user_message_count = 0;
+            $has_user_messages = false;
+            
+            if (is_array($messages)) {
+                foreach ($messages as $message) {
+                    if (isset($message['role']) && $message['role'] === 'user' && 
+                        isset($message['content']) && !empty(trim($message['content']))) {
+                        $user_message_count++;
+                        $has_user_messages = true;
+                    }
+                }
+            }
+            
             $conversation['can_edit'] = true;
             $conversation['can_delete'] = true;
             $conversation['message_editing_enabled'] = true;
             $conversation['auto_save_enabled'] = true;
+            $conversation['has_user_messages'] = $has_user_messages;
+            $conversation['is_valid_for_autosave'] = $has_user_messages;
+            $conversation['user_message_count'] = $user_message_count;
+            
+            // Remove full messages from response (not needed for list)
+            unset($conversation['messages']);
             
             // Clean up preview (remove quotes from JSON_EXTRACT)
             if ($conversation['preview']) {
@@ -1081,6 +1227,8 @@ function pmv_get_conversations_callback() {
             $conversation['last_updated_relative'] = human_time_diff(strtotime($conversation['updated_at'])) . ' ago';
         }
 
+        error_log("PMV Get Conversations: Loaded " . count($conversations) . " conversations for character $character_id");
+        
         wp_send_json_success($conversations);
 
     } catch (Exception $e) {
@@ -1090,7 +1238,7 @@ function pmv_get_conversations_callback() {
 }
 
 /**
- * Get single conversation with message editing support
+ * Enhanced get single conversation with message editing support and validation
  */
 function pmv_get_conversation_callback() {
     global $wpdb;
@@ -1101,7 +1249,7 @@ function pmv_get_conversation_callback() {
         $conversation_id = intval($_POST['conversation_id'] ?? 0);
 
         if (!$user_id || !$conversation_id) {
-            throw new Exception('Invalid request');
+            throw new Exception('Invalid request parameters');
         }
 
         $table_name = $wpdb->prefix . 'pmv_conversations';
@@ -1116,13 +1264,33 @@ function pmv_get_conversation_callback() {
         );
 
         if (!$conversation) {
-            throw new Exception('Conversation not found');
+            throw new Exception('Conversation not found or access denied');
         }
 
-        $conversation['messages'] = json_decode($conversation['messages'], true);
+        // Parse messages and add validation info
+        $messages = json_decode($conversation['messages'], true);
+        if (!is_array($messages)) {
+            $messages = [];
+        }
+        
+        // Count user messages
+        $user_message_count = 0;
+        foreach ($messages as $message) {
+            if (isset($message['role']) && $message['role'] === 'user' && 
+                isset($message['content']) && !empty(trim($message['content']))) {
+                $user_message_count++;
+            }
+        }
+        
+        $conversation['messages'] = $messages;
         $conversation['message_editing_enabled'] = true;
         $conversation['can_edit_messages'] = true;
         $conversation['auto_save_enabled'] = true;
+        $conversation['user_message_count'] = $user_message_count;
+        $conversation['has_user_messages'] = $user_message_count > 0;
+        $conversation['is_valid_for_autosave'] = $user_message_count > 0;
+        
+        error_log("PMV Get Conversation: Loaded conversation $conversation_id with $user_message_count user messages");
         
         wp_send_json_success($conversation);
 
@@ -1144,7 +1312,7 @@ function pmv_delete_conversation_callback() {
         $conversation_id = intval($_POST['conversation_id'] ?? 0);
 
         if (!$user_id || !$conversation_id) {
-            throw new Exception('Invalid request');
+            throw new Exception('Invalid request parameters');
         }
 
         $table_name = $wpdb->prefix . 'pmv_conversations';
@@ -1171,6 +1339,8 @@ function pmv_delete_conversation_callback() {
         if ($result === false) {
             throw new Exception('Delete operation failed');
         }
+
+        error_log("PMV Delete Conversation: Deleted conversation $conversation_id for user $user_id");
 
         wp_send_json_success(['message' => 'Conversation deleted successfully']);
 
@@ -1543,6 +1713,29 @@ function validate_conversation_data($data) {
 }
 
 /**
+ * Enhanced helper function to validate conversation for auto-save
+ */
+function pmv_validate_conversation_for_autosave($conversation_data) {
+    if (!$conversation_data || !is_array($conversation_data)) {
+        return false;
+    }
+    
+    if (empty($conversation_data['messages']) || !is_array($conversation_data['messages'])) {
+        return false;
+    }
+    
+    // Must have at least one user message
+    foreach ($conversation_data['messages'] as $message) {
+        if (isset($message['role']) && $message['role'] === 'user' && 
+            isset($message['content']) && !empty(trim($message['content']))) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+/**
  * Hook to add message editing capabilities to existing conversations
  */
 add_action('pmv_conversation_loaded', 'pmv_add_message_editing_capabilities');
@@ -1587,6 +1780,21 @@ function pmv_log_message_delete($conversation_id, $message_index, $deleted_conte
 }
 
 /**
+ * Enhanced error logging for auto-save debugging
+ */
+function pmv_log_autosave_event($event_type, $conversation_id, $user_id, $additional_data = []) {
+    $log_data = [
+        'event' => $event_type,
+        'conversation_id' => $conversation_id,
+        'user_id' => $user_id,
+        'timestamp' => current_time('mysql'),
+        'additional_data' => $additional_data
+    ];
+    
+    error_log('PMV Auto-save Event: ' . json_encode($log_data));
+}
+
+/**
  * Rate limiting for message editing operations
  */
 add_action('init', 'pmv_setup_message_editing_rate_limits');
@@ -1597,31 +1805,57 @@ function pmv_setup_message_editing_rate_limits() {
 }
 
 /**
- * Clean up old conversations periodically
+ * Scheduled cleanup of invalid conversations (no user messages)
  */
-add_action('wp_scheduled_delete', 'pmv_cleanup_old_conversations');
+add_action('pmv_cleanup_invalid_conversations', 'pmv_cleanup_conversations_without_user_messages');
 
-function pmv_cleanup_old_conversations() {
+function pmv_cleanup_conversations_without_user_messages() {
     global $wpdb;
     
-    $retention_days = get_option('pmv_conversation_retention_days', 90);
-    if ($retention_days <= 0) {
-        return; // Retention disabled
-    }
-    
     $table_name = $wpdb->prefix . 'pmv_conversations';
-    $cutoff_date = date('Y-m-d H:i:s', strtotime("-{$retention_days} days"));
     
-    $deleted = $wpdb->query(
-        $wpdb->prepare(
-            "DELETE FROM $table_name WHERE updated_at < %s",
-            $cutoff_date
-        )
+    // Find conversations without user messages
+    $conversations = $wpdb->get_results(
+        "SELECT id, messages FROM $table_name",
+        ARRAY_A
     );
     
-    if ($deleted) {
-        error_log("PMV: Cleaned up $deleted old conversations older than $retention_days days");
+    $deleted_count = 0;
+    
+    foreach ($conversations as $conversation) {
+        $messages = json_decode($conversation['messages'], true);
+        if (!is_array($messages)) {
+            continue;
+        }
+        
+        $has_user_messages = false;
+        foreach ($messages as $message) {
+            if (isset($message['role']) && $message['role'] === 'user' && 
+                isset($message['content']) && !empty(trim($message['content']))) {
+                $has_user_messages = true;
+                break;
+            }
+        }
+        
+        if (!$has_user_messages) {
+            // Delete conversation without user messages
+            $wpdb->delete(
+                $table_name,
+                ['id' => $conversation['id']],
+                ['%d']
+            );
+            $deleted_count++;
+        }
     }
+    
+    if ($deleted_count > 0) {
+        error_log("PMV Cleanup: Deleted $deleted_count conversations without user messages");
+    }
+}
+
+// Schedule cleanup to run daily
+if (!wp_next_scheduled('pmv_cleanup_invalid_conversations')) {
+    wp_schedule_event(time(), 'daily', 'pmv_cleanup_invalid_conversations');
 }
 
 /**
