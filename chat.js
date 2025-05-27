@@ -1,5 +1,5 @@
-// PNG Metadata Viewer - Core Chat Module - UNIVERSAL LAYOUT
-console.log('PNG Metadata Viewer Chat Module Loaded');
+// PNG Metadata Viewer - Core Chat Module with Message Editing - UNIVERSAL LAYOUT
+console.log('PNG Metadata Viewer Chat Module with Message Editing Loaded');
 (function($) {
     // Debug logging for initialization
     $(document).ready(function() {
@@ -34,7 +34,7 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
                (navigator.msMaxTouchPoints > 0);
     }
 
-    // Initialize PMV_Chat object with enhanced methods
+    // Initialize PMV_Chat object with enhanced methods including message editing support
     window.PMV_Chat = {
         parseCharacterData: function(metadataStr) {
             try {
@@ -152,10 +152,26 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
             console.log('Chat state reset');
             // Remove body and html classes when chat is closed
             $('body, html').removeClass('chat-modal-open');
+            
+            // Cancel any ongoing message editing
+            if (window.PMV_MobileChat && window.PMV_MobileChat.cancelEditing) {
+                window.PMV_MobileChat.cancelEditing();
+            }
+            
+            // Clear any auto-save timers
+            if (window.PMV_MobileChat && window.PMV_MobileChat.clearAutoSaveTimer) {
+                window.PMV_MobileChat.clearAutoSaveTimer();
+            }
         },
 
-        // Collect conversation history
+        // Collect conversation history with message editing support
         collectConversationHistory: function() {
+            // Use message editor's collection method if available
+            if (window.PMV_MobileChat && window.PMV_MobileChat.getConversationHistory) {
+                return window.PMV_MobileChat.getConversationHistory();
+            }
+            
+            // Fallback to manual collection
             const messages = [];
             $('.chat-message').each(function() {
                 const $msg = $(this);
@@ -165,7 +181,7 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
                 }
 
                 let role = 'assistant';
-                let content = $msg.text();
+                let content = $msg.find('.chat-message-content-wrapper').text() || $msg.text();
 
                 if ($msg.hasClass('user')) {
                     role = 'user';
@@ -185,9 +201,9 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
             return messages;
         },
 
-        // Load conversation into chat history
+        // Load conversation into chat history with editing support
         loadConversationIntoChat: function(conversationData) {
-            console.log('Loading conversation into chat:', conversationData);
+            console.log('Loading conversation into chat with editing support:', conversationData);
             const $chatHistory = $('#chat-history');
             if (!$chatHistory.length) {
                 console.error('Chat history element not found');
@@ -203,22 +219,40 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
             const character = this.extractCharacterInfo(characterData || conversationData.character || {});
             const characterName = character.name || 'AI';
 
-            // Add messages from conversation
+            // Add messages from conversation with editing support
             if (conversationData.messages && Array.isArray(conversationData.messages)) {
                 conversationData.messages.forEach(msg => {
                     const isUser = msg.role === 'user';
                     const messageClass = isUser ? 'user' : 'bot';
                     const speakerName = isUser ? 'You' : characterName;
-                    $chatHistory.append(`
-                        <div class="chat-message ${messageClass}">
-                            <strong>${escapeHtml(speakerName)}:</strong>
-                            <span class="chat-message-content-wrapper">${escapeHtml(msg.content)}</span>
-                        </div>
-                    `);
+                    
+                    // Use message editor if available
+                    if (window.PMV_MobileChat && window.PMV_MobileChat.addEditableMessage) {
+                        window.PMV_MobileChat.addEditableMessage(
+                            msg.content,
+                            messageClass,
+                            speakerName
+                        );
+                    } else {
+                        // Fallback to regular message addition
+                        $chatHistory.append(`
+                            <div class="chat-message ${messageClass}">
+                                <strong>${escapeHtml(speakerName)}:</strong>
+                                <span class="chat-message-content-wrapper">${escapeHtml(msg.content)}</span>
+                            </div>
+                        `);
+                    }
                 });
             } else if (conversationData.content) {
                 // Legacy format support
                 $chatHistory.html(conversationData.content);
+                
+                // Convert legacy messages to editable format
+                setTimeout(() => {
+                    if (window.PMV_MobileChat && window.PMV_MobileChat.convertExistingMessages) {
+                        window.PMV_MobileChat.convertExistingMessages();
+                    }
+                }, 100);
             }
 
             // Update conversation state
@@ -226,6 +260,11 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
 
             // Update character name in header if needed
             $('.chat-modal-name').text(characterName);
+
+            // Clear modification state
+            if (window.PMV_MobileChat && window.PMV_MobileChat.clearModified) {
+                window.PMV_MobileChat.clearModified();
+            }
 
             // Force scroll to bottom
             setTimeout(() => {
@@ -284,9 +323,9 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
         }
     }
 
-    // Character modal HTML builder
+    // Character modal HTML builder with full original functionality and enhanced save controls
     function buildCharacterModalHtml(character, fileUrl, rawMetadata) {
-        console.log('Building character modal HTML for:', character.name);
+        console.log('Building character modal HTML with message editing support for:', character.name);
         
         const name = character.name || 'Unnamed Character';
         const description = character.description || '';
@@ -312,7 +351,7 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
             escapedMetadata = '';
         }
 
-        // Build sections
+        // Build sections - preserving all original functionality
         let sections = [];
 
         if (description) {
@@ -369,22 +408,61 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
             sections.push(`<div class="character-section"><h3>Creator Notes</h3><div class="character-field">${escapeHtml(creatorNotes)}</div></div>`);
         }
 
-        // Tech info section
+        // Tech info section - preserving all original functionality
         sections.push(`<div class="character-section"><h3>Technical Information</h3><div class="character-field"><div class="tech-info"><div class="tech-row"><strong>Character Version:</strong> ${version || 'Not specified'}</div><div class="tech-row"><strong>Creator:</strong> ${creator || 'Unknown'}</div><div class="tech-row"><strong>Has Character Book:</strong> ${characterBook && characterBook.entries && characterBook.entries.length > 0 ? 'Yes (' + characterBook.entries.length + ' entries)' : 'No'}</div><div class="tech-row"><strong>Alternate Greetings:</strong> ${alternateGreetings.length}</div><div class="tech-row"><strong>Tags:</strong> ${tags.length}</div></div></div></div>`);
 
-        // Build modal HTML
-        const html = `<div class="character-modal-wrapper"><div class="character-details"><div class="character-header"><h2>${escapeHtml(name)}</h2>${creator ? `<div class="character-creator">Created by: ${escapeHtml(creator)}</div>` : ''}${version ? `<div class="character-version">Version: ${escapeHtml(version)}</div>` : ''}</div><div class="character-image"><img src="${fileUrl}" alt="${escapeHtml(name)}"></div><div id="character-info">${sections.join('')}</div><div class="character-footer"><a href="${fileUrl}" class="png-download-button" download>Download</a><button class="png-chat-button" data-metadata="${escapedMetadata}">${window.pmv_chat_button_text || 'Chat'}</button></div></div></div>`;
+        // Build modal HTML - preserving original layout with enhanced footer for conversation management
+        const html = `
+            <div class="character-modal-wrapper">
+                <div class="character-details">
+                    <div class="character-header">
+                        <h2>${escapeHtml(name)}</h2>
+                        ${creator ? `<div class="character-creator">Created by: ${escapeHtml(creator)}</div>` : ''}
+                        ${version ? `<div class="character-version">Version: ${escapeHtml(version)}</div>` : ''}
+                    </div>
+                    <div class="character-image">
+                        <img src="${fileUrl}" alt="${escapeHtml(name)}">
+                    </div>
+                    <div id="character-info">
+                        ${sections.join('')}
+                    </div>
+                    <div class="character-footer">
+                        <div class="footer-left">
+                            <a href="${fileUrl}" class="png-download-button" download>Download</a>
+                        </div>
+                        <div class="footer-center">
+                            <button class="png-chat-button" data-metadata="${escapedMetadata}">
+                                ${window.pmv_chat_button_text || 'Chat'}
+                            </button>
+                        </div>
+                        <div class="footer-right">
+                            <div class="conversation-controls">
+                                <button id="new-conversation" class="conversation-btn" title="Start a new conversation">
+                                    🔄 New Chat
+                                </button>
+                                <button id="save-conversation" class="conversation-btn" title="Save current conversation">
+                                    💾 Save
+                                </button>
+                                <button id="export-conversation" class="conversation-btn" data-format="json" title="Export conversation as JSON">
+                                    📤 Export
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
 
         return html;
     }
 
-    // Simplified setupTabSwitching function
+    // Simplified setupTabSwitching function - preserving original
     function setupTabSwitching() {
         // No tabs needed - simple layout
-        console.log('Character modal loaded - simple layout');
+        console.log('Character modal loaded - simple layout with message editing support');
     }
 
-    // Error modal function
+    // Error modal function - preserving original
     function showErrorModal(errorMessage, fileUrl) {
         $('#modal-content').html(
             `<div class="character-modal-wrapper">
@@ -406,17 +484,17 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
         $('#png-modal').fadeIn();
     }
 
-    // Universal chat system - same layout for all devices with desktop enhancements
+    // Universal chat system with message editing - same layout for all devices with desktop enhancements
     function startChat(metadata) {
         try {
-            console.log('Starting chat with character data');
+            console.log('Starting chat with character data and message editing support');
             window.chatInProgress = true;
 
             const parsedData = window.PMV_Chat.parseCharacterData(metadata);
             const character = window.PMV_Chat.extractCharacterInfo(parsedData);
             const botId = 'bot_' + (character.name || 'character').replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
-            // Create universal fullscreen chat UI - same for all devices
+            // Create universal fullscreen chat UI - same for all devices - preserving original structure
             const chatHtml = `
                 <div class="chat-container universal-layout">
                     <div class="chat-main">
@@ -428,10 +506,6 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
                             </button>
                         </div>
                         <div id="chat-history" class="chat-history">
-                            <div class="chat-message bot">
-                                <strong>${escapeHtml(character.name)}:</strong>
-                                <span class="chat-message-content-wrapper">${escapeHtml(character.first_mes || `Hello, I am ${character.name}. How can I help you today?`)}</span>
-                            </div>
                         </div>
                         <div id="chat-input-row" class="chat-input-container">
                             <div class="input-wrapper">
@@ -445,11 +519,11 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
 
             $('#modal-content').html(chatHtml);
 
-            // Add proper classes and setup for fullscreen mode
+            // Add proper classes and setup for fullscreen mode - preserving original
             $('body, html').addClass('chat-modal-open');
             $('#png-modal').addClass('fullscreen-chat');
 
-            // Store character data and bot ID on the modal
+            // Store character data and bot ID on the modal - preserving original
             $('#png-modal').find('.png-modal-content').addClass('chat-mode')
                 .data({
                     'characterData': parsedData,
@@ -457,7 +531,28 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
                     'isNewConversation': true
                 });
 
-            // Handle input resize with universal support
+            // Add initial message with editing support
+            setTimeout(() => {
+                const firstMessage = character.first_mes || `Hello, I am ${character.name}. How can I help you today?`;
+                
+                if (window.PMV_MobileChat && window.PMV_MobileChat.addEditableMessage) {
+                    window.PMV_MobileChat.addEditableMessage(
+                        firstMessage,
+                        'bot',
+                        character.name
+                    );
+                } else {
+                    // Fallback method - preserving original
+                    $('#chat-history').append(`
+                        <div class="chat-message bot">
+                            <strong>${escapeHtml(character.name)}:</strong>
+                            <span class="chat-message-content-wrapper">${escapeHtml(firstMessage)}</span>
+                        </div>
+                    `);
+                }
+            }, 100);
+
+            // Handle input resize with universal support - preserving original functionality
             $('#chat-input').on('input', function() {
                 const maxHeight = 120;
                 const minHeight = 50;
@@ -472,9 +567,9 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
                 }, 50);
             }).focus();
 
-            // Show the modal and apply layout
+            // Show the modal and apply layout - preserving original with enhancements
             $('#png-modal').fadeIn(100, function() {
-                console.log('Applying universal layout');
+                console.log('Applying universal layout with message editing');
                 
                 if (window.PMV_MobileChat) {
                     // Initialize universal system if not already done
@@ -493,14 +588,22 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
                             window.PMV_MobileChat.applyDesktopFixes();
                             window.PMV_MobileChat.fixDesktopSendButton();
                         }
+                        
+                        // Convert initial message to editable format
+                        setTimeout(() => {
+                            window.PMV_MobileChat.convertExistingMessages();
+                        }, 200);
                     }, 200);
                 }
 
-                // Force scroll after layout
+                // Force scroll after layout - preserving original
                 setTimeout(window.forceScrollToBottom, 300);
+                
+                // Trigger custom event
+                $(document).trigger('chat:started');
             });
 
-            // Initialize the conversation manager if available
+            // Initialize the conversation manager if available - preserving original
             if (window.PMV_ConversationManager) {
                 window.PMV_ConversationManager.init(parsedData, botId);
             }
@@ -508,12 +611,12 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
             console.error('Error starting chat:', error);
             alert('Error starting chat: ' + error.message);
             window.chatInProgress = false;
-            // Remove body classes on error
+            // Remove body classes on error - preserving original
             $('body, html').removeClass('chat-modal-open');
         }
     }
 
-    // Helper function for HTML escaping
+    // Helper function for HTML escaping - preserving original
     function escapeHtml(str) {
         if (typeof str !== 'string') return '';
         return str.replace(/[&<>"']/g, function(match) {
@@ -527,26 +630,38 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
         });
     }
 
-    // Enhanced chat message sending with universal support and desktop fixes
+    // Enhanced chat message sending with universal support, desktop fixes, message editing, and auto-save integration
     window.sendChatMessage = function() {
         const inputField = $('#chat-input');
         const message = inputField.val().trim();
         if (!message) return;
 
-        // Add user message to UI
-        $('#chat-history').append(`
-            <div class="chat-message user">
-                <strong>You:</strong>
-                <span class="chat-message-content-wrapper">${escapeHtml(message)}</span>
-            </div>
-        `);
+        // Check if currently editing a message
+        if (window.PMV_MobileChat && window.PMV_MobileChat.isEditing && window.PMV_MobileChat.isEditing()) {
+            alert('Please finish editing your current message before sending a new one.');
+            return;
+        }
 
-        // Reset textarea height after sending
+        // Add user message to UI with editing support
+        let userMessageId;
+        if (window.PMV_MobileChat && window.PMV_MobileChat.addEditableMessage) {
+            userMessageId = window.PMV_MobileChat.addEditableMessage(message, 'user', 'You');
+        } else {
+            // Fallback method - preserving original
+            $('#chat-history').append(`
+                <div class="chat-message user">
+                    <strong>You:</strong>
+                    <span class="chat-message-content-wrapper">${escapeHtml(message)}</span>
+                </div>
+            `);
+        }
+
+        // Reset textarea height after sending - preserving original
         inputField.val('').css('height', 'auto');
         const defaultHeight = 50;
         inputField.css('height', defaultHeight + 'px');
 
-        // Add typing indicator
+        // Add typing indicator - preserving original
         $('#chat-history').append('<div class="typing-indicator">Thinking...</div>');
 
         // Enhanced scroll handling for universal layout
@@ -554,24 +669,24 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
             window.forceScrollToBottom();
         }, 50);
 
-        // Get character data and conversation state
+        // Get character data and conversation state - preserving original
         const $modal = $('#png-modal').find('.png-modal-content');
         const characterData = $modal.data('characterData');
         const botId = $modal.data('botId');
         const isNewConversation = $modal.data('isNewConversation');
 
-        // Collect conversation history (exclude the current message and typing indicator)
+        // Collect conversation history (exclude the current message and typing indicator) - enhanced with editing support
         const conversationHistory = window.PMV_Chat.collectConversationHistory();
         // Remove the last message (the one we just added) and typing indicator
         conversationHistory.pop(); // Remove current user message
 
-        // Disable send button while processing
+        // Disable send button while processing - preserving original
         const $sendButton = $('#send-chat');
         $sendButton.prop('disabled', true)
                    .text('Sending...')
                    .addClass('sending');
 
-        // Prepare payload with character context and conversation history
+        // Prepare payload with character context and conversation history - preserving original
         let characterDataStr;
         try {
             characterDataStr = typeof characterData === 'object' ?
@@ -582,7 +697,7 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
             return;
         }
 
-        // Build the AJAX payload
+        // Build the AJAX payload - preserving original
         const ajaxData = {
             action: 'start_character_chat',
             character_data: characterDataStr,
@@ -591,7 +706,7 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
             nonce: pmv_ajax_object.nonce
         };
 
-        // Add conversation history if this is not a new conversation
+        // Add conversation history if this is not a new conversation - preserving original
         if (!isNewConversation && conversationHistory.length > 0) {
             ajaxData.conversation_history = JSON.stringify(conversationHistory);
         }
@@ -603,6 +718,7 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
             isNewConversation: isNewConversation
         });
 
+        // AJAX request with enhanced success handling for auto-save integration
         $.ajax({
             url: pmv_ajax_object.ajax_url,
             type: 'POST',
@@ -615,26 +731,48 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
                     const botResponse = response.data.choices[0].message.content;
                     const characterName = escapeHtml(response.data.character?.name || characterData?.name || characterData?.data?.name || 'AI');
 
-                    // Add bot message
-                    $('#chat-history').append(`
-                        <div class="chat-message bot">
-                            <strong>${characterName}:</strong>
-                            <span class="chat-message-content-wrapper">${escapeHtml(botResponse)}</span>
-                        </div>
-                    `);
+                    // Add bot message with editing support
+                    if (window.PMV_MobileChat && window.PMV_MobileChat.addEditableMessage) {
+                        window.PMV_MobileChat.addEditableMessage(
+                            botResponse,
+                            'bot',
+                            characterName
+                        );
+                    } else {
+                        // Fallback method - preserving original
+                        $('#chat-history').append(`
+                            <div class="chat-message bot">
+                                <strong>${characterName}:</strong>
+                                <span class="chat-message-content-wrapper">${escapeHtml(botResponse)}</span>
+                            </div>
+                        `);
+                    }
 
-                    // Mark conversation as no longer new after first exchange
+                    // Mark conversation as no longer new after first exchange - preserving original
                     $modal.data('isNewConversation', false);
 
-                    // Update conversation manager if active
+                    // Update conversation manager if active - preserving original
                     if (window.PMV_ConversationManager?.currentConversationId && botResponse) {
                         window.PMV_ConversationManager.updateCurrentConversationWithMessage('assistant', botResponse);
+                    }
+
+                    // ENHANCED: Trigger auto-save after successful message exchange
+                    if (window.PMV_MobileChat && window.PMV_MobileChat.triggerAutoSave) {
+                        console.log('Triggering auto-save after successful message exchange');
+                        window.PMV_MobileChat.triggerAutoSave(2000); // Auto-save after 2 seconds
                     }
 
                     // Enhanced scroll handling
                     setTimeout(() => {
                         window.forceScrollToBottom();
                     }, 50);
+                    
+                    // Trigger custom event for message added
+                    $(document).trigger('message:added', {
+                        userMessage: message,
+                        botResponse: botResponse,
+                        characterName: characterName
+                    });
                 } else {
                     handleChatError(response.data?.message || 'API request failed');
                 }
@@ -644,7 +782,7 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
                 handleChatError(error || 'Connection error');
             },
             complete: function() {
-                // Reset button
+                // Reset button - preserving original
                 setTimeout(function() {
                     $sendButton.prop('disabled', false)
                                .text('Send')
@@ -659,24 +797,36 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
         });
     };
 
-    // Store original send function in window scope
+    // Store original send function in window scope - preserving original
     window.originalSendChatMessage = window.sendChatMessage;
 
+    // Error handling function with editing support - enhanced while preserving original
     function handleChatError(error) {
         $('.typing-indicator').remove();
-        $('#chat-history').append(`
-            <div class="chat-message error">
-                <strong>Error:</strong>
-                <span class="chat-message-content-wrapper">${escapeHtml(error)}</span>
-            </div>
-        `);
+        
+        // Add error message with editing support
+        if (window.PMV_MobileChat && window.PMV_MobileChat.addEditableMessage) {
+            window.PMV_MobileChat.addEditableMessage(
+                error,
+                'error',
+                'Error'
+            );
+        } else {
+            // Fallback method - preserving original
+            $('#chat-history').append(`
+                <div class="chat-message error">
+                    <strong>Error:</strong>
+                    <span class="chat-message-content-wrapper">${escapeHtml(error)}</span>
+                </div>
+            `);
+        }
         
         // Enhanced error scroll handling
         setTimeout(() => {
             window.forceScrollToBottom();
         }, 50);
 
-        // Reset send button on error
+        // Reset send button on error - preserving original
         setTimeout(function() {
             $('#send-chat').prop('disabled', false)
                           .text('Send')
@@ -684,9 +834,9 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
         }, 100);
     }
 
-    // Function to load conversations - enhanced for universal layout
+    // Function to load conversations - enhanced for universal layout with editing support - preserving original
     window.loadConversationsIntoSidebar = function() {
-        console.log('Load conversations function called (universal layout)');
+        console.log('Load conversations function called (universal layout with editing)');
         if (window.PMV_MobileChat && window.PMV_MobileChat.loadConversations) {
             window.PMV_MobileChat.loadConversations();
         } else {
@@ -694,7 +844,7 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
         }
     };
 
-    // Event Handling with universal enhancements and desktop support
+    // Event Handling with universal enhancements, desktop support, message editing, and auto-save integration
     $(document)
         .on('click', '.png-image-container img', function(e) {
             console.log('Character card image clicked');
@@ -712,6 +862,23 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
         })
         .on('click', '.close-modal, #png-modal', function(e) {
             if (e.target === this || $(e.target).hasClass('close-modal')) {
+                // Check for unsaved edits - enhanced functionality
+                if (window.PMV_MobileChat && window.PMV_MobileChat.isEditing && window.PMV_MobileChat.isEditing()) {
+                    const confirmClose = confirm('You have unsaved message edits. Are you sure you want to close?');
+                    if (!confirmClose) {
+                        return;
+                    }
+                }
+                
+                // Check for unsaved conversation changes - enhanced functionality
+                if (window.PMV_MobileChat && window.PMV_MobileChat.hasUnsavedChanges && window.PMV_MobileChat.hasUnsavedChanges()) {
+                    const confirmClose = confirm('You have unsaved conversation changes. Are you sure you want to close?');
+                    if (!confirmClose) {
+                        return;
+                    }
+                }
+                
+                // Original close functionality
                 $('#png-modal').fadeOut().find('.png-modal-content').removeClass('chat-mode');
                 $('#png-modal').removeClass('fullscreen-chat');
                 // Reset chat state
@@ -724,6 +891,24 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
         })
         .on('click', '#close-chat', function(e) {
             e.preventDefault();
+            
+            // Check for unsaved edits - enhanced functionality
+            if (window.PMV_MobileChat && window.PMV_MobileChat.isEditing && window.PMV_MobileChat.isEditing()) {
+                const confirmClose = confirm('You have unsaved message edits. Are you sure you want to close?');
+                if (!confirmClose) {
+                    return;
+                }
+            }
+            
+            // Check for unsaved conversation changes - enhanced functionality
+            if (window.PMV_MobileChat && window.PMV_MobileChat.hasUnsavedChanges && window.PMV_MobileChat.hasUnsavedChanges()) {
+                const confirmClose = confirm('You have unsaved conversation changes. Are you sure you want to close?');
+                if (!confirmClose) {
+                    return;
+                }
+            }
+            
+            // Original close functionality
             $('#png-modal').fadeOut().find('.png-modal-content').removeClass('chat-mode');
             $('#png-modal').removeClass('fullscreen-chat');
             // Reset chat state
@@ -749,6 +934,24 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
             e.preventDefault();
             const conversationId = $(this).data('conversation-id');
             console.log('Conversation item clicked:', conversationId);
+            
+            // Check for unsaved edits before loading new conversation - enhanced functionality
+            if (window.PMV_MobileChat && window.PMV_MobileChat.isEditing && window.PMV_MobileChat.isEditing()) {
+                const confirmLoad = confirm('You have unsaved message edits. Loading a conversation will lose these changes. Continue?');
+                if (!confirmLoad) {
+                    return;
+                }
+            }
+            
+            // Check for unsaved conversation changes - enhanced functionality
+            if (window.PMV_MobileChat && window.PMV_MobileChat.hasUnsavedChanges && window.PMV_MobileChat.hasUnsavedChanges()) {
+                const confirmLoad = confirm('You have unsaved conversation changes. Loading a conversation will lose these changes. Continue?');
+                if (!confirmLoad) {
+                    return;
+                }
+            }
+            
+            // Original conversation loading functionality
             if (conversationId && window.PMV_ConversationManager?.loadConversation) {
                 window.PMV_ConversationManager.loadConversation(conversationId);
                 // Close menu after loading conversation
@@ -770,7 +973,125 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
             }
         });
 
-    // Enhanced responsive functions with universal support and desktop fixes
+    // Enhanced conversation management event handlers with auto-save integration
+    $(document)
+        .on('click', '#new-conversation', function(e) {
+            e.preventDefault();
+            console.log('New conversation button clicked');
+            
+            // Check for unsaved changes - enhanced functionality
+            let hasUnsavedChanges = false;
+            if (window.PMV_MobileChat && window.PMV_MobileChat.isEditing && window.PMV_MobileChat.isEditing()) {
+                hasUnsavedChanges = true;
+            }
+            if (window.PMV_MobileChat && window.PMV_MobileChat.hasUnsavedChanges && window.PMV_MobileChat.hasUnsavedChanges()) {
+                hasUnsavedChanges = true;
+            }
+            
+            if (hasUnsavedChanges) {
+                const confirmNew = confirm('You have unsaved changes. Starting a new conversation will lose these changes. Continue?');
+                if (!confirmNew) {
+                    return;
+                }
+            }
+            
+            if (window.PMV_ConversationManager && window.PMV_ConversationManager.startNewConversation) {
+                window.PMV_ConversationManager.startNewConversation();
+            } else {
+                console.log('Starting new conversation by clearing current chat');
+                // Fallback method
+                $('#chat-history').empty();
+                
+                // Add initial message if in chat context
+                if ($('#chat-history').length > 0) {
+                    const $modal = $('#png-modal').find('.png-modal-content');
+                    const characterData = $modal.data('characterData');
+                    
+                    if (characterData) {
+                        const character = window.PMV_Chat ? 
+                            window.PMV_Chat.extractCharacterInfo(characterData) : 
+                            (characterData.data || characterData);
+                        
+                        const firstMessage = character.first_mes || `Hello, I am ${character.name}. How can I help you today?`;
+                        
+                        if (window.PMV_MobileChat && window.PMV_MobileChat.addEditableMessage) {
+                            window.PMV_MobileChat.addEditableMessage(
+                                firstMessage,
+                                'bot',
+                                character.name || 'AI'
+                            );
+                        } else {
+                            $('#chat-history').append(`
+                                <div class="chat-message bot">
+                                    <strong>${escapeHtml(character.name || 'AI')}:</strong>
+                                    <span class="chat-message-content-wrapper">${escapeHtml(firstMessage)}</span>
+                                </div>
+                            `);
+                        }
+                    }
+                    
+                    $modal.data('isNewConversation', true);
+                    
+                    // Clear modification state
+                    if (window.PMV_MobileChat && window.PMV_MobileChat.clearModified) {
+                        window.PMV_MobileChat.clearModified();
+                    }
+                }
+            }
+        })
+        .on('click', '#save-conversation', function(e) {
+            e.preventDefault();
+            console.log('Save conversation button clicked');
+            
+            if (window.PMV_ConversationManager && window.PMV_ConversationManager.saveCurrentConversation) {
+                // Use the manual save method which prompts for title
+                window.PMV_ConversationManager.saveCurrentConversation();
+            } else if (window.PMV_MobileChat && window.PMV_MobileChat.performAutoSave) {
+                // Fallback to auto-save method
+                console.log('Using auto-save as fallback for manual save');
+                window.PMV_MobileChat.performAutoSave();
+            } else {
+                alert('Conversation manager not available');
+            }
+        })
+        .on('click', '#export-conversation', function(e) {
+            e.preventDefault();
+            console.log('Export conversation button clicked');
+            
+            const format = $(this).data('format') || 'json';
+            
+            if (window.PMV_ConversationManager && window.PMV_ConversationManager.exportConversation) {
+                window.PMV_ConversationManager.exportConversation(format);
+            } else {
+                // Fallback export functionality
+                console.log('Exporting conversation manually');
+                const messages = window.PMV_Chat.collectConversationHistory();
+                const $modal = $('#png-modal').find('.png-modal-content');
+                const characterData = $modal.data('characterData');
+                const character = window.PMV_Chat.extractCharacterInfo(characterData || {});
+                
+                const exportData = {
+                    character: character.name || 'Unknown',
+                    timestamp: new Date().toISOString(),
+                    messages: messages,
+                    format: format
+                };
+                
+                const dataStr = JSON.stringify(exportData, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                const url = URL.createObjectURL(dataBlob);
+                
+                const downloadLink = document.createElement('a');
+                downloadLink.href = url;
+                downloadLink.download = `conversation_${character.name || 'unknown'}_${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                URL.revokeObjectURL(url);
+            }
+        });
+
+    // Enhanced responsive functions with universal support, desktop fixes, and editing awareness - preserving original functionality
     window.addEventListener('resize', function() {
         if (!window.chatInProgress) return;
 
@@ -793,7 +1114,7 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
         }, 250);
     });
 
-    // Enhanced orientation change handling
+    // Enhanced orientation change handling - preserving original
     window.addEventListener('orientationchange', function() {
         if (!window.chatInProgress) return;
         
@@ -813,6 +1134,6 @@ console.log('PNG Metadata Viewer Chat Module Loaded');
         }, 500); // Longer delay for orientation changes
     });
 
-    console.log('PNG Metadata Viewer Chat Module Ready');
+    console.log('PNG Metadata Viewer Chat Module with Message Editing Ready');
 
 })(jQuery);

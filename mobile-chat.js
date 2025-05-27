@@ -1,5 +1,5 @@
-/* PNG Metadata Viewer - Universal Chat System - Consistent Layout for All Devices */
-console.log('PNG Metadata Viewer Universal Chat System Loading...');
+/* PNG Metadata Viewer - Universal Chat System with Message Editing - Consistent Layout for All Devices */
+console.log('PNG Metadata Viewer Universal Chat System with Message Editing Loading...');
 (function($) {
     'use strict';
     
@@ -26,7 +26,18 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
         keyboardOpen: false,
         originalViewportHeight: window.innerHeight,
         currentInputHeight: CHAT_CONFIG.minInputHeight,
-        isLayoutApplied: false
+        isLayoutApplied: false,
+        editingEnabled: true,
+        hasUnsavedChanges: false,
+        autoSaveEnabled: true,
+        lastSaveTime: null
+    };
+    
+    // Message editing state
+    const editingState = {
+        currentlyEditing: null,
+        originalContent: null,
+        hasUnsavedChanges: false
     };
     
     // Check if we're in a chat context
@@ -80,7 +91,7 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
         checkDependencies();
     }
     
-    // Add CSS for universal layout - same for all devices with desktop fixes
+    // Add CSS for universal layout with message editing support
     function addUniversalLayoutCSS() {
         if ($('#universal-chat-css').length) return;
         
@@ -98,7 +109,8 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
                 display: flex !important;
                 flex-direction: column !important;
                 overflow: hidden !important;
-                background: #f5f5f5 !important;
+                background: #232323 !important;
+                color: #f1f1f1 !important;
                 z-index: 999999 !important;
             }
             
@@ -109,7 +121,8 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
                 min-height: ${CHAT_CONFIG.headerHeight}px !important;
                 max-height: ${CHAT_CONFIG.headerHeight}px !important;
                 flex-shrink: 0 !important;
-                background: rgba(255,255,255,0.98) !important;
+                background: #232323 !important;
+                color: #f1f1f1 !important;
                 backdrop-filter: blur(10px) !important;
                 border-bottom: 2px solid rgba(0,0,0,0.1) !important;
                 z-index: 10 !important;
@@ -142,7 +155,8 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
                 overflow-x: hidden !important;
                 -webkit-overflow-scrolling: touch !important;
                 scroll-behavior: smooth !important;
-                background: white !important;
+                background: #232323 !important;
+                color: #f1f1f1 !important;
                 margin: 8px 8px 0 8px !important;
                 border-radius: 12px 12px 0 0 !important;
                 padding: 16px !important;
@@ -154,7 +168,7 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
                 
                 /* Enhanced scrollbar */
                 scrollbar-width: thin !important;
-                scrollbar-color: #4a90e2 #f0f0f0 !important;
+                scrollbar-color: #33452c !important;
             }
             
             /* Webkit scrollbar styling */
@@ -169,15 +183,16 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
             }
             
             .chat-modal-open .chat-container #chat-history::-webkit-scrollbar-thumb {
-                background: #4a90e2 !important;
+                background: #33452c !important;
                 border-radius: 3px !important;
             }
-            
+             
             /* Input container - seamlessly connected to history */
             .chat-modal-open .chat-container #chat-input-row {
                 position: relative !important;
                 flex-shrink: 0 !important;
-                background: white !important;
+                background: #232323 !important;
+                color: #f1f1f1 !important;
                 margin: 0 8px 8px 8px !important;
                 padding: 12px !important;
                 border-radius: 0 0 12px 12px !important;
@@ -216,14 +231,15 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
                 min-height: 46px !important;
                 max-height: 100px !important;
                 padding: 10px 14px !important;
-                border: 2px solid #e0e0e0 !important;
+                border: 2px solid #4b5748 !important;;
                 border-radius: 10px !important;
                 font-size: 16px !important;
                 line-height: 1.4 !important;
                 resize: none !important;
                 outline: none !important;
                 font-family: inherit !important;
-                background: #fafafa !important;
+                background: #2f322e !important;
+                color: #f1f1f1 !important;
                 box-sizing: border-box !important;
                 transition: border-color 0.2s ease !important;
                 display: block !important;
@@ -232,8 +248,8 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
             }
             
             .chat-modal-open .chat-container #chat-input:focus {
-                border-color: #4a90e2 !important;
-                background: white !important;
+                border-color: #4f614a !important;
+                background: #2e302e !important;
                 box-shadow: 0 0 0 3px rgba(74,144,226,0.1) !important;
             }
             
@@ -243,7 +259,7 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
                 flex: 0 0 auto !important;
                 flex-shrink: 0 !important;
                 padding: 10px 20px !important;
-                background: #4a90e2 !important;
+                background: #3c4138 !important;
                 color: white !important;
                 border: none !important;
                 border-radius: 10px !important;
@@ -272,13 +288,225 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
             .chat-modal-open .chat-container .chat-send-button:active,
             .chat-modal-open .chat-container #send-chat:hover,
             .chat-modal-open .chat-container #send-chat:active {
-                background: #357abd !important;
+                background: #6c6969 !important;
             }
             
             .chat-modal-open .chat-container .chat-send-button:disabled,
             .chat-modal-open .chat-container #send-chat:disabled {
-                background: #ccc !important;
+                background: #353a32 !important;
                 cursor: not-allowed !important;
+            }
+            
+            /* MESSAGE EDITING STYLES - INTEGRATED WITH UNIVERSAL LAYOUT */
+            
+            /* Message Header with Actions */
+            .chat-modal-open .chat-container .chat-message .message-header {
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: flex-start !important;
+                margin-bottom: 8px !important;
+                gap: 10px !important;
+            }
+            
+            .chat-modal-open .chat-container .chat-message .speaker-name {
+                flex: 1 !important;
+                color: #f1f1f1 !important;
+                font-weight: 600 !important;
+                line-height: 1.4 !important;
+            }
+            
+            .chat-modal-open .chat-container .chat-message.user .speaker-name {
+                color: #b1dda8 !important;
+            }
+            
+            .chat-modal-open .chat-container .chat-message.bot .speaker-name {
+                color: #aff2df !important;
+            }
+            
+            .chat-modal-open .chat-container .chat-message.error .speaker-name {
+                color: #c33 !important;
+            }
+            
+            /* Message Actions */
+            .chat-modal-open .chat-container .message-actions {
+                display: flex !important;
+                gap: 4px !important;
+                opacity: 0 !important;
+                transition: opacity 0.2s ease !important;
+                flex-shrink: 0 !important;
+            }
+            
+            .chat-modal-open .chat-container .chat-message:hover .message-actions {
+                opacity: 1 !important;
+            }
+            
+            .chat-modal-open .chat-container .chat-message.editing .message-actions {
+                opacity: 1 !important;
+            }
+            
+            .chat-modal-open .chat-container .message-actions button {
+                background: rgba(0, 0, 0, 0.1) !important;
+                border: none !important;
+                border-radius: 4px !important;
+                padding: 4px 6px !important;
+                cursor: pointer !important;
+                color: #666 !important;
+                font-size: 12px !important;
+                line-height: 1 !important;
+                transition: all 0.2s ease !important;
+                min-width: 24px !important;
+                height: 24px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+            
+            .chat-modal-open .chat-container .message-actions button:hover {
+                background: rgba(0, 0, 0, 0.2) !important;
+                color: #93d29a !important;
+            }
+            
+            .chat-modal-open .chat-container .edit-message-btn:hover {
+                background: rgba(74, 144, 226, 0.2) !important;
+                color: #93d29a !important;
+            }
+            
+            .chat-modal-open .chat-container .regenerate-message-btn:hover {
+                background: rgba(255, 193, 7, 0.2) !important;
+                color: #93d29a !important;
+            }
+            
+            .chat-modal-open .chat-container .delete-message-btn:hover {
+                background: rgba(231, 76, 60, 0.2) !important;
+                color: #93d29a !important;
+            }
+            
+            /* Message Content Container */
+            .chat-modal-open .chat-container .chat-message .message-content {
+                position: relative !important;
+                width: 100% !important;
+            }
+            
+            .chat-modal-open .chat-container .chat-message .chat-message-content-wrapper {
+                display: block !important;
+                word-wrap: break-word !important;
+                line-height: 1.6 !important;
+                color: #f1f1f1 !important;
+            }
+            
+            /* Edit Interface */
+            .chat-modal-open .chat-container .message-edit-container {
+                width: 100% !important;
+                margin-top: 8px !important;
+            }
+            
+            .chat-modal-open .chat-container .message-edit-textarea {
+                width: 100% !important;
+                min-height: 60px !important;
+                max-height: 300px !important;
+                padding: 12px !important;
+                border: 2px solid #2a2a2a !important;
+                border-radius: 8px !important;
+                background: #1a1f19 !important;
+                color: #f1f1f1 !important;
+                font-family: inherit !important;
+                font-size: 14px !important;
+                line-height: 1.6 !important;
+                resize: none !important;
+                outline: none !important;
+                box-sizing: border-box !important;
+                transition: border-color 0.2s ease !important;
+            }
+            
+            .chat-modal-open .chat-container .message-edit-textarea:focus {
+                border-color: #90e996 !important;
+                box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1) !important;
+            }
+            
+            .chat-modal-open .chat-container .edit-actions {
+                display: flex !important;
+                gap: 8px !important;
+                margin-top: 8px !important;
+                justify-content: flex-end !important;
+            }
+            
+            .chat-modal-open .chat-container .edit-actions button {
+                padding: 6px 16px !important;
+                border: none !important;
+                border-radius: 6px !important;
+                font-size: 14px !important;
+                font-weight: 500 !important;
+                cursor: pointer !important;
+                transition: all 0.2s ease !important;
+                min-width: 70px !important;
+            }
+            
+            .chat-modal-open .chat-container .save-edit-btn {
+                background: #425643 !important;
+                color: white !important;
+            }
+            
+            .chat-modal-open .chat-container .save-edit-btn:hover {
+                background: #3f5d40 !important;
+            }
+            
+            .chat-modal-open .chat-container .cancel-edit-btn {
+                background: #6c6969 !important;
+                color: white !important;
+            }
+            
+            .chat-modal-open .chat-container .cancel-edit-btn:hover {
+                background: #808080 !important;
+            }
+            
+            /* Editing State Styles */
+            .chat-modal-open .chat-container .chat-message.editing {
+                background: rgba(93, 226, 74, 0.04) !important;;
+                border-left: 3px solid #3c453c !important;
+                padding-left: 12px !important;
+                margin-left: -15px !important;
+                border-radius: 0 8px 8px 0 !important;
+            }
+            
+            .chat-modal-open .chat-container.message-editing-mode .chat-message:not(.editing) {
+                opacity: 0.6 !important;
+            }
+            
+            .chat-modal-open .chat-container.message-editing-mode .chat-input-container {
+                opacity: 0.6 !important;
+            }
+            
+            /* Regenerating state styles */
+            .chat-modal-open .chat-container .chat-message.regenerating {
+                background: rgba(255, 193, 7, 0.04) !important;
+                border-left: 3px solid #ffc107 !important;
+                padding-left: 12px !important;
+                margin-left: -15px !important;
+                border-radius: 0 8px 8px 0 !important;
+            }
+            
+            .chat-modal-open .chat-container .regenerating-indicator {
+                color: #ffc107 !important;
+                font-style: italic !important;
+                font-size: 12px !important;
+                margin-top: 4px !important;
+                display: flex !important;
+                align-items: center !important;
+                gap: 5px !important;
+            }
+            
+            .chat-modal-open .chat-container .regenerating-spinner {
+                display: inline-block !important;
+                width: 12px !important;
+                height: 12px !important;
+                border: 2px solid #ffc107 !important;
+                border-radius: 50% !important;
+                border-top-color: transparent !important;
+                animation: spin 1s ease-in-out infinite !important;
+            }
+            
+            @keyframes spin {
+                to { transform: rotate(360deg); }
             }
             
             /* DESKTOP SPECIFIC FIXES */
@@ -332,6 +560,55 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
                     min-width: 100px !important;
                     max-width: 140px !important;
                 }
+                
+                /* Desktop message editing enhancements */
+                .chat-modal-open .chat-container .message-actions button {
+                    min-width: 26px !important;
+                    height: 26px !important;
+                }
+                
+                .chat-modal-open .chat-container .message-edit-textarea {
+                    padding: 14px !important;
+                    font-size: 15px !important;
+                }
+                
+                .chat-modal-open .chat-container .edit-actions button {
+                    padding: 8px 20px !important;
+                    min-width: 80px !important;
+                }
+            }
+            
+            /* Mobile-specific adjustments for editing */
+            @media (max-width: 768px) {
+                .chat-modal-open .chat-container .message-actions {
+                    opacity: 1 !important; /* Always visible on mobile */
+                }
+                
+                .chat-modal-open .chat-container .message-actions button {
+                    min-width: 28px !important;
+                    height: 28px !important;
+                    padding: 6px !important;
+                }
+                
+                .chat-modal-open .chat-container .chat-message .message-header {
+                    flex-wrap: wrap !important;
+                    gap: 8px !important;
+                }
+                
+                .chat-modal-open .chat-container .message-edit-textarea {
+                    font-size: 16px !important; /* Prevent zoom on iOS */
+                    padding: 10px !important;
+                }
+                
+                .chat-modal-open .chat-container .edit-actions {
+                    justify-content: stretch !important;
+                }
+                
+                .chat-modal-open .chat-container .edit-actions button {
+                    flex: 1 !important;
+                    padding: 10px 16px !important;
+                    font-size: 16px !important;
+                }
             }
             
             /* UNIVERSAL BUTTON FORCE VISIBILITY - MAXIMUM OVERRIDE */
@@ -341,12 +618,22 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
             .chat-send-button,
             .close-chat-btn,
             #close-chat,
+            .edit-message-btn,
+            .regenerate-message-btn,
+            .delete-message-btn,
+            .save-edit-btn,
+            .cancel-edit-btn,
             .chat-modal-open .chat-container button#mobile-menu-toggle,
             .chat-modal-open .chat-container button#send-chat,
             .chat-modal-open .chat-container .mobile-menu-btn,
             .chat-modal-open .chat-container .chat-send-button,
             .chat-modal-open .chat-container .close-chat-btn,
-            .chat-modal-open .chat-container #close-chat {
+            .chat-modal-open .chat-container #close-chat,
+            .chat-modal-open .chat-container .edit-message-btn,
+            .chat-modal-open .chat-container .regenerate-message-btn,
+            .chat-modal-open .chat-container .delete-message-btn,
+            .chat-modal-open .chat-container .save-edit-btn,
+            .chat-modal-open .chat-container .cancel-edit-btn {
                 display: block !important;
                 visibility: visible !important;
                 opacity: 1 !important;
@@ -378,7 +665,7 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
             button#mobile-menu-toggle,
             .mobile-menu-btn {
                 background: rgba(0,0,0,0.1) !important;
-                color: #333 !important;
+                color: #f1f1f1 !important;
                 font-size: 18px !important;
                 font-weight: bold !important;
                 padding: 8px 12px !important;
@@ -388,14 +675,14 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
             button#close-chat,
             .close-chat-btn {
                 background: rgba(255,0,0,0.1) !important;
-                color: #333 !important;
+                color: #f1f1f1 !important;
                 padding: 8px 12px !important;
             }
             
             /* Send button specific styling */
             button#send-chat,
             .chat-send-button {
-                background: #4a90e2 !important;
+                background: #35bd3e !important;
                 color: white !important;
                 font-weight: 600 !important;
                 padding: 10px 20px !important;
@@ -407,11 +694,18 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
                 text-align: center !important;
                 font-weight: 600 !important;
                 font-size: 18px !important;
-                color: #333 !important;
+                color: #f1f1f1 !important;
                 margin: 0 15px !important;
                 white-space: nowrap !important;
                 overflow: hidden !important;
                 text-overflow: ellipsis !important;
+                transition: color 0.2s ease !important;
+            }
+            
+            /* Modified conversation indicator */
+            .chat-modal-open .chat-container .chat-modal-name[title*="unsaved"],
+            .chat-modal-open .chat-container .chat-modal-name:contains("*") {
+                color: #f39c12 !important;
             }
             
             /* Chat messages styling */
@@ -420,10 +714,10 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
                 word-wrap: break-word !important;
                 max-width: 100% !important;
                 line-height: 1.6 !important;
-                padding: 0 !important;
                 display: block !important;
                 visibility: visible !important;
                 opacity: 1 !important;
+                transition: all 0.3s ease !important;
             }
             
             .chat-modal-open .chat-container .chat-message:last-child {
@@ -432,29 +726,35 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
             
             /* Message content styling */
             .chat-modal-open .chat-container .chat-message strong {
-                color: #333 !important;
+                color: #f1f1f1 !important;
                 font-weight: 600 !important;
             }
             
             .chat-modal-open .chat-container .chat-message.user strong {
-                color: #4a90e2 !important;
+                color: #9effa5 !important;
             }
             
             .chat-modal-open .chat-container .chat-message.bot strong {
-                color: #e74c3c !important;
+                color: #85c5bf !important;
             }
             
             /* Typing indicator */
             .chat-modal-open .chat-container .typing-indicator {
                 margin-bottom: 16px !important;
                 font-style: italic !important;
-                color: #666 !important;
+                color: #f1f1f1 !important;
                 padding: 8px 12px !important;
-                background: #f0f0f0 !important;
+                background: #3d4740 !important;
                 border-radius: 8px !important;
                 display: inline-block !important;
                 visibility: visible !important;
                 opacity: 1 !important;
+                animation: pulse 1.5s infinite !important;
+            }
+            
+            @keyframes pulse {
+                0%, 100% { opacity: 0.6 !important; }
+                50% { opacity: 1 !important; }
             }
             
             /* Error message styling */
@@ -469,6 +769,15 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
                 color: #c33 !important;
             }
             
+            .chat-modal-open .chat-container .chat-message.error .message-edit-textarea {
+                border-color: #aff2df !important;
+            }
+            
+            .chat-modal-open .chat-container .chat-message.error .message-edit-textarea:focus {
+                border-color: #35bd3e !important;
+                box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1) !important;
+            }
+            
             /* Sidebar styles for menu functionality */
             .pmv-mobile-sidebar {
                 position: fixed !important;
@@ -477,7 +786,7 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
                 width: ${CHAT_CONFIG.sidebarWidth} !important;
                 max-width: ${CHAT_CONFIG.maxSidebarWidth} !important;
                 height: 100vh !important;
-                background: white !important;
+                background: #232323 !important;
                 z-index: ${CHAT_CONFIG.menuZIndex + 1} !important;
                 transition: left 0.3s ease !important;
                 box-shadow: 2px 0 10px rgba(0,0,0,0.1) !important;
@@ -529,7 +838,7 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
             .mobile-sidebar-header h3 {
                 margin: 0 !important;
                 font-size: 18px !important;
-                color: #333 !important;
+                color: #f1f1f1 !important;
             }
             
             .mobile-close-btn {
@@ -553,7 +862,26 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
             }
             
             .mobile-new-chat-btn {
-                background: #4a90e2 !important;
+                background: #303030 !important;
+                color: white !important;
+                border: none !important;
+                padding: 12px 20px !important;
+                border-radius: 8px !important;
+                font-size: 16px !important;
+                font-weight: 600 !important;
+                cursor: pointer !important;
+                margin-bottom: 10px !important;
+                transition: background-color 0.2s ease !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            
+            .mobile-new-chat-btn:hover {
+                background: #404040 !important;
+            }
+            
+            .mobile-save-chat-btn {
+                background: #36473B !important;
                 color: white !important;
                 border: none !important;
                 padding: 12px 20px !important;
@@ -567,8 +895,13 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
                 box-sizing: border-box !important;
             }
             
-            .mobile-new-chat-btn:hover {
-                background: #357abd !important;
+            .mobile-save-chat-btn:hover {
+                background: #3B4F41 !important;
+            }
+            
+            .mobile-save-chat-btn:disabled {
+                background: #666 !important;
+                cursor: not-allowed !important;
             }
             
             .mobile-conversations-list {
@@ -578,7 +911,7 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
             
             .conversation-item {
                 padding: 12px !important;
-                border-bottom: 1px solid #eee !important;
+                border-bottom: 1px solid #394335 !important
                 cursor: pointer !important;
                 transition: background-color 0.2s ease !important;
                 border-radius: 6px !important;
@@ -586,7 +919,7 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
             }
             
             .conversation-item:hover {
-                background: #f5f5f5 !important;
+                background: #363e39 !important;
             }
             
             .conversation-item:last-child {
@@ -595,7 +928,7 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
             
             .conversation-title {
                 font-weight: 600 !important;
-                color: #333 !important;
+                color: #f1f1f1 !important;
                 margin-bottom: 4px !important;
                 font-size: 14px !important;
                 white-space: nowrap !important;
@@ -627,7 +960,7 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
             .retry-button {
                 margin-top: 10px !important;
                 padding: 8px 16px !important;
-                background: #4a90e2 !important;
+                background: #35bd3e !important;
                 color: white !important;
                 border: none !important;
                 border-radius: 4px !important;
@@ -637,7 +970,36 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
             }
             
             .retry-button:hover {
-                background: #357abd !important;
+                background: #1b7f26 !important;
+            }
+            
+            /* Save status indicator */
+            .save-status {
+                position: fixed !important;
+                top: 80px !important;
+                right: 20px !important;
+                padding: 8px 12px !important;
+                border-radius: 6px !important;
+                font-size: 12px !important;
+                font-weight: 600 !important;
+                z-index: 100000 !important;
+                transition: all 0.3s ease !important;
+                pointer-events: none !important;
+            }
+            
+            .save-status.saving {
+                background: #ffc107 !important;
+                color: #000 !important;
+            }
+            
+            .save-status.saved {
+                background: #28a745 !important;
+                color: white !important;
+            }
+            
+            .save-status.error {
+                background: #dc3545 !important;
+                color: white !important;
             }
             
             /* Keyboard adjustments for touch devices */
@@ -645,12 +1007,36 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
                 /* Input container remains pinned */
             }
             
-            /* Hide scrollbar on webkit for cleaner look */
-            .chat-modal-open .chat-container #chat-history::-webkit-scrollbar {
-                width: 4px !important;
+            /* Accessibility improvements */
+            .chat-modal-open .chat-container .message-actions button:focus {
+                outline: 2px solid #35bd3e !important;
+                outline-offset: 2px !important;
             }
             
-            /* Additional animations */
+            .chat-modal-open .chat-container .message-edit-textarea:focus {
+                outline: none !important; /* Custom focus styling via border and box-shadow */
+            }
+            
+            /* Scrollbar styling for edit textarea */
+            .chat-modal-open .chat-container .message-edit-textarea::-webkit-scrollbar {
+                width: 6px !important;
+            }
+            
+            .chat-modal-open .chat-container .message-edit-textarea::-webkit-scrollbar-track {
+                background: rgba(0, 0, 0, 0.1) !important;
+                border-radius: 3px !important;
+            }
+            
+            .chat-modal-open .chat-container .message-edit-textarea::-webkit-scrollbar-thumb {
+                background: #35bd3e !important;
+                border-radius: 3px !important;
+            }
+            
+            .chat-modal-open .chat-container .message-edit-textarea::-webkit-scrollbar-thumb:hover {
+                background: #1b7f26 !important;
+            }
+            
+            /* Animation for smooth transitions */
             .chat-modal-open .chat-container .chat-message {
                 animation: fadeInMessage 0.3s ease !important;
             }
@@ -666,23 +1052,705 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
                 }
             }
             
-            .typing-indicator {
-                animation: pulse 1.5s infinite !important;
+            /* High contrast mode support */
+            @media (prefers-contrast: high) {
+                .chat-modal-open .chat-container .message-actions button {
+                    border: 1px solid currentColor !important;
+                }
+                
+                .chat-modal-open .chat-container .message-edit-textarea {
+                    border-width: 3px !important;
+                }
+                
+                .chat-modal-open .chat-container .chat-message.editing {
+                    border-left-width: 4px !important;
+                }
             }
             
-            @keyframes pulse {
-                0%, 100% { opacity: 0.6 !important; }
-                50% { opacity: 1 !important; }
+            /* Reduced motion support */
+            @media (prefers-reduced-motion: reduce) {
+                .chat-modal-open .chat-container .chat-message,
+                .chat-modal-open .chat-container .message-edit-container,
+                .chat-modal-open .chat-container .message-actions,
+                .chat-modal-open .chat-container .message-actions button {
+                    transition: none !important;
+                }
+                
+                .chat-modal-open .chat-container .typing-indicator {
+                    animation: none !important;
+                }
+                
+                .chat-modal-open .chat-container .chat-message {
+                    animation: none !important;
+                }
+                
+                .chat-modal-open .chat-container .regenerating-spinner {
+                    animation: none !important;
+                }
             }
             </style>
         `;
         $('head').append(css);
-        console.log('Universal layout CSS added');
+        console.log('Universal layout CSS with message editing added');
+    }
+    
+    // Auto-save functionality
+    function triggerAutoSave(delay = 2000) {
+        if (!chatState.autoSaveEnabled) return;
+        
+        chatState.hasUnsavedChanges = true;
+        updateHeaderWithUnsavedIndicator();
+        
+        // Debounced auto-save
+        clearTimeout(chatState.autoSaveTimeout);
+        chatState.autoSaveTimeout = setTimeout(() => {
+            performAutoSave();
+        }, delay);
+    }
+    
+    function performAutoSave() {
+        if (!chatState.hasUnsavedChanges) return;
+        
+        console.log('Performing auto-save...');
+        showSaveStatus('saving');
+        
+        if (window.PMV_ConversationManager && window.PMV_ConversationManager.saveCurrentConversation) {
+            // Use the existing save method but don't prompt for title
+            const messages = collectEditableConversationHistory();
+            if (messages.length === 0) {
+                console.log('No messages to save');
+                return;
+            }
+            
+            // Auto-generate title if this is a new conversation
+            const $modal = $('#png-modal').find('.png-modal-content');
+            const characterData = $modal.data('characterData');
+            const character = window.PMV_Chat ? window.PMV_Chat.extractCharacterInfo(characterData) : {};
+            const characterName = character.name || 'AI';
+            
+            let title = `Chat with ${characterName}`;
+            if (window.PMV_ConversationManager.currentConversationId) {
+                // Keep existing title for updates
+                const existingConv = window.PMV_ConversationManager.conversations.find(c => c.id == window.PMV_ConversationManager.currentConversationId);
+                if (existingConv) {
+                    title = existingConv.title;
+                }
+            } else {
+                // Add timestamp for new conversations
+                title += ` - ${new Date().toLocaleDateString()}`;
+            }
+            
+            const conversationData = {
+                character_id: window.PMV_ConversationManager.characterId,
+                title: title,
+                messages: messages
+            };
+            
+            if (window.PMV_ConversationManager.currentConversationId) {
+                conversationData.id = window.PMV_ConversationManager.currentConversationId;
+            }
+            
+            // Save via AJAX directly to avoid user prompts
+            $.ajax({
+                url: pmv_ajax_object.ajax_url,
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    action: 'pmv_save_conversation',
+                    conversation: JSON.stringify(conversationData),
+                    nonce: pmv_ajax_object.nonce
+                },
+                success: function(response) {
+                    if (response.success) {
+                        window.PMV_ConversationManager.currentConversationId = response.data.id;
+                        chatState.hasUnsavedChanges = false;
+                        chatState.lastSaveTime = new Date();
+                        updateHeaderWithSavedIndicator();
+                        showSaveStatus('saved');
+                        
+                        // Refresh conversation list
+                        if (window.PMV_ConversationManager.loadConversationList) {
+                            window.PMV_ConversationManager.loadConversationList();
+                        }
+                        if (window.PMV_ConversationManager.loadConversationListMobile) {
+                            window.PMV_ConversationManager.loadConversationListMobile();
+                        }
+                        
+                        console.log('Auto-save successful');
+                    } else {
+                        showSaveStatus('error');
+                        console.error('Auto-save failed:', response.data?.message);
+                    }
+                },
+                error: function(xhr) {
+                    showSaveStatus('error');
+                    console.error('Auto-save error:', xhr.responseText);
+                }
+            });
+        } else {
+            showSaveStatus('error');
+            console.warn('ConversationManager not available for auto-save');
+        }
+    }
+    
+    function showSaveStatus(status) {
+        // Remove existing status
+        $('.save-status').remove();
+        
+        let text = '';
+        switch(status) {
+            case 'saving':
+                text = 'Saving...';
+                break;
+            case 'saved':
+                text = 'Saved ✓';
+                break;
+            case 'error':
+                text = 'Save Error ✗';
+                break;
+        }
+        
+        const $status = $(`<div class="save-status ${status}">${text}</div>`);
+        $('body').append($status);
+        
+        // Auto-hide after delay
+        if (status !== 'saving') {
+            setTimeout(() => {
+                $status.fadeOut(300, function() {
+                    $(this).remove();
+                });
+            }, 2000);
+        }
+    }
+    
+    function updateHeaderWithUnsavedIndicator() {
+        const $headerName = $('.chat-modal-name');
+        if (!$headerName.text().includes('*')) {
+            $headerName.text($headerName.text() + ' *').attr('title', 'Unsaved changes');
+        }
+    }
+    
+    function updateHeaderWithSavedIndicator() {
+        const $headerName = $('.chat-modal-name');
+        $headerName.text($headerName.text().replace(' *', '')).removeAttr('title');
+    }
+    
+    // Message editing functionality
+    function generateMessageId() {
+        return 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+    
+    function createEditableMessage(content, messageClass, speakerName, messageId) {
+        const isUser = messageClass === 'user';
+        const isBot = messageClass === 'bot';
+        const isError = messageClass === 'error';
+        
+        // Create action buttons based on message type
+        let actionButtons = `
+            <button class="edit-message-btn" title="Edit message">
+                <span class="dashicons dashicons-edit"></span>
+            </button>
+            <button class="delete-message-btn" title="Delete message">
+                <span class="dashicons dashicons-trash"></span>
+            </button>
+        `;
+        
+        // Add regenerate button for bot messages only
+        if (isBot && !isError) {
+            actionButtons = `
+                <button class="edit-message-btn" title="Edit message">
+                    <span class="dashicons dashicons-edit"></span>
+                </button>
+                <button class="regenerate-message-btn" title="Regenerate response">
+                    <span class="dashicons dashicons-update"></span>
+                </button>
+                <button class="delete-message-btn" title="Delete message">
+                    <span class="dashicons dashicons-trash"></span>
+                </button>
+            `;
+        }
+        
+        const messageHtml = `
+            <div class="chat-message ${messageClass}" data-message-id="${messageId}">
+                <div class="message-header">
+                    <strong class="speaker-name">${escapeHtml(speakerName)}:</strong>
+                    <div class="message-actions">
+                        ${actionButtons}
+                    </div>
+                </div>
+                <div class="message-content">
+                    <span class="chat-message-content-wrapper">${escapeHtml(content)}</span>
+                    <div class="message-edit-container" style="display: none;">
+                        <textarea class="message-edit-textarea" rows="3">${escapeHtml(content)}</textarea>
+                        <div class="edit-actions">
+                            <button class="save-edit-btn">Save</button>
+                            <button class="cancel-edit-btn">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        return messageHtml;
+    }
+    
+    function addEditableMessage(content, messageClass, speakerName) {
+        const messageId = generateMessageId();
+        const messageHtml = createEditableMessage(content, messageClass, speakerName, messageId);
+        
+        $('#chat-history').append(messageHtml);
+        
+        // Trigger auto-save for new messages
+        triggerAutoSave();
+        
+        setTimeout(() => {
+            forceScrollToBottom();
+        }, 50);
+        
+        return messageId;
+    }
+    
+    function startEditingMessage($message) {
+        if (editingState.currentlyEditing) {
+            cancelMessageEdit($(editingState.currentlyEditing));
+        }
+        
+        const $contentWrapper = $message.find('.chat-message-content-wrapper');
+        const $editContainer = $message.find('.message-edit-container');
+        const $textarea = $message.find('.message-edit-textarea');
+        
+        editingState.originalContent = $contentWrapper.text();
+        editingState.currentlyEditing = $message[0];
+        editingState.hasUnsavedChanges = false;
+        
+        $contentWrapper.hide();
+        $editContainer.show();
+        
+        $textarea.focus();
+        autoResizeTextarea($textarea[0]);
+        
+        $message.addClass('editing');
+        $('.chat-container').addClass('message-editing-mode');
+        
+        updateEditingUI(true);
+    }
+    
+    function saveMessageEdit($message) {
+        const $textarea = $message.find('.message-edit-textarea');
+        const $contentWrapper = $message.find('.chat-message-content-wrapper');
+        const $editContainer = $message.find('.message-edit-container');
+        
+        const newContent = $textarea.val().trim();
+        
+        if (newContent === '') {
+            alert('Message cannot be empty');
+            return;
+        }
+        
+        $contentWrapper.html(escapeHtml(newContent));
+        
+        $editContainer.hide();
+        $contentWrapper.show();
+        
+        $message.removeClass('editing');
+        $('.chat-container').removeClass('message-editing-mode');
+        editingState.currentlyEditing = null;
+        editingState.originalContent = null;
+        editingState.hasUnsavedChanges = false;
+        
+        updateEditingUI(false);
+        
+        // Trigger auto-save after editing
+        triggerAutoSave(1000); // Shorter delay for edits
+        
+        setTimeout(() => {
+            forceScrollToBottom();
+        }, 50);
+        
+        // Trigger custom event
+        $(document).trigger('message:edited', [$message]);
+        
+        console.log('Message edited and will be auto-saved');
+    }
+    
+    function cancelMessageEdit($message) {
+        const $contentWrapper = $message.find('.chat-message-content-wrapper');
+        const $editContainer = $message.find('.message-edit-container');
+        const $textarea = $message.find('.message-edit-textarea');
+        
+        if (editingState.originalContent !== null) {
+            $textarea.val(editingState.originalContent);
+        }
+        
+        $editContainer.hide();
+        $contentWrapper.show();
+        
+        $message.removeClass('editing');
+        $('.chat-container').removeClass('message-editing-mode');
+        editingState.currentlyEditing = null;
+        editingState.originalContent = null;
+        editingState.hasUnsavedChanges = false;
+        
+        updateEditingUI(false);
+    }
+    
+    function deleteMessage($message) {
+        const messageContent = $message.find('.chat-message-content-wrapper').text();
+        const confirmDelete = confirm(`Are you sure you want to delete this message?\n\n"${messageContent.substring(0, 100)}${messageContent.length > 100 ? '...' : ''}"`);
+        
+        if (confirmDelete) {
+            if (editingState.currentlyEditing === $message[0]) {
+                cancelMessageEdit($message);
+            }
+            
+            $message.fadeOut(200, function() {
+                $(this).remove();
+                
+                // Trigger auto-save after deletion
+                triggerAutoSave(1000);
+                
+                // Trigger custom event
+                $(document).trigger('message:deleted', [$message]);
+            });
+        }
+    }
+    
+    function regenerateMessage($message) {
+        if (editingState.currentlyEditing) {
+            cancelMessageEdit($(editingState.currentlyEditing));
+        }
+        
+        // Check if this is a bot message
+        if (!$message.hasClass('bot')) {
+            alert('Can only regenerate bot responses');
+            return;
+        }
+        
+        // Check if we have access to the chat functionality
+        if (!window.sendChatMessage || !window.PMV_Chat) {
+            alert('Regenerate functionality not available');
+            return;
+        }
+        
+        // Get the conversation history up to this message
+        const allMessages = [];
+        $('.chat-message').each(function() {
+            const $msg = $(this);
+            if ($msg[0] === $message[0]) {
+                return false; // Stop before the message we're regenerating
+            }
+            
+            if ($msg.hasClass('error') || $msg.hasClass('typing-indicator')) {
+                return; // Skip error messages and typing indicators
+            }
+            
+            let role = 'assistant';
+            let content = $msg.find('.chat-message-content-wrapper').text();
+            
+            if ($msg.hasClass('user')) {
+                role = 'user';
+            }
+            
+            allMessages.push({
+                role: role,
+                content: content.trim()
+            });
+        });
+        
+        // Get the last user message
+        const lastUserMessage = allMessages.filter(m => m.role === 'user').pop();
+        if (!lastUserMessage) {
+            alert('No user message found to regenerate from');
+            return;
+        }
+        
+        // Add regenerating state
+        $message.addClass('regenerating');
+        const $contentWrapper = $message.find('.chat-message-content-wrapper');
+        
+        // Add regenerating indicator
+        const $regeneratingIndicator = $(`
+            <div class="regenerating-indicator">
+                <span class="regenerating-spinner"></span>
+                Regenerating response...
+            </div>
+        `);
+        $message.find('.message-content').append($regeneratingIndicator);
+        
+        // Disable message actions
+        $message.find('.message-actions button').prop('disabled', true);
+        
+        // Get character data and conversation state
+        const $modal = $('#png-modal').find('.png-modal-content');
+        const characterData = $modal.data('characterData');
+        const botId = $modal.data('botId');
+        
+        // Remove the conversation history starting from this message
+        const conversationHistory = allMessages.slice(0, -1); // Remove the user message that triggered this response
+        
+        // Prepare payload for regeneration
+        let characterDataStr;
+        try {
+            characterDataStr = typeof characterData === 'object' ?
+                JSON.stringify(characterData) : characterData;
+        } catch (e) {
+            console.error('Error stringifying character data:', e);
+            handleRegenerateError($message, 'Failed to process character data');
+            return;
+        }
+        
+        const ajaxData = {
+            action: 'start_character_chat',
+            character_data: characterDataStr,
+            user_message: lastUserMessage.content,
+            bot_id: botId || 'default_bot',
+            nonce: pmv_ajax_object.nonce
+        };
+        
+        // Add conversation history excluding the current response
+        if (conversationHistory.length > 0) {
+            ajaxData.conversation_history = JSON.stringify(conversationHistory);
+        }
+        
+        console.log('Regenerating message with payload:', {
+            userMessage: lastUserMessage.content,
+            historyLength: conversationHistory.length
+        });
+        
+        // Make AJAX request
+        $.ajax({
+            url: pmv_ajax_object.ajax_url,
+            type: 'POST',  
+            data: ajaxData,
+            success: function(response) {
+                console.log('Regenerate API response:', response);
+                
+                if (response.success && response.data && response.data.choices && response.data.choices[0]) {
+                    const newResponse = response.data.choices[0].message.content;
+                    const characterName = escapeHtml(response.data.character?.name || characterData?.name || characterData?.data?.name || 'AI');
+                    
+                    // Update the message content
+                    $contentWrapper.html(escapeHtml(newResponse));
+                    
+                    // Update the textarea for editing as well
+                    $message.find('.message-edit-textarea').val(newResponse);
+                    
+                    // Remove regenerating state
+                    $message.removeClass('regenerating');
+                    $regeneratingIndicator.remove();
+                    $message.find('.message-actions button').prop('disabled', false);
+                    
+                    // Trigger auto-save
+                    triggerAutoSave(1000);
+                    
+                    // Scroll to show the updated message
+                    setTimeout(() => {
+                        forceScrollToBottom();
+                    }, 50);
+                    
+                    // Trigger custom event
+                    $(document).trigger('message:regenerated', [$message, newResponse]);
+                    
+                    console.log('Message regenerated successfully');
+                } else {
+                    handleRegenerateError($message, response.data?.message || 'API request failed');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Regenerate AJAX error:', {xhr, status, error});
+                handleRegenerateError($message, error || 'Connection error');
+            }
+        });
+    }
+    
+    function handleRegenerateError($message, error) {
+        // Remove regenerating state
+        $message.removeClass('regenerating');
+        $message.find('.regenerating-indicator').remove();
+        $message.find('.message-actions button').prop('disabled', false);
+        
+        // Show error message
+        alert('Failed to regenerate message: ' + error);
+        
+        console.error('Regenerate error:', error);
+    }
+    
+    function autoResizeTextarea(textarea) {
+        textarea.style.height = 'auto';
+        const newHeight = Math.min(Math.max(textarea.scrollHeight, 60), 300);
+        textarea.style.height = newHeight + 'px';
+    }
+    
+    function updateEditingUI(isEditing) {
+        const $chatContainer = $('.chat-container');
+        const $sendButton = $('#send-chat');
+        const $chatInput = $('#chat-input');
+        
+        if (isEditing) {
+            $chatContainer.addClass('message-editing-mode');
+            $sendButton.prop('disabled', true).text('Editing...');
+            $chatInput.prop('disabled', true).attr('placeholder', 'Finish editing to continue...');
+        } else {
+            $chatContainer.removeClass('message-editing-mode');
+            $sendButton.prop('disabled', false).text('Send');
+            $chatInput.prop('disabled', false).attr('placeholder', 'Type your message...');
+        }
+    }
+    
+    function markConversationAsModified() {
+        chatState.hasUnsavedChanges = true;
+        updateHeaderWithUnsavedIndicator();
+    }
+    
+    function clearConversationModified() {
+        chatState.hasUnsavedChanges = false;
+        updateHeaderWithSavedIndicator();
+    }
+    
+    function collectEditableConversationHistory() {
+        const messages = [];
+        
+        $('.chat-message').each(function() {
+            const $msg = $(this);
+            
+            if ($msg.hasClass('error') || $msg.hasClass('typing-indicator')) {
+                return;
+            }
+            
+            let role = 'assistant';
+            let content = $msg.find('.chat-message-content-wrapper').text();
+            
+            if ($msg.hasClass('user')) {
+                role = 'user';
+            }
+            
+            messages.push({
+                role: role,
+                content: content.trim()
+            });
+        });
+        
+        return messages;
+    }
+    
+    function convertExistingMessages() {
+        $('.chat-message').each(function() {
+            const $message = $(this);
+            
+            if ($message.find('.message-actions').length > 0 || $message.hasClass('typing-indicator')) {
+                return;
+            }
+            
+            const $content = $message.find('.chat-message-content-wrapper');
+            const content = $content.text();
+            const messageClass = $message.hasClass('user') ? 'user' : ($message.hasClass('bot') ? 'bot' : 'error');
+            const speakerName = $message.find('strong').first().text().replace(':', '');
+            const messageId = generateMessageId();
+            
+            $message.attr('data-message-id', messageId);
+            
+            // Create appropriate action buttons
+            const isBot = messageClass === 'bot';
+            const isError = messageClass === 'error';
+            
+            let actionsHtml = `
+                <div class="message-actions">
+                    <button class="edit-message-btn" title="Edit message">
+                        <span class="dashicons dashicons-edit"></span>
+                    </button>
+            `;
+            
+            // Add regenerate button for bot messages only
+            if (isBot && !isError) {
+                actionsHtml += `
+                    <button class="regenerate-message-btn" title="Regenerate response">
+                        <span class="dashicons dashicons-update"></span>
+                    </button>
+                `;
+            }
+            
+            actionsHtml += `
+                    <button class="delete-message-btn" title="Delete message">
+                        <span class="dashicons dashicons-trash"></span>
+                    </button>
+                </div>
+            `;
+            
+            const $speaker = $message.find('strong').first();
+            $speaker.wrap('<div class="message-header"></div>');
+            $speaker.parent().append(actionsHtml);
+            
+            $content.wrap('<div class="message-content"></div>');
+            const editContainer = `
+                <div class="message-edit-container" style="display: none;">
+                    <textarea class="message-edit-textarea" rows="3">${escapeHtml(content)}</textarea>
+                    <div class="edit-actions">
+                        <button class="save-edit-btn">Save</button>
+                        <button class="cancel-edit-btn">Cancel</button>
+                    </div>
+                </div>
+            `;
+            $content.parent().append(editContainer);
+        });
+    }
+    
+    // Setup event handlers for message editing
+    function setupMessageEditingHandlers() {
+        $(document)
+            .on('click', '.edit-message-btn', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const $message = $(this).closest('.chat-message');
+                startEditingMessage($message);
+            })
+            .on('click', '.regenerate-message-btn', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const $message = $(this).closest('.chat-message');
+                regenerateMessage($message);
+            })
+            .on('click', '.delete-message-btn', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const $message = $(this).closest('.chat-message');
+                deleteMessage($message);
+            })
+            .on('click', '.save-edit-btn', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const $message = $(this).closest('.chat-message');
+                saveMessageEdit($message);
+            })
+            .on('click', '.cancel-edit-btn', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const $message = $(this).closest('.chat-message');
+                cancelMessageEdit($message);
+            })
+            .on('input', '.message-edit-textarea', function() {
+                autoResizeTextarea(this);
+                editingState.hasUnsavedChanges = true;
+            })
+            .on('keydown', '.message-edit-textarea', function(e) {
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    const $message = $(this).closest('.chat-message');
+                    saveMessageEdit($message);
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    const $message = $(this).closest('.chat-message');
+                    cancelMessageEdit($message);
+                }
+            });
     }
     
     // Apply universal layout structure with desktop fixes
     function setupUniversalLayout() {
-        console.log('Setting up universal layout');
+        console.log('Setting up universal layout with editing support');
         
         const $chatMain = $('.chat-main');
         const $chatHistory = $('#chat-history');
@@ -708,6 +1776,11 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
             applyDesktopSpecificFixes();
         }
         
+        // Convert existing messages to editable format
+        setTimeout(() => {
+            convertExistingMessages();
+        }, 100);
+        
         chatState.isLayoutApplied = true;
         
         // Immediate scroll to bottom
@@ -715,10 +1788,10 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
             forceScrollToBottom();
         }, 100);
         
-        console.log('Universal layout setup complete');
+        console.log('Universal layout setup complete with editing support');
     }
     
-    // Ensure proper input wrapper structure
+    // Ensure proper input wrapper structure  
     function ensureInputWrapperStructure() {
         const $inputRow = $('#chat-input-row');
         const $input = $('#chat-input');
@@ -998,7 +2071,12 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
             
             if (hasNewMessage) {
                 console.log('New message detected');
-                setTimeout(forceScrollToBottom, 100);
+                setTimeout(() => {
+                    convertExistingMessages();
+                    forceScrollToBottom();
+                    // Trigger auto-save for new messages
+                    triggerAutoSave();
+                }, 100);
             }
         });
         
@@ -1017,7 +2095,7 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
         $('.pmv-mobile-overlay').on('click', closeMobileMenu);
     }
     
-    // Create sidebar with enhanced conversation loading
+    // Create sidebar with enhanced conversation loading and save button
     function createMobileSidebar() {
         if ($('.pmv-mobile-sidebar').length) return;
         
@@ -1028,7 +2106,8 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
                         <h3>Conversations</h3>
                         <button class="mobile-close-btn">×</button>
                     </div>
-                    <button class="mobile-new-chat-btn">+ New Chat</button>
+                    <button class="mobile-new-chat-btn">🔄 New Chat</button>
+                    <button class="mobile-save-chat-btn">💾 Save Conversation</button>
                     <div class="mobile-conversations-list">
                         <div class="mobile-loading-container">Loading conversations...</div>
                     </div>
@@ -1040,28 +2119,75 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
         
         // Setup sidebar event handlers
         $('.mobile-close-btn').on('click', closeMobileMenu);
+        
         $('.mobile-new-chat-btn').on('click', function() {
             console.log('New chat button clicked');
-            // Start new conversation using the conversation manager if available
+            
+            // Check for unsaved changes
+            if (chatState.hasUnsavedChanges) {
+                const confirmNew = confirm('You have unsaved changes. Starting a new conversation will lose these changes. Continue?');
+                if (!confirmNew) {
+                    return;
+                }
+            }
+            
             if (window.PMV_ConversationManager && window.PMV_ConversationManager.startNewConversation) {
                 window.PMV_ConversationManager.startNewConversation();
             } else {
                 console.log('Starting new conversation by clearing current chat');
-                // Clear current chat if no conversation manager
                 $('#chat-history').empty();
                 if ($('#png-modal').find('.png-modal-content').data('characterData')) {
                     const characterData = $('#png-modal').find('.png-modal-content').data('characterData');
                     const character = window.PMV_Chat ? window.PMV_Chat.extractCharacterInfo(characterData) : {name: 'AI', first_mes: 'Hello!'};
-                    $('#chat-history').append(`
-                        <div class="chat-message bot">
-                            <strong>${escapeHtml(character.name)}:</strong>
-                            <span class="chat-message-content-wrapper">${escapeHtml(character.first_mes || `Hello, I am ${character.name}. How can I help you today?`)}</span>
-                        </div>
-                    `);
+                    
+                    if (window.PMV_MobileChat && window.PMV_MobileChat.addEditableMessage) {
+                        window.PMV_MobileChat.addEditableMessage(
+                            character.first_mes || `Hello, I am ${character.name}. How can I help you today?`,
+                            'bot',
+                            character.name
+                        );
+                    } else {
+                        $('#chat-history').append(`
+                            <div class="chat-message bot">
+                                <strong>${escapeHtml(character.name)}:</strong>
+                                <span class="chat-message-content-wrapper">${escapeHtml(character.first_mes || `Hello, I am ${character.name}. How can I help you today?`)}</span>
+                            </div>
+                        `);
+                    }
                 }
                 $('#png-modal').find('.png-modal-content').data('isNewConversation', true);
+                clearConversationModified();
             }
             closeMobileMenu();
+        });
+        
+        $('.mobile-save-chat-btn').on('click', function() {
+            console.log('Save chat button clicked');
+            
+            const $btn = $(this);
+            const originalText = $btn.text();
+            
+            // Disable button during save
+            $btn.prop('disabled', true).text('Saving...');
+            
+            if (window.PMV_ConversationManager && window.PMV_ConversationManager.saveCurrentConversation) {
+                // Use manual save which prompts for title
+                window.PMV_ConversationManager.saveCurrentConversation();
+                
+                // Re-enable button after a short delay
+                setTimeout(() => {
+                    $btn.prop('disabled', false).text(originalText);
+                }, 2000);
+            } else {
+                // Fallback: trigger auto-save
+                performAutoSave();
+                
+                setTimeout(() => {
+                    $btn.prop('disabled', false).text(originalText);
+                }, 2000);
+            }
+            
+            // Don't close menu so user can see the result
         });
     }
     
@@ -1404,6 +2530,14 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
                 const conversationId = $(this).data('conversation-id') || $(this).attr('data-conversation-id');
                 console.log('Conversation item clicked:', conversationId);
                 
+                // Check for unsaved changes before loading new conversation
+                if (chatState.hasUnsavedChanges) {
+                    const confirmLoad = confirm('You have unsaved changes. Loading a conversation will lose these changes. Continue?');
+                    if (!confirmLoad) {
+                        return;
+                    }
+                }
+                
                 if (conversationId) {
                     if (window.PMV_ConversationManager && window.PMV_ConversationManager.loadConversation) {
                         console.log('Loading conversation via ConversationManager.loadConversation()');
@@ -1444,17 +2578,20 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
             console.log('Menu button clicked (force handler)');
             openMobileMenu();
         });
+        
+        // Setup message editing handlers
+        setupMessageEditingHandlers();
     }
     
-    // Initialize universal system
+    // Initialize universal system with message editing
     function initializeUniversalSystem() {
         if (chatState.initialized) {
             return;
         }
         
-        console.log('Initializing universal chat system...');
+        console.log('Initializing universal chat system with message editing...');
         
-        // Add universal CSS
+        // Add universal CSS with editing support
         addUniversalLayoutCSS();
         
         // Setup components
@@ -1465,14 +2602,14 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
         createMobileSidebar();
         
         chatState.initialized = true;
-        console.log('Universal chat system initialized');
+        console.log('Universal chat system with message editing initialized');
     }
     
-    // Apply universal layout when chat starts - with desktop button fixing
+    // Apply universal layout when chat starts - with message editing
     function applyUniversalLayoutToChat() {
         if (!checkIfInChat()) return;
         
-        console.log('Applying universal layout to existing chat');
+        console.log('Applying universal layout with editing to existing chat');
         
         // Wait for chat elements to exist
         const checkForChatElements = () => {
@@ -1602,7 +2739,12 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
             '#close-chat',
             '.mobile-menu-btn',
             '.chat-send-button',
-            '.close-chat-btn'
+            '.close-chat-btn',
+            '.edit-message-btn',
+            '.regenerate-message-btn',
+            '.delete-message-btn',
+            '.save-edit-btn',
+            '.cancel-edit-btn'
         ].join(', '));
         
         console.log('Found buttons:', buttons.length);
@@ -1732,11 +2874,27 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
         console.log('✅ Button existence check complete');
     }
     
-    // Public API with enhanced desktop support
+    // Public API with enhanced message editing support
     window.PMV_MobileChat = {
         init: initializeUniversalSystem,
         openMenu: openMobileMenu,
         closeMenu: closeMobileMenu,
+        
+        // Message editing functionality
+        addEditableMessage: addEditableMessage,
+        convertExistingMessages: convertExistingMessages,
+        getConversationHistory: collectEditableConversationHistory,
+        isEditing: () => editingState.currentlyEditing !== null,
+        getCurrentEdit: () => editingState,
+        markAsModified: markConversationAsModified,
+        clearModified: clearConversationModified,
+        
+        // Auto-save functionality
+        triggerAutoSave: triggerAutoSave,
+        performAutoSave: performAutoSave,
+        hasUnsavedChanges: () => chatState.hasUnsavedChanges,
+        enableAutoSave: () => { chatState.autoSaveEnabled = true; },
+        disableAutoSave: () => { chatState.autoSaveEnabled = false; },
         
         // Enhanced conversation loading integration
         loadConversationsList: function() {
@@ -1803,6 +2961,7 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
             console.log('Small screen:', isSmallScreen());
             console.log('Desktop:', isDesktop());
             console.log('Chat state:', chatState);
+            console.log('Editing state:', editingState);
             console.log('PMV_ConversationManager:', window.PMV_ConversationManager);
             console.log('pmv_ajax_object:', typeof pmv_ajax_object !== 'undefined' ? pmv_ajax_object : 'NOT AVAILABLE');
             
@@ -1827,6 +2986,10 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
                     <strong>Desktop:</strong> ${isDesktop()}<br>
                     <strong>ConversationManager:</strong> ${!!window.PMV_ConversationManager}<br>
                     <strong>AJAX object:</strong> ${typeof pmv_ajax_object !== 'undefined'}<br>
+                    <strong>Editing enabled:</strong> ${chatState.editingEnabled}<br>
+                    <strong>Currently editing:</strong> ${editingState.currentlyEditing !== null}<br>
+                    <strong>Has unsaved changes:</strong> ${chatState.hasUnsavedChanges}<br>
+                    <strong>Auto-save enabled:</strong> ${chatState.autoSaveEnabled}<br>
                     ${window.PMV_ConversationManager ? `<strong>Character ID:</strong> ${window.PMV_ConversationManager.characterId}<br>` : ''}
                     ${window.PMV_ConversationManager ? `<strong>Manager ready:</strong> ${window.PMV_ConversationManager.isReady}<br>` : ''}
                     <br>
@@ -1861,6 +3024,7 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
             console.log('Send button exists:', $('#send-chat, .chat-send-button').length > 0);
             console.log('Chat container exists:', $('.chat-container').length > 0);
             console.log('Chat modal open:', $('body').hasClass('chat-modal-open'));
+            console.log('Currently editing:', editingState.currentlyEditing !== null);
             
             if (isDesktop()) {
                 console.log('🖥️ Applying desktop-specific emergency fixes...');
@@ -1978,12 +3142,66 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
             $input.after($mobileButton);
             
             console.log('✅ Mobile emergency button created');
+        },
+        
+        // Message editing specific methods
+        startEditing: function(messageElement) {
+            const $message = $(messageElement);
+            if ($message.length) {
+                startEditingMessage($message);
+            }
+        },
+        
+        cancelEditing: function() {
+            if (editingState.currentlyEditing) {
+                cancelMessageEdit($(editingState.currentlyEditing));
+            }
+        },
+        
+        saveCurrentEdit: function() {
+            if (editingState.currentlyEditing) {
+                saveMessageEdit($(editingState.currentlyEditing));
+            }
+        },
+        
+        deleteMessage: function(messageElement) {
+            const $message = $(messageElement);
+            if ($message.length) {
+                deleteMessage($message);
+            }
+        },
+        
+        regenerateMessage: function(messageElement) {
+            const $message = $(messageElement);
+            if ($message.length) {
+                regenerateMessage($message);
+            }
+        },
+        
+        // Utility methods
+        enableEditing: function() {
+            chatState.editingEnabled = true;
+            $('.message-actions').show();
+        },
+        
+        disableEditing: function() {
+            chatState.editingEnabled = false;
+            $('.message-actions').hide();
+            
+            // Cancel any current editing
+            if (editingState.currentlyEditing) {
+                cancelMessageEdit($(editingState.currentlyEditing));
+            }
+        },
+        
+        isEditingEnabled: function() {
+            return chatState.editingEnabled;
         }
     };
     
     // Auto-initialize
     $(document).ready(function() {
-        console.log('DOM ready, initializing universal chat system');
+        console.log('DOM ready, initializing universal chat system with message editing');
         initializeUniversalSystem();
     });
     
@@ -1998,7 +3216,7 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
                 );
                 
                 if (addedChatContainer) {
-                    console.log('Chat container detected, applying universal layout');
+                    console.log('Chat container detected, applying universal layout with editing');
                     setTimeout(() => {
                         applyUniversalLayoutToChat();
                         // Enhanced button fixes
@@ -2017,7 +3235,10 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
                     (node.id === 'mobile-menu-toggle' || 
                      node.id === 'send-chat' ||
                      node.classList.contains('mobile-menu-btn') ||
-                     node.classList.contains('chat-send-button'))
+                     node.classList.contains('chat-send-button') ||
+                     node.classList.contains('edit-message-btn') ||
+                     node.classList.contains('regenerate-message-btn') ||
+                     node.classList.contains('delete-message-btn'))
                 );
                 
                 if (addedButtons) {
@@ -2070,13 +3291,71 @@ console.log('PNG Metadata Viewer Universal Chat System Loading...');
         }
     });
     
-    // Error handling for uncaught errors
-    window.addEventListener('error', function(event) {
-        if (event.error && event.error.message && event.error.message.includes('PMV_MobileChat')) {
-            console.error('PMV_MobileChat error:', event.error);
+    // Handle beforeunload for unsaved changes
+    $(window).on('beforeunload', function(e) {
+        if (editingState.currentlyEditing && editingState.hasUnsavedChanges) {
+            const message = 'You have unsaved message edits. Are you sure you want to leave?';
+            e.returnValue = message;
+            return message;
+        }
+        
+        // Check for unsaved conversation changes
+        if (chatState.hasUnsavedChanges) {
+            const message = 'You have unsaved conversation changes. Are you sure you want to leave?';
+            e.returnValue = message;
+            return message;
         }
     });
     
-    console.log('PNG Metadata Viewer Universal Chat System Loaded');
+    // Custom events for message editing
+    $(document).on('chat:started', function() {
+        console.log('Chat started event detected, initializing editing');
+        setTimeout(() => {
+            if (chatState.editingEnabled) {
+                convertExistingMessages();
+            }
+        }, 200);
+    });
+    
+    $(document).on('message:added', function() {
+        console.log('Message added event detected, converting to editable and triggering auto-save');
+        setTimeout(() => {
+            if (chatState.editingEnabled) {
+                convertExistingMessages();
+            }
+            // Trigger auto-save for new messages
+            triggerAutoSave();
+        }, 100);
+    });
+    
+    // Error handling for uncaught errors
+    window.addEventListener('error', function(event) {
+        if (event.error && event.error.message && 
+            (event.error.message.includes('PMV_MobileChat') || 
+             event.error.message.includes('message editing'))) {
+            console.error('PMV_MobileChat/Message Editing error:', event.error);
+        }
+    });
+    
+    // Keyboard shortcuts for editing
+    $(document).on('keydown', function(e) {
+        // Global shortcuts only when not typing in input fields
+        if (!$(e.target).is('input, textarea, [contenteditable]')) {
+            // Escape key to cancel editing
+            if (e.key === 'Escape' && editingState.currentlyEditing) {
+                e.preventDefault();
+                cancelMessageEdit($(editingState.currentlyEditing));
+            }
+            // Ctrl+S to save conversation
+            else if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                if (chatState.hasUnsavedChanges) {
+                    performAutoSave();
+                }
+            }
+        }
+    });
+    
+    console.log('PNG Metadata Viewer Universal Chat System with Message Editing Loaded');
     
 })(jQuery);
