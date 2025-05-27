@@ -1,5 +1,5 @@
-/* PNG Metadata Viewer - Universal Chat System with Message Editing - Consistent Layout for All Devices */
-console.log('PNG Metadata Viewer Universal Chat System with Message Editing Loading...');
+/* PNG Metadata Viewer - Universal Chat System with Enhanced Auto-save and Message Editing - Consistent Layout for All Devices */
+console.log('PNG Metadata Viewer Universal Chat System with Enhanced Auto-save and Message Editing Loading...');
 (function($) {
     'use strict';
     
@@ -16,7 +16,7 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
         safeAreaPadding: 20
     };
     
-    // Chat state management
+    // Chat state management with enhanced auto-save
     const chatState = {
         initialized: false,
         menuOpen: false,
@@ -30,7 +30,8 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
         editingEnabled: true,
         hasUnsavedChanges: false,
         autoSaveEnabled: true,
-        lastSaveTime: null
+        lastSaveTime: null,
+        autoSaveTimeout: null
     };
     
     // Message editing state
@@ -1094,9 +1095,20 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
         console.log('Universal layout CSS with message editing added');
     }
     
-    // Auto-save functionality
+    // ========= ENHANCED AUTO-SAVE FUNCTIONALITY =========
+    
+    // Enhanced auto-save functionality with user message validation
     function triggerAutoSave(delay = 2000) {
         if (!chatState.autoSaveEnabled) return;
+        
+        // Check if there are any user messages before triggering auto-save
+        const messages = collectEditableConversationHistory();
+        const hasUserMessages = messages.some(msg => msg.role === 'user' && msg.content && msg.content.trim().length > 0);
+        
+        if (!hasUserMessages) {
+            console.log('Auto-save skipped: no user messages found');
+            return;
+        }
         
         chatState.hasUnsavedChanges = true;
         updateHeaderWithUnsavedIndicator();
@@ -1111,85 +1123,228 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
     function performAutoSave() {
         if (!chatState.hasUnsavedChanges) return;
         
-        console.log('Performing auto-save...');
+        console.log('Performing enhanced auto-save...');
         showSaveStatus('saving');
         
-        if (window.PMV_ConversationManager && window.PMV_ConversationManager.saveCurrentConversation) {
-            // Use the existing save method but don't prompt for title
-            const messages = collectEditableConversationHistory();
-            if (messages.length === 0) {
-                console.log('No messages to save');
-                return;
+        // Collect messages and validate
+        const messages = collectEditableConversationHistory();
+        if (messages.length === 0) {
+            console.log('No messages to save');
+            showSaveStatus('error');
+            return;
+        }
+        
+        // Check if there are user messages
+        const hasUserMessages = messages.some(msg => msg.role === 'user' && msg.content && msg.content.trim().length > 0);
+        if (!hasUserMessages) {
+            console.log('Auto-save skipped: no user messages found');
+            return;
+        }
+        
+        if (window.PMV_ConversationManager && window.PMV_ConversationManager.performAutoSave) {
+            // Use conversation manager's auto-save which handles update vs create logic
+            window.PMV_ConversationManager.performAutoSave();
+        } else {
+            // Fallback auto-save implementation
+            performFallbackAutoSave(messages);
+        }
+    }
+    
+    function performFallbackAutoSave(messages) {
+        const $modal = $('#png-modal').find('.png-modal-content');
+        const characterData = $modal.data('characterData');
+        const character = window.PMV_Chat ? window.PMV_Chat.extractCharacterInfo(characterData) : {};
+        const characterName = character.name || 'AI';
+        
+        // Auto-generate title if this is a new conversation
+        let title = `Chat with ${characterName}`;
+        let conversationId = null;
+        
+        // Get current conversation ID from conversation manager
+        if (window.PMV_ConversationManager && window.PMV_ConversationManager.currentConversationId) {
+            conversationId = window.PMV_ConversationManager.currentConversationId;
+            
+            // Keep existing title for updates
+            const existingConv = window.PMV_ConversationManager.conversations.find(c => c.id == conversationId);
+            if (existingConv && existingConv.title) {
+                title = existingConv.title;
             }
+        } else {
+            // Add timestamp for new conversations only
+            title += ` - ${new Date().toLocaleDateString()}`;
+        }
+        
+        const conversationData = {
+            character_id: window.PMV_ConversationManager?.characterId || 'default',
+            title: title,
+            messages: messages
+        };
+        
+        // Include ID for updates
+        if (conversationId) {
+            conversationData.id = conversationId;
+        }
+        
+        // Use auto-save endpoint
+        $.ajax({
+            url: pmv_ajax_object.ajax_url,
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                action: 'pmv_auto_save_conversation',
+                conversation_data: JSON.stringify(conversationData),
+                nonce: pmv_ajax_object.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Update conversation manager state
+                    if (window.PMV_ConversationManager) {
+                        window.PMV_ConversationManager.currentConversationId = response.data.id;
+                    }
+                    
+                    chatState.hasUnsavedChanges = false;
+                    chatState.lastSaveTime = new Date();
+                    updateHeaderWithSavedIndicator();
+                    showSaveStatus('saved');
+                    
+                    console.log('Fallback auto-save successful:', response.data);
+                } else {
+                    showSaveStatus('error');
+                    console.error('Fallback auto-save failed:', response.data?.message);
+                }
+            },
+            error: function(xhr) {
+                showSaveStatus('error');
+                console.error('Fallback auto-save error:', xhr.responseText);
+            }
+        });
+    }
+    
+    // Enhanced conversation switching with auto-save
+    function switchConversationWithSave(newConversationId, loadFunction) {
+        console.log('Switching conversation with auto-save check');
+        
+        // Check if we have unsaved changes
+        const hasUnsaved = chatState.hasUnsavedChanges || 
+                          (window.PMV_ConversationManager && window.PMV_ConversationManager.hasUnsavedChanges());
+        
+        if (hasUnsaved) {
+            console.log('Unsaved changes detected, checking if they should be saved');
             
-            // Auto-generate title if this is a new conversation
-            const $modal = $('#png-modal').find('.png-modal-content');
-            const characterData = $modal.data('characterData');
-            const character = window.PMV_Chat ? window.PMV_Chat.extractCharacterInfo(characterData) : {};
-            const characterName = character.name || 'AI';
+            // Check if there are user messages to save
+            const messages = collectEditableConversationHistory();
+            const hasUserMessages = messages.some(msg => msg.role === 'user' && msg.content && msg.content.trim().length > 0);
             
-            let title = `Chat with ${characterName}`;
-            if (window.PMV_ConversationManager.currentConversationId) {
-                // Keep existing title for updates
-                const existingConv = window.PMV_ConversationManager.conversations.find(c => c.id == window.PMV_ConversationManager.currentConversationId);
-                if (existingConv) {
-                    title = existingConv.title;
+            if (hasUserMessages) {
+                console.log('Valid unsaved changes found, saving before switch');
+                // Show saving indicator
+                showSaveStatus('saving');
+                
+                // Perform save before switching
+                if (window.PMV_ConversationManager && window.PMV_ConversationManager.performAutoSave) {
+                    // Use conversation manager's save
+                    window.PMV_ConversationManager.performAutoSave();
+                    
+                    // Wait for save to complete before switching
+                    setTimeout(() => {
+                        proceedWithConversationSwitch(newConversationId, loadFunction);
+                    }, 1000);
+                } else {
+                    // Use fallback save
+                    performFallbackAutoSave(messages);
+                    
+                    // Wait for save to complete before switching
+                    setTimeout(() => {
+                        proceedWithConversationSwitch(newConversationId, loadFunction);
+                    }, 1000);
                 }
             } else {
-                // Add timestamp for new conversations
-                title += ` - ${new Date().toLocaleDateString()}`;
-            }
-            
-            const conversationData = {
-                character_id: window.PMV_ConversationManager.characterId,
-                title: title,
-                messages: messages
-            };
-            
-            if (window.PMV_ConversationManager.currentConversationId) {
-                conversationData.id = window.PMV_ConversationManager.currentConversationId;
-            }
-            
-            // Save via AJAX directly to avoid user prompts
-            $.ajax({
-                url: pmv_ajax_object.ajax_url,
-                type: 'POST',
-                dataType: 'json',
-                data: {
-                    action: 'pmv_save_conversation',
-                    conversation: JSON.stringify(conversationData),
-                    nonce: pmv_ajax_object.nonce
-                },
-                success: function(response) {
-                    if (response.success) {
-                        window.PMV_ConversationManager.currentConversationId = response.data.id;
-                        chatState.hasUnsavedChanges = false;
-                        chatState.lastSaveTime = new Date();
-                        updateHeaderWithSavedIndicator();
-                        showSaveStatus('saved');
-                        
-                        // Refresh conversation list
-                        if (window.PMV_ConversationManager.loadConversationList) {
-                            window.PMV_ConversationManager.loadConversationList();
-                        }
-                        if (window.PMV_ConversationManager.loadConversationListMobile) {
-                            window.PMV_ConversationManager.loadConversationListMobile();
-                        }
-                        
-                        console.log('Auto-save successful');
-                    } else {
-                        showSaveStatus('error');
-                        console.error('Auto-save failed:', response.data?.message);
-                    }
-                },
-                error: function(xhr) {
-                    showSaveStatus('error');
-                    console.error('Auto-save error:', xhr.responseText);
+                console.log('No valid user messages, clearing unsaved state and proceeding');
+                // No user messages, just clear unsaved state and proceed
+                chatState.hasUnsavedChanges = false;
+                if (window.PMV_ConversationManager) {
+                    window.PMV_ConversationManager.clearModified();
                 }
-            });
+                proceedWithConversationSwitch(newConversationId, loadFunction);
+            }
         } else {
-            showSaveStatus('error');
-            console.warn('ConversationManager not available for auto-save');
+            // No unsaved changes, proceed directly
+            console.log('No unsaved changes, proceeding with switch');
+            proceedWithConversationSwitch(newConversationId, loadFunction);
+        }
+    }
+    
+    function proceedWithConversationSwitch(newConversationId, loadFunction) {
+        console.log('Proceeding with conversation switch to:', newConversationId);
+        
+        // Clear current state
+        chatState.hasUnsavedChanges = false;
+        updateHeaderWithSavedIndicator();
+        
+        // Clear editing state
+        if (editingState.currentlyEditing) {
+            cancelMessageEdit($(editingState.currentlyEditing));
+        }
+        
+        // Call the load function
+        if (typeof loadFunction === 'function') {
+            loadFunction(newConversationId);
+        }
+    }
+    
+    // Enhanced conversation validation
+    function validateConversationForSave(messages) {
+        if (!messages || messages.length === 0) {
+            console.log('Validation failed: no messages');
+            return false;
+        }
+        
+        // Must have at least one user message
+        const hasUserMessages = messages.some(msg => 
+            msg.role === 'user' && 
+            msg.content && 
+            typeof msg.content === 'string' && 
+            msg.content.trim().length > 0
+        );
+        
+        if (!hasUserMessages) {
+            console.log('Validation failed: no user messages');
+            return false;
+        }
+        
+        // Check for valid message structure
+        const hasValidMessages = messages.every(msg => 
+            msg.role && msg.content && typeof msg.content === 'string'
+        );
+        
+        if (!hasValidMessages) {
+            console.log('Validation failed: invalid message structure');
+            return false;
+        }
+        
+        console.log('Validation passed:', messages.filter(m => m.role === 'user').length, 'user messages found');
+        return true;
+    }
+    
+    // Update the auto-save trigger in message handling
+    function enhancedTriggerAutoSave(delay = 2000) {
+        // Only trigger if we have valid conversation data
+        const messages = collectEditableConversationHistory();
+        
+        if (!validateConversationForSave(messages)) {
+            console.log('Auto-save not triggered: conversation validation failed');
+            return;
+        }
+        
+        triggerAutoSave(delay);
+    }
+    
+    // Enhanced clear auto-save timer
+    function clearAutoSaveTimer() {
+        if (chatState.autoSaveTimeout) {
+            clearTimeout(chatState.autoSaveTimeout);
+            chatState.autoSaveTimeout = null;
+            console.log('Auto-save timer cleared');
         }
     }
     
@@ -1235,7 +1390,8 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
         $headerName.text($headerName.text().replace(' *', '')).removeAttr('title');
     }
     
-    // Message editing functionality
+    // ========= MESSAGE EDITING FUNCTIONALITY =========
+    
     function generateMessageId() {
         return 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     }
@@ -1299,8 +1455,8 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
         
         $('#chat-history').append(messageHtml);
         
-        // Trigger auto-save for new messages
-        triggerAutoSave();
+        // Trigger enhanced auto-save for new messages
+        enhancedTriggerAutoSave();
         
         setTimeout(() => {
             forceScrollToBottom();
@@ -1359,8 +1515,8 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
         
         updateEditingUI(false);
         
-        // Trigger auto-save after editing
-        triggerAutoSave(1000); // Shorter delay for edits
+        // Trigger enhanced auto-save after editing (shorter delay)
+        enhancedTriggerAutoSave(1000);
         
         setTimeout(() => {
             forceScrollToBottom();
@@ -1405,8 +1561,8 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
             $message.fadeOut(200, function() {
                 $(this).remove();
                 
-                // Trigger auto-save after deletion
-                triggerAutoSave(1000);
+                // Trigger enhanced auto-save after deletion
+                enhancedTriggerAutoSave(1000);
                 
                 // Trigger custom event
                 $(document).trigger('message:deleted', [$message]);
@@ -1539,8 +1695,8 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
                     $regeneratingIndicator.remove();
                     $message.find('.message-actions button').prop('disabled', false);
                     
-                    // Trigger auto-save
-                    triggerAutoSave(1000);
+                    // Trigger enhanced auto-save
+                    enhancedTriggerAutoSave(1000);
                     
                     // Scroll to show the updated message
                     setTimeout(() => {
@@ -1623,10 +1779,12 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
                 role = 'user';
             }
             
-            messages.push({
-                role: role,
-                content: content.trim()
-            });
+            if (content && content.trim()) {
+                messages.push({
+                    role: role,
+                    content: content.trim()
+                });
+            }
         });
         
         return messages;
@@ -1750,7 +1908,7 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
     
     // Apply universal layout structure with desktop fixes
     function setupUniversalLayout() {
-        console.log('Setting up universal layout with editing support');
+        console.log('Setting up universal layout with enhanced auto-save and editing support');
         
         const $chatMain = $('.chat-main');
         const $chatHistory = $('#chat-history');
@@ -1788,7 +1946,7 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
             forceScrollToBottom();
         }, 100);
         
-        console.log('Universal layout setup complete with editing support');
+        console.log('Universal layout setup complete with enhanced auto-save and editing support');
     }
     
     // Ensure proper input wrapper structure  
@@ -2074,8 +2232,8 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
                 setTimeout(() => {
                     convertExistingMessages();
                     forceScrollToBottom();
-                    // Trigger auto-save for new messages
-                    triggerAutoSave();
+                    // Trigger enhanced auto-save for new messages
+                    enhancedTriggerAutoSave();
                 }, 100);
             }
         });
@@ -2117,47 +2275,28 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
         
         $('body').append(sidebar);
         
-        // Setup sidebar event handlers
+        // Setup sidebar event handlers with enhanced auto-save
         $('.mobile-close-btn').on('click', closeMobileMenu);
         
         $('.mobile-new-chat-btn').on('click', function() {
             console.log('New chat button clicked');
             
-            // Check for unsaved changes
+            // Enhanced auto-save check before new conversation
             if (chatState.hasUnsavedChanges) {
-                const confirmNew = confirm('You have unsaved changes. Starting a new conversation will lose these changes. Continue?');
-                if (!confirmNew) {
-                    return;
+                const messages = collectEditableConversationHistory();
+                if (validateConversationForSave(messages)) {
+                    const confirmNew = confirm('You have unsaved changes. Save before starting a new conversation?');
+                    if (confirmNew) {
+                        performAutoSave();
+                        setTimeout(() => {
+                            proceedWithNewConversation();
+                        }, 1000);
+                        return;
+                    }
                 }
             }
             
-            if (window.PMV_ConversationManager && window.PMV_ConversationManager.startNewConversation) {
-                window.PMV_ConversationManager.startNewConversation();
-            } else {
-                console.log('Starting new conversation by clearing current chat');
-                $('#chat-history').empty();
-                if ($('#png-modal').find('.png-modal-content').data('characterData')) {
-                    const characterData = $('#png-modal').find('.png-modal-content').data('characterData');
-                    const character = window.PMV_Chat ? window.PMV_Chat.extractCharacterInfo(characterData) : {name: 'AI', first_mes: 'Hello!'};
-                    
-                    if (window.PMV_MobileChat && window.PMV_MobileChat.addEditableMessage) {
-                        window.PMV_MobileChat.addEditableMessage(
-                            character.first_mes || `Hello, I am ${character.name}. How can I help you today?`,
-                            'bot',
-                            character.name
-                        );
-                    } else {
-                        $('#chat-history').append(`
-                            <div class="chat-message bot">
-                                <strong>${escapeHtml(character.name)}:</strong>
-                                <span class="chat-message-content-wrapper">${escapeHtml(character.first_mes || `Hello, I am ${character.name}. How can I help you today?`)}</span>
-                            </div>
-                        `);
-                    }
-                }
-                $('#png-modal').find('.png-modal-content').data('isNewConversation', true);
-                clearConversationModified();
-            }
+            proceedWithNewConversation();
             closeMobileMenu();
         });
         
@@ -2166,6 +2305,13 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
             
             const $btn = $(this);
             const originalText = $btn.text();
+            
+            // Check if conversation is valid for saving
+            const messages = collectEditableConversationHistory();
+            if (!validateConversationForSave(messages)) {
+                alert('Cannot save conversation without user messages');
+                return;
+            }
             
             // Disable button during save
             $btn.prop('disabled', true).text('Saving...');
@@ -2189,6 +2335,27 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
             
             // Don't close menu so user can see the result
         });
+    }
+    
+    function proceedWithNewConversation() {
+        if (window.PMV_ConversationManager && window.PMV_ConversationManager.startNewConversation) {
+            window.PMV_ConversationManager.startNewConversation();
+        } else {
+            console.log('Starting new conversation by clearing current chat');
+            $('#chat-history').empty();
+            if ($('#png-modal').find('.png-modal-content').data('characterData')) {
+                const characterData = $('#png-modal').find('.png-modal-content').data('characterData');
+                const character = window.PMV_Chat ? window.PMV_Chat.extractCharacterInfo(characterData) : {name: 'AI', first_mes: 'Hello!'};
+                
+                addEditableMessage(
+                    character.first_mes || `Hello, I am ${character.name}. How can I help you today?`,
+                    'bot',
+                    character.name
+                );
+            }
+            $('#png-modal').find('.png-modal-content').data('isNewConversation', true);
+            clearConversationModified();
+        }
     }
     
     // Open mobile menu
@@ -2507,7 +2674,7 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
         });
     }
     
-    // Setup event handlers with maximum specificity
+    // Setup event handlers with maximum specificity and enhanced auto-save
     function setupEventHandlers() {
         // Remove all existing handlers first
         $(document).off('click.universalChat');
@@ -2530,23 +2697,21 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
                 const conversationId = $(this).data('conversation-id') || $(this).attr('data-conversation-id');
                 console.log('Conversation item clicked:', conversationId);
                 
-                // Check for unsaved changes before loading new conversation
-                if (chatState.hasUnsavedChanges) {
-                    const confirmLoad = confirm('You have unsaved changes. Loading a conversation will lose these changes. Continue?');
-                    if (!confirmLoad) {
-                        return;
-                    }
+                if (!conversationId) {
+                    console.warn('No conversation ID found');
+                    return;
                 }
                 
-                if (conversationId) {
+                // Enhanced conversation switching with auto-save
+                switchConversationWithSave(conversationId, function(id) {
                     if (window.PMV_ConversationManager && window.PMV_ConversationManager.loadConversation) {
                         console.log('Loading conversation via ConversationManager.loadConversation()');
-                        window.PMV_ConversationManager.loadConversation(conversationId);
+                        window.PMV_ConversationManager.loadConversation(id);
                     } else if (window.PMV_Chat?.loadConversationIntoChat) {
                         console.log('Loading conversation via PMV_Chat');
                         // Try to load from localStorage or other source
                         try {
-                            const stored = localStorage.getItem('pmv_conversation_' + conversationId);
+                            const stored = localStorage.getItem('pmv_conversation_' + id);
                             if (stored) {
                                 const conversationData = JSON.parse(stored);
                                 window.PMV_Chat.loadConversationIntoChat(conversationData);
@@ -2559,10 +2724,9 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
                     } else {
                         console.warn('No conversation loading method available');
                     }
-                    closeMobileMenu();
-                } else {
-                    console.warn('No conversation ID found');
-                }
+                });
+                
+                closeMobileMenu();
             })
             .on('click.universalChat', '.retry-button', function(e) {
                 e.preventDefault();
@@ -2583,13 +2747,13 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
         setupMessageEditingHandlers();
     }
     
-    // Initialize universal system with message editing
+    // Initialize universal system with enhanced auto-save and message editing
     function initializeUniversalSystem() {
         if (chatState.initialized) {
             return;
         }
         
-        console.log('Initializing universal chat system with message editing...');
+        console.log('Initializing universal chat system with enhanced auto-save and message editing...');
         
         // Add universal CSS with editing support
         addUniversalLayoutCSS();
@@ -2602,14 +2766,14 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
         createMobileSidebar();
         
         chatState.initialized = true;
-        console.log('Universal chat system with message editing initialized');
+        console.log('Universal chat system with enhanced auto-save and message editing initialized');
     }
     
-    // Apply universal layout when chat starts - with message editing
+    // Apply universal layout when chat starts - with enhanced auto-save and message editing
     function applyUniversalLayoutToChat() {
         if (!checkIfInChat()) return;
         
-        console.log('Applying universal layout with editing to existing chat');
+        console.log('Applying universal layout with enhanced auto-save and editing to existing chat');
         
         // Wait for chat elements to exist
         const checkForChatElements = () => {
@@ -2861,7 +3025,7 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
                     $('#png-modal').fadeOut().find('.png-modal-content').removeClass('chat-mode');
                     $('#png-modal').removeClass('fullscreen-chat');
                     if (window.PMV_Chat) {
-                        window.PMV_Chat.resetChatState();
+                        window.PMV_Chat.resetChatState?.();
                     }
                 });
                 
@@ -2874,7 +3038,7 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
         console.log('✅ Button existence check complete');
     }
     
-    // Public API with enhanced message editing support
+    // Public API with enhanced message editing support and auto-save
     window.PMV_MobileChat = {
         init: initializeUniversalSystem,
         openMenu: openMobileMenu,
@@ -2889,12 +3053,15 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
         markAsModified: markConversationAsModified,
         clearModified: clearConversationModified,
         
-        // Auto-save functionality
-        triggerAutoSave: triggerAutoSave,
+        // Enhanced auto-save functionality
+        triggerAutoSave: enhancedTriggerAutoSave,
         performAutoSave: performAutoSave,
+        clearAutoSaveTimer: clearAutoSaveTimer,
         hasUnsavedChanges: () => chatState.hasUnsavedChanges,
         enableAutoSave: () => { chatState.autoSaveEnabled = true; },
         disableAutoSave: () => { chatState.autoSaveEnabled = false; },
+        switchConversationWithSave: switchConversationWithSave,
+        validateConversationForSave: validateConversationForSave,
         
         // Enhanced conversation loading integration
         loadConversationsList: function() {
@@ -2973,6 +3140,13 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
                 console.log('- characterId:', window.PMV_ConversationManager.characterId);
                 console.log('- isReady:', window.PMV_ConversationManager.isReady);
             }
+            
+            console.log('Auto-save status:', {
+                enabled: chatState.autoSaveEnabled,
+                hasUnsaved: chatState.hasUnsavedChanges,
+                lastSave: chatState.lastSaveTime,
+                isEditing: editingState.currentlyEditing !== null
+            });
             
             console.log('=====================================');
             
@@ -3201,7 +3375,7 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
     
     // Auto-initialize
     $(document).ready(function() {
-        console.log('DOM ready, initializing universal chat system with message editing');
+        console.log('DOM ready, initializing universal chat system with enhanced auto-save and message editing');
         initializeUniversalSystem();
     });
     
@@ -3216,7 +3390,7 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
                 );
                 
                 if (addedChatContainer) {
-                    console.log('Chat container detected, applying universal layout with editing');
+                    console.log('Chat container detected, applying universal layout with enhanced auto-save and editing');
                     setTimeout(() => {
                         applyUniversalLayoutToChat();
                         // Enhanced button fixes
@@ -3291,7 +3465,7 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
         }
     });
     
-    // Handle beforeunload for unsaved changes
+    // Enhanced beforeunload for unsaved changes with user message validation
     $(window).on('beforeunload', function(e) {
         if (editingState.currentlyEditing && editingState.hasUnsavedChanges) {
             const message = 'You have unsaved message edits. Are you sure you want to leave?';
@@ -3299,15 +3473,44 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
             return message;
         }
         
-        // Check for unsaved conversation changes
+        // Check for unsaved conversation changes with validation
         if (chatState.hasUnsavedChanges) {
-            const message = 'You have unsaved conversation changes. Are you sure you want to leave?';
-            e.returnValue = message;
-            return message;
+            const messages = collectEditableConversationHistory();
+            if (validateConversationForSave(messages)) {
+                const message = 'You have unsaved conversation changes. Are you sure you want to leave?';
+                e.returnValue = message;
+                return message;
+            }
         }
     });
     
-    // Custom events for message editing
+    // Enhanced page visibility change handler with validation
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden && chatState.hasUnsavedChanges) {
+            const messages = collectEditableConversationHistory();
+            if (validateConversationForSave(messages)) {
+                console.log('Page hidden with valid unsaved changes, triggering auto-save');
+                performAutoSave();
+            }
+        }
+    });
+    
+    // Enhanced periodic auto-save check (every 30 seconds) with validation
+    setInterval(function() {
+        if (chatState.hasUnsavedChanges && !editingState.currentlyEditing) {
+            const messages = collectEditableConversationHistory();
+            if (validateConversationForSave(messages)) {
+                console.log('Periodic auto-save check: triggering save for valid unsaved changes');
+                enhancedTriggerAutoSave(1000);
+            } else {
+                console.log('Periodic check: clearing invalid unsaved changes flag');
+                chatState.hasUnsavedChanges = false;
+                updateHeaderWithSavedIndicator();
+            }
+        }
+    }, 30000); // 30 seconds
+    
+    // Custom events for message editing with enhanced auto-save
     $(document).on('chat:started', function() {
         console.log('Chat started event detected, initializing editing');
         setTimeout(() => {
@@ -3318,13 +3521,13 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
     });
     
     $(document).on('message:added', function() {
-        console.log('Message added event detected, converting to editable and triggering auto-save');
+        console.log('Message added event detected, converting to editable and triggering enhanced auto-save');
         setTimeout(() => {
             if (chatState.editingEnabled) {
                 convertExistingMessages();
             }
-            // Trigger auto-save for new messages
-            triggerAutoSave();
+            // Trigger enhanced auto-save for new messages
+            enhancedTriggerAutoSave();
         }, 100);
     });
     
@@ -3332,12 +3535,13 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
     window.addEventListener('error', function(event) {
         if (event.error && event.error.message && 
             (event.error.message.includes('PMV_MobileChat') || 
-             event.error.message.includes('message editing'))) {
-            console.error('PMV_MobileChat/Message Editing error:', event.error);
+             event.error.message.includes('message editing') ||
+             event.error.message.includes('auto-save'))) {
+            console.error('PMV_MobileChat/Message Editing/Auto-save error:', event.error);
         }
     });
     
-    // Keyboard shortcuts for editing
+    // Keyboard shortcuts for editing and auto-save
     $(document).on('keydown', function(e) {
         // Global shortcuts only when not typing in input fields
         if (!$(e.target).is('input, textarea, [contenteditable]')) {
@@ -3349,13 +3553,16 @@ console.log('PNG Metadata Viewer Universal Chat System with Message Editing Load
             // Ctrl+S to save conversation
             else if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
                 e.preventDefault();
-                if (chatState.hasUnsavedChanges) {
+                const messages = collectEditableConversationHistory();
+                if (validateConversationForSave(messages)) {
                     performAutoSave();
+                } else {
+                    console.log('Ctrl+S pressed but no valid conversation to save');
                 }
             }
         }
     });
     
-    console.log('PNG Metadata Viewer Universal Chat System with Message Editing Loaded');
+    console.log('PNG Metadata Viewer Universal Chat System with Enhanced Auto-save and Message Editing Loaded');
     
 })(jQuery);

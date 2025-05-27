@@ -419,7 +419,7 @@
   justify-content: center;
   gap: 5px;
   padding: 0px;
-  font-size: 4vh !important;
+  font-size: 2vh !important;
 }
 
 /* ===== BUTTONS ===== */
@@ -436,7 +436,7 @@
   text-align: center;
   flex: 1;
   min-width: calc(50% - 5px);
-  font-size: font-size: 4vh !important;
+  font-size: font-size: 2vh !important;
 }
 
 a:visited {
@@ -2207,7 +2207,7 @@ h1 {
   .png-download-button,
   .png-chat-button {
     padding: 10px 1px 10px 1px !important;
-    font-size: font-size: 4vh !important;
+    font-size: font-size: 2vh !important;
     min-width: calc(50% - 2px);
   }
 }
@@ -2239,7 +2239,7 @@ h1 {
   .png-download-button,
   .png-chat-button {
     padding: 6px 10px;
-    font-size: font-size: 4vh !important;
+    font-size: font-size: 2vh !important;
     min-width: calc(50% - 1px);
   }
 }
