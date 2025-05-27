@@ -1,7 +1,7 @@
-/* PNG Metadata Viewer - Conversation Manager Module */
-console.log('PNG Metadata Viewer Conversation Manager Module Loaded');
+/* PNG Metadata Viewer - Conversation Manager Module with Auto-save and Message Editing Support */
+console.log('PNG Metadata Viewer Conversation Manager Module with Auto-save Loaded');
 (function($) {
-    // Global conversation state
+    // Global conversation state with enhanced tracking
     window.PMV_ConversationManager = {
         currentConversationId: null,
         conversations: [],
@@ -10,14 +10,26 @@ console.log('PNG Metadata Viewer Conversation Manager Module Loaded');
         isReady: false,
         currentAjaxRequest: null,
         
-        // Initialize the conversation manager
+        // Enhanced state tracking for auto-save and editing
+        hasUnsavedChangesFlag: false,
+        lastSaveTime: null,
+        autoSaveEnabled: true,
+        autoSaveTimer: null,
+        saveInProgress: false,
+        
+        // Initialize the conversation manager with enhanced features
         init: function(characterData, characterId) {
             this.characterData = characterData;
             this.characterId = characterId || this.generateCharacterId(characterData);
+            this.hasUnsavedChangesFlag = false;
+            this.lastSaveTime = null;
+            
             this.loadConversationList();
             this.setupEventHandlers();
+            this.setupAutoSave();
             this.isReady = true;
-            console.log('Conversation Manager initialized for:', this.characterId);
+            
+            console.log('Conversation Manager initialized with auto-save for:', this.characterId);
         },
         
         // Generate consistent character ID
@@ -34,6 +46,213 @@ console.log('PNG Metadata Viewer Conversation Manager Module Loaded');
                 console.error('ID generation error:', e);
             }
             return 'char_' + name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+        },
+        
+        // Setup auto-save functionality
+        setupAutoSave: function() {
+            console.log('Setting up auto-save functionality');
+            
+            // Clear any existing timer
+            if (this.autoSaveTimer) {
+                clearTimeout(this.autoSaveTimer);
+                this.autoSaveTimer = null;
+            }
+            
+            // Listen for message editing events
+            $(document).on('message:added message:edited message:deleted message:regenerated', (e, data) => {
+                console.log('Message event detected, triggering auto-save:', e.type);
+                this.markAsModified();
+                this.scheduleAutoSave(e.type === 'message:added' ? 3000 : 1000);
+            });
+            
+            console.log('Auto-save setup complete');
+        },
+        
+        // Schedule auto-save with debouncing
+        scheduleAutoSave: function(delay = 2000) {
+            if (!this.autoSaveEnabled || this.saveInProgress) return;
+            
+            // Clear existing timer
+            if (this.autoSaveTimer) {
+                clearTimeout(this.autoSaveTimer);
+            }
+            
+            // Schedule new save
+            this.autoSaveTimer = setTimeout(() => {
+                this.performAutoSave();
+            }, delay);
+            
+            console.log(`Auto-save scheduled in ${delay}ms`);
+        },
+        
+        // Perform automatic save
+        performAutoSave: function() {
+            if (!this.hasUnsavedChangesFlag || this.saveInProgress) {
+                console.log('No unsaved changes or save in progress, skipping auto-save');
+                return;
+            }
+            
+            console.log('Performing auto-save...');
+            this.saveInProgress = true;
+            
+            const messages = this.collectMessagesFromDOM();
+            if (messages.length === 0) {
+                console.log('No messages to auto-save');
+                this.saveInProgress = false;
+                return;
+            }
+            
+            // Auto-generate title if this is a new conversation
+            let title = this.generateAutoTitle();
+            
+            // If we have an existing conversation, keep the existing title
+            if (this.currentConversationId) {
+                const existingConv = this.conversations.find(c => c.id == this.currentConversationId);
+                if (existingConv && existingConv.title) {
+                    title = existingConv.title;
+                }
+            }
+            
+            const conversationData = {
+                character_id: this.characterId,
+                title: title,
+                messages: messages
+            };
+            
+            if (this.currentConversationId) {
+                conversationData.id = this.currentConversationId;
+            }
+            
+            // Show auto-save indicator
+            this.showSaveStatus('saving');
+            
+            // Save via AJAX
+            $.ajax({
+                url: pmv_ajax_object.ajax_url,
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    action: 'pmv_save_conversation',
+                    conversation: JSON.stringify(conversationData),
+                    nonce: pmv_ajax_object.nonce
+                },
+                success: (response) => {
+                    if (response.success) {
+                        this.currentConversationId = response.data.id;
+                        this.hasUnsavedChangesFlag = false;
+                        this.lastSaveTime = new Date();
+                        
+                        // Update conversation lists
+                        this.loadConversationList();
+                        if ($('.mobile-conversations-list, .mobile-conversation-list').length) {
+                            this.loadConversationListMobile();
+                        }
+                        
+                        this.showSaveStatus('saved');
+                        this.updateHeaderSaveStatus(false);
+                        
+                        console.log('Auto-save successful:', response.data.id);
+                    } else {
+                        this.showSaveStatus('error');
+                        console.error('Auto-save failed:', response.data?.message);
+                    }
+                },
+                error: (xhr) => {
+                    this.showSaveStatus('error');
+                    console.error('Auto-save error:', xhr.responseText);
+                },
+                complete: () => {
+                    this.saveInProgress = false;
+                }
+            });
+        },
+        
+        // Manual save method (with user prompt for title)
+        manualSave: function() {
+            console.log('Manual save triggered');
+            
+            if (this.saveInProgress) {
+                console.log('Save already in progress');
+                return;
+            }
+            
+            this.saveCurrentConversation();
+        },
+        
+        // Generate automatic title for conversations
+        generateAutoTitle: function() {
+            const characterName = this.getCharacterName();
+            const now = new Date();
+            const dateStr = now.toLocaleDateString();
+            const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            return `Chat with ${characterName} - ${dateStr} ${timeStr}`;
+        },
+        
+        // Show save status indicator
+        showSaveStatus: function(status) {
+            // Remove existing status
+            $('.save-status').remove();
+            
+            let text = '';
+            let className = '';
+            switch(status) {
+                case 'saving':
+                    text = 'Saving...';
+                    className = 'saving';
+                    break;
+                case 'saved':
+                    text = 'Saved ✓';
+                    className = 'saved';
+                    break;
+                case 'error':
+                    text = 'Save Error ✗';
+                    className = 'error';
+                    break;
+            }
+            
+            const $status = $(`<div class="save-status ${className}">${text}</div>`);
+            $('body').append($status);
+            
+            // Auto-hide after delay
+            if (status !== 'saving') {
+                setTimeout(() => {
+                    $status.fadeOut(300, function() {
+                        $(this).remove();
+                    });
+                }, 2000);
+            }
+        },
+        
+        // Update header to show save status
+        updateHeaderSaveStatus: function(hasUnsaved) {
+            const $headerName = $('.chat-modal-name');
+            if (hasUnsaved) {
+                if (!$headerName.text().includes('*')) {
+                    $headerName.text($headerName.text() + ' *').attr('title', 'Unsaved changes');
+                }
+            } else {
+                $headerName.text($headerName.text().replace(' *', '')).removeAttr('title');
+            }
+        },
+        
+        // Mark conversation as having unsaved changes
+        markAsModified: function() {
+            this.hasUnsavedChangesFlag = true;
+            this.updateHeaderSaveStatus(true);
+            console.log('Conversation marked as modified');
+        },
+        
+        // Clear unsaved changes flag
+        clearModified: function() {
+            this.hasUnsavedChangesFlag = false;
+            this.updateHeaderSaveStatus(false);
+            console.log('Conversation modification flag cleared');
+        },
+        
+        // Check if there are unsaved changes
+        hasUnsavedChanges: function() {
+            return this.hasUnsavedChangesFlag;
         },
         
         // Load conversation list (Desktop)
@@ -167,11 +386,11 @@ console.log('PNG Metadata Viewer Conversation Manager Module Loaded');
                             position: relative;
                             padding: 12px;
                             margin-bottom: 8px;
-                            background: ${isActive ? '#27ae60' : 'rgba(255,255,255,0.1)'};
+                            background: ${isActive ? '#434d47' : 'rgba(255,255,255,0.1)'};
                             border-radius: 8px;
                             cursor: pointer;
                             color: white;
-                            border: ${isActive ? '2px solid rgba(255,255,255,0.3)' : '1px solid rgba(255,255,255,0.1)'};
+                            border: ${isActive ? '2px solid rgba(59, 63, 56, 0.3)' : '1px solid rgba(71, 80, 69, 0.41)'};
                             transition: all 0.3s ease;
                          ">
                         <div style="
@@ -258,6 +477,14 @@ console.log('PNG Metadata Viewer Conversation Manager Module Loaded');
                     return;
                 }
                 
+                // Check for unsaved changes before loading
+                if (self.hasUnsavedChangesFlag) {
+                    const confirmLoad = confirm('You have unsaved changes. Loading a conversation will lose these changes. Continue?');
+                    if (!confirmLoad) {
+                        return;
+                    }
+                }
+                
                 // Load the conversation
                 console.log('Loading mobile conversation:', conversationId);
                 self.loadConversation(conversationId);
@@ -309,7 +536,7 @@ console.log('PNG Metadata Viewer Conversation Manager Module Loaded');
             console.log('=================================');
         },
         
-        // Setup event handlers (Desktop)
+        // Setup event handlers (Desktop) with enhanced auto-save integration
         setupEventHandlers: function() {
             const self = this;
             $(document)
@@ -321,13 +548,22 @@ console.log('PNG Metadata Viewer Conversation Manager Module Loaded');
                     self.startNewConversation();
                 })
                 .on('click', '#save-conversation', function() {
-                    self.saveCurrentConversation();
+                    self.manualSave();
                 })
                 .on('click', '.conversation-item', function(e) {
                     // Don't trigger if delete button was clicked
                     if ($(e.target).hasClass('delete-conversation') || $(e.target).closest('.delete-conversation').length) {
                         return;
                     }
+                    
+                    // Check for unsaved changes
+                    if (self.hasUnsavedChangesFlag) {
+                        const confirmLoad = confirm('You have unsaved changes. Loading a conversation will lose these changes. Continue?');
+                        if (!confirmLoad) {
+                            return;
+                        }
+                    }
+                    
                     const id = $(this).data('id');
                     self.loadConversation(id);
                 })
@@ -338,25 +574,42 @@ console.log('PNG Metadata Viewer Conversation Manager Module Loaded');
                 });
         },
         
-        // Save current conversation
+        // Enhanced save current conversation with message editing support
         saveCurrentConversation: function() {
             const self = this;
+            
+            if (this.saveInProgress) {
+                console.log('Save already in progress');
+                return;
+            }
+            
+            // Collect messages using enhanced method that supports editing
             const messages = this.collectMessagesFromDOM();
             if (messages.length === 0) {
                 this.showToast('Cannot save empty conversation', 'error');
                 return;
             }
-            const defaultTitle = `Chat with ${this.getCharacterName()} - ${new Date().toLocaleDateString()}`;
+            
+            // For manual save, always prompt for title
+            const defaultTitle = this.currentConversationId ? 
+                (this.conversations.find(c => c.id == this.currentConversationId)?.title || this.generateAutoTitle()) :
+                this.generateAutoTitle();
+            
             const title = prompt('Conversation title:', defaultTitle) || defaultTitle;
+            
             const conversationData = {
                 character_id: this.characterId,
                 title: title.substring(0, 255),
                 messages: messages
             };
+            
             if (this.currentConversationId) {
                 conversationData.id = this.currentConversationId;
             }
+            
+            this.saveInProgress = true;
             $('#save-conversation').prop('disabled', true).text('Saving...');
+            
             $.ajax({
                 url: pmv_ajax_object.ajax_url,
                 type: 'POST',
@@ -369,12 +622,18 @@ console.log('PNG Metadata Viewer Conversation Manager Module Loaded');
                 success: function(response) {
                     if (response.success) {
                         self.currentConversationId = response.data.id;
+                        self.hasUnsavedChangesFlag = false;
+                        self.lastSaveTime = new Date();
+                        
                         self.loadConversationList();
                         // If mobile exists, also refresh mobile list
                         if ($('.mobile-conversations-list, .mobile-conversation-list').length) {
                             self.loadConversationListMobile();
                         }
+                        
+                        self.updateHeaderSaveStatus(false);
                         self.showToast('Conversation saved');
+                        console.log('Manual save successful:', response.data.id);
                     } else {
                         self.showToast(response.data?.message || 'Save failed', 'error');
                     }
@@ -384,12 +643,13 @@ console.log('PNG Metadata Viewer Conversation Manager Module Loaded');
                     console.error('Save error:', xhr.responseText);
                 },
                 complete: function() {
+                    self.saveInProgress = false;
                     $('#save-conversation').prop('disabled', false).text('Save');
                 }
             });
         },
         
-        // Load conversation with improved error handling
+        // Load conversation with improved error handling and unsaved changes check
         loadConversation: function(conversationId) {
             const self = this;
             console.log('Loading conversation:', conversationId);
@@ -426,12 +686,14 @@ console.log('PNG Metadata Viewer Conversation Manager Module Loaded');
                     console.log('Load conversation response:', response);
                     if (response.success) {
                         self.currentConversationId = conversationId;
+                        self.hasUnsavedChangesFlag = false; // Clear unsaved changes when loading
                         self.renderConversation(response.data);
                         // Update both desktop and mobile lists
                         self.renderConversationList();
                         if ($('.mobile-conversations-list, .mobile-conversation-list').length) {
                             self.renderConversationListMobile();
                         }
+                        self.updateHeaderSaveStatus(false);
                         self.showToast('Conversation loaded');
                     } else {
                         $('#chat-history, #chat-messages').html('<div class="error-message">Failed to load conversation: ' + (response.data?.message || 'Unknown error') + '</div>');
@@ -456,12 +718,14 @@ console.log('PNG Metadata Viewer Conversation Manager Module Loaded');
         // Load conversation into chat (compatibility method for mobile)
         loadConversationIntoChat: function(conversationData) {
             this.currentConversationId = conversationData.id;
+            this.hasUnsavedChangesFlag = false; // Clear unsaved changes
             this.renderConversation(conversationData);
             // Update lists
             this.renderConversationList();
             if ($('.mobile-conversations-list, .mobile-conversation-list').length) {
                 this.renderConversationListMobile();
             }
+            this.updateHeaderSaveStatus(false);
         },
         
         // Delete conversation
@@ -486,9 +750,11 @@ console.log('PNG Metadata Viewer Conversation Manager Module Loaded');
                     if (response.success) {
                         if (conversationId == self.currentConversationId) {
                             self.currentConversationId = null;
+                            self.hasUnsavedChangesFlag = false;
                             // Clear chat
                             $('#chat-history, #chat-messages').empty();
                             self.addFirstMessage();
+                            self.updateHeaderSaveStatus(false);
                         }
                         // Refresh both lists
                         self.loadConversationList();
@@ -507,14 +773,23 @@ console.log('PNG Metadata Viewer Conversation Manager Module Loaded');
             });
         },
         
-        // Start new conversation
+        // Start new conversation with unsaved changes check
         startNewConversation: function() {
+            // Check for unsaved changes
+            if (this.hasUnsavedChangesFlag) {
+                const confirmNew = confirm('You have unsaved changes. Starting a new conversation will lose these changes. Continue?');
+                if (!confirmNew) {
+                    return;
+                }
+            }
+            
             // Clear any ongoing requests
             if (this.currentAjaxRequest) {
                 this.currentAjaxRequest.abort();
             }
             
             this.currentConversationId = null;
+            this.hasUnsavedChangesFlag = false;
             $('#chat-history, #chat-messages').empty();
             this.addFirstMessage();
             // Update both lists
@@ -522,31 +797,49 @@ console.log('PNG Metadata Viewer Conversation Manager Module Loaded');
             if ($('.mobile-conversations-list, .mobile-conversation-list').length) {
                 this.renderConversationListMobile();
             }
+            this.updateHeaderSaveStatus(false);
             $('#chat-input').focus();
         },
         
-        // Update current conversation with new message
+        // Update current conversation with new message (for auto-save integration)
         updateCurrentConversationWithMessage: function(role, content) {
-            // This method can be called to update the current conversation
-            // Useful for auto-saving during chat
+            // This method is called when new messages are added
             console.log('Message added to conversation:', {role, content, conversationId: this.currentConversationId});
+            this.markAsModified();
+            this.scheduleAutoSave(3000); // Auto-save in 3 seconds
         },
         
-        // Helper methods
+        // Enhanced message collection with editing support
         collectMessagesFromDOM: function() {
             const messages = [];
+            
+            // Use mobile chat's method if available (supports editing)
+            if (window.PMV_MobileChat && window.PMV_MobileChat.getConversationHistory) {
+                return window.PMV_MobileChat.getConversationHistory();
+            }
+            
+            // Fallback method
             $('.chat-message').each(function() {
                 const $msg = $(this);
+                
+                // Skip error messages and typing indicators
+                if ($msg.hasClass('error') || $msg.hasClass('typing-indicator')) {
+                    return;
+                }
+                
                 let role = $msg.hasClass('user') ? 'user' : 'assistant';
                 let content = $msg.find('.chat-message-content-wrapper').text() || 
                              $msg.text().replace(/^\s*(You|AI):\s*/i, '');
+                             
                 if (content.trim()) {
                     messages.push({ role, content: content.trim() });
                 }
             });
+            
             return messages;
         },
         
+        // Enhanced conversation rendering with editing support
         renderConversation: function(conversation) {
             const $history = $('#chat-history, #chat-messages');
             $history.empty();
@@ -559,41 +852,143 @@ console.log('PNG Metadata Viewer Conversation Manager Module Loaded');
             conversation.messages.forEach(msg => {
                 const isUser = msg.role === 'user';
                 const name = isUser ? 'You' : this.getCharacterName();
-                $history.append(`
-                    <div class="chat-message ${isUser ? 'user' : 'bot'}">
-                        <strong>${name}:</strong>
-                        <span class="chat-message-content-wrapper">${this.escapeHtml(msg.content)}</span>
-                    </div>
-                `);
+                
+                // Use mobile chat's method if available (supports editing)
+                if (window.PMV_MobileChat && window.PMV_MobileChat.addEditableMessage) {
+                    window.PMV_MobileChat.addEditableMessage(
+                        msg.content,
+                        isUser ? 'user' : 'bot',
+                        name
+                    );
+                } else {
+                    // Fallback method
+                    $history.append(`
+                        <div class="chat-message ${isUser ? 'user' : 'bot'}">
+                            <strong>${name}:</strong>
+                            <span class="chat-message-content-wrapper">${this.escapeHtml(msg.content)}</span>
+                        </div>
+                    `);
+                }
             });
             
             // Scroll to bottom
             $history.scrollTop($history[0].scrollHeight);
             
+            // Apply layout fixes
             if (window.PMV_Chat && window.PMV_Chat.fixChatVisibility) {
                 window.PMV_Chat.fixChatVisibility();
             }
             if (window.forceScrollToBottom) {
                 window.forceScrollToBottom();
             }
+            
+            // Convert messages to editable format if needed
+            setTimeout(() => {
+                if (window.PMV_MobileChat && window.PMV_MobileChat.convertExistingMessages) {
+                    window.PMV_MobileChat.convertExistingMessages();
+                }
+            }, 200);
         },
         
+        // Add first message with editing support
         addFirstMessage: function() {
             try {
                 const firstMes = this.characterData.first_mes ||
                                 this.characterData.data?.first_mes ||
                                 `Hello, I'm ${this.getCharacterName()}`;
-                $('#chat-history, #chat-messages').append(`
-                    <div class="chat-message bot">
-                        <strong>${this.getCharacterName()}:</strong>
-                        <span class="chat-message-content-wrapper">${this.escapeHtml(firstMes)}</span>
-                    </div>
-                `);
+                
+                const characterName = this.getCharacterName();
+                
+                // Use mobile chat's method if available (supports editing)
+                if (window.PMV_MobileChat && window.PMV_MobileChat.addEditableMessage) {
+                    window.PMV_MobileChat.addEditableMessage(
+                        firstMes,
+                        'bot',
+                        characterName
+                    );
+                } else {
+                    // Fallback method
+                    $('#chat-history, #chat-messages').append(`
+                        <div class="chat-message bot">
+                            <strong>${characterName}:</strong>
+                            <span class="chat-message-content-wrapper">${this.escapeHtml(firstMes)}</span>
+                        </div>
+                    `);
+                }
             } catch(e) {
                 console.error('Error adding first message:', e);
             }
         },
         
+        // Export conversation functionality
+        exportConversation: function(format = 'json') {
+            console.log('Exporting conversation as:', format);
+            
+            const messages = this.collectMessagesFromDOM();
+            if (messages.length === 0) {
+                this.showToast('No messages to export', 'error');
+                return;
+            }
+            
+            const exportData = {
+                character: this.getCharacterName(),
+                character_data: this.characterData,
+                timestamp: new Date().toISOString(),
+                messages: messages,
+                format: format,
+                exported_by: 'PNG Metadata Viewer Conversation Manager',
+                version: '1.0',
+                conversation_id: this.currentConversationId
+            };
+            
+            if (format === 'json') {
+                const dataStr = JSON.stringify(exportData, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                const url = URL.createObjectURL(dataBlob);
+                
+                const downloadLink = document.createElement('a');
+                downloadLink.href = url;
+                downloadLink.download = `conversation_${this.getCharacterName().replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                URL.revokeObjectURL(url);
+                
+                this.showToast('Conversation exported');
+            } else {
+                this.showToast('Format not supported yet', 'error');
+            }
+        },
+        
+        // Reset conversation manager
+        reset: function() {
+            console.log('Resetting conversation manager');
+            
+            // Clear auto-save timer
+            if (this.autoSaveTimer) {
+                clearTimeout(this.autoSaveTimer);
+                this.autoSaveTimer = null;
+            }
+            
+            // Abort any ongoing requests
+            if (this.currentAjaxRequest) {
+                this.currentAjaxRequest.abort();
+                this.currentAjaxRequest = null;
+            }
+            
+            // Reset state
+            this.currentConversationId = null;
+            this.hasUnsavedChangesFlag = false;
+            this.saveInProgress = false;
+            this.lastSaveTime = null;
+            
+            // Remove save status
+            $('.save-status').remove();
+            
+            console.log('Conversation manager reset complete');
+        },
+        
+        // Helper methods
         getCharacterName: function() {
             try {
                 return this.characterData.name ||
