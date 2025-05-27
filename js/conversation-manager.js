@@ -1,5 +1,5 @@
-/* PNG Metadata Viewer - Conversation Manager Module with Auto-save and Message Editing Support */
-console.log('PNG Metadata Viewer Conversation Manager Module with Auto-save Loaded');
+/* PNG Metadata Viewer - Conversation Manager Module with Enhanced Auto-save and Message Editing Support */
+console.log('PNG Metadata Viewer Conversation Manager Module with Enhanced Auto-save Loaded');
 (function($) {
     // Global conversation state with enhanced tracking
     window.PMV_ConversationManager = {
@@ -26,10 +26,10 @@ console.log('PNG Metadata Viewer Conversation Manager Module with Auto-save Load
             
             this.loadConversationList();
             this.setupEventHandlers();
-            this.setupAutoSave();
+            this.setupEnhancedAutoSave();
             this.isReady = true;
             
-            console.log('Conversation Manager initialized with auto-save for:', this.characterId);
+            console.log('Conversation Manager initialized with enhanced auto-save for:', this.characterId);
         },
         
         // Generate consistent character ID
@@ -48,9 +48,9 @@ console.log('PNG Metadata Viewer Conversation Manager Module with Auto-save Load
             return 'char_' + name.toLowerCase().replace(/[^a-z0-9]/g, '_');
         },
         
-        // Setup auto-save functionality
-        setupAutoSave: function() {
-            console.log('Setting up auto-save functionality');
+        // Enhanced auto-save functionality with user message validation
+        setupEnhancedAutoSave: function() {
+            console.log('Setting up enhanced auto-save functionality with user message validation');
             
             // Clear any existing timer
             if (this.autoSaveTimer) {
@@ -58,19 +58,83 @@ console.log('PNG Metadata Viewer Conversation Manager Module with Auto-save Load
                 this.autoSaveTimer = null;
             }
             
-            // Listen for message editing events
+            // Listen for message editing events with validation
             $(document).on('message:added message:edited message:deleted message:regenerated', (e, data) => {
-                console.log('Message event detected, triggering auto-save:', e.type);
-                this.markAsModified();
-                this.scheduleAutoSave(e.type === 'message:added' ? 3000 : 1000);
+                console.log('Message event detected, checking for auto-save:', e.type);
+                
+                // Only trigger auto-save if we have user messages
+                const messages = this.collectMessagesFromDOM();
+                if (this.validateMessagesForAutoSave(messages)) {
+                    this.markAsModified();
+                    
+                    // Different delays based on event type
+                    let delay = 2000;
+                    switch(e.type) {
+                        case 'message:added':
+                            delay = 3000; // Longer delay for new messages
+                            break;
+                        case 'message:edited':
+                        case 'message:deleted':
+                            delay = 1000; // Shorter delay for edits/deletes
+                            break;
+                        case 'message:regenerated':
+                            delay = 2000; // Medium delay for regeneration
+                            break;
+                    }
+                    
+                    this.scheduleAutoSave(delay);
+                } else {
+                    console.log('Auto-save not triggered: no valid user messages');
+                }
             });
             
-            console.log('Auto-save setup complete');
+            console.log('Enhanced auto-save setup complete');
         },
         
-        // Schedule auto-save with debouncing
+        // Enhanced validation for auto-save - CRITICAL FUNCTION
+        validateMessagesForAutoSave: function(messages) {
+            if (!messages || messages.length === 0) {
+                console.log('Auto-save validation: no messages');
+                return false;
+            }
+            
+            // Must have at least one user message
+            const hasUserMessages = messages.some(msg => 
+                msg.role === 'user' && 
+                msg.content && 
+                typeof msg.content === 'string' && 
+                msg.content.trim().length > 0
+            );
+            
+            if (!hasUserMessages) {
+                console.log('Auto-save validation: no user messages found');
+                return false;
+            }
+            
+            // Check message structure
+            const hasValidStructure = messages.every(msg => 
+                msg.role && msg.content && typeof msg.content === 'string'
+            );
+            
+            if (!hasValidStructure) {
+                console.log('Auto-save validation: invalid message structure');
+                return false;
+            }
+            
+            console.log('Auto-save validation: passed - found', messages.filter(m => m.role === 'user').length, 'user messages');
+            return true;
+        },
+        
+        // Schedule auto-save with enhanced validation
         scheduleAutoSave: function(delay = 2000) {
             if (!this.autoSaveEnabled || this.saveInProgress) return;
+            
+            // Validate before scheduling
+            const messages = this.collectMessagesFromDOM();
+            if (!this.validateMessagesForAutoSave(messages)) {
+                console.log('Auto-save not scheduled: validation failed');
+                return;
+            }
             
             // Clear existing timer
             if (this.autoSaveTimer) {
@@ -85,28 +149,32 @@ console.log('PNG Metadata Viewer Conversation Manager Module with Auto-save Load
             console.log(`Auto-save scheduled in ${delay}ms`);
         },
         
-        // Perform automatic save
+        // Enhanced auto-save performance with update vs create logic
         performAutoSave: function() {
             if (!this.hasUnsavedChangesFlag || this.saveInProgress) {
-                console.log('No unsaved changes or save in progress, skipping auto-save');
+                console.log('Auto-save skipped: no changes or save in progress');
                 return;
             }
             
-            console.log('Performing auto-save...');
+            console.log('Performing enhanced auto-save...');
             this.saveInProgress = true;
             
             const messages = this.collectMessagesFromDOM();
-            if (messages.length === 0) {
-                console.log('No messages to auto-save');
+            if (!this.validateMessagesForAutoSave(messages)) {
+                console.log('Auto-save cancelled: message validation failed');
                 this.saveInProgress = false;
                 return;
             }
             
-            // Auto-generate title if this is a new conversation
+            // Determine if this is an update or create
+            let isUpdate = false;
             let title = this.generateAutoTitle();
             
-            // If we have an existing conversation, keep the existing title
             if (this.currentConversationId) {
+                // This is an update to existing conversation
+                isUpdate = true;
+                
+                // Keep existing title for updates
                 const existingConv = this.conversations.find(c => c.id == this.currentConversationId);
                 if (existingConv && existingConv.title) {
                     title = existingConv.title;
@@ -119,25 +187,33 @@ console.log('PNG Metadata Viewer Conversation Manager Module with Auto-save Load
                 messages: messages
             };
             
-            if (this.currentConversationId) {
+            // Include ID for updates
+            if (isUpdate) {
                 conversationData.id = this.currentConversationId;
             }
             
             // Show auto-save indicator
             this.showSaveStatus('saving');
             
-            // Save via AJAX
+            console.log(`Auto-save: ${isUpdate ? 'updating' : 'creating'} conversation`, {
+                id: this.currentConversationId,
+                messageCount: messages.length,
+                userMessages: messages.filter(m => m.role === 'user').length
+            });
+            
+            // Save via AJAX with enhanced handling
             $.ajax({
                 url: pmv_ajax_object.ajax_url,
                 type: 'POST',
                 dataType: 'json',
                 data: {
-                    action: 'pmv_save_conversation',
-                    conversation: JSON.stringify(conversationData),
+                    action: 'pmv_auto_save_conversation',
+                    conversation_data: JSON.stringify(conversationData),
                     nonce: pmv_ajax_object.nonce
                 },
                 success: (response) => {
                     if (response.success) {
+                        // Update conversation ID (important for new conversations)
                         this.currentConversationId = response.data.id;
                         this.hasUnsavedChangesFlag = false;
                         this.lastSaveTime = new Date();
@@ -151,7 +227,7 @@ console.log('PNG Metadata Viewer Conversation Manager Module with Auto-save Load
                         this.showSaveStatus('saved');
                         this.updateHeaderSaveStatus(false);
                         
-                        console.log('Auto-save successful:', response.data.id);
+                        console.log(`Auto-save successful: ${response.data.action} conversation ${response.data.id}`);
                     } else {
                         this.showSaveStatus('error');
                         console.error('Auto-save failed:', response.data?.message);
@@ -442,7 +518,7 @@ console.log('PNG Metadata Viewer Conversation Manager Module with Auto-save Load
             console.log('Mobile conversation list rendered with', this.conversations.length, 'items');
         },
         
-        // Setup mobile-specific event handlers - FIXED
+        // Setup mobile-specific event handlers with enhanced auto-save check
         setupMobileEventHandlers: function() {
             const self = this;
             
@@ -450,9 +526,9 @@ console.log('PNG Metadata Viewer Conversation Manager Module with Auto-save Load
             $(document).off('click.mobileConv', '.mobile-conversation-item');
             $(document).off('click.mobileConv', '.mobile-delete-conversation');
             
-            console.log('Setting up mobile event handlers');
+            console.log('Setting up mobile event handlers with auto-save check');
             
-            // Mobile conversation item click - Use event delegation properly
+            // Mobile conversation item click with auto-save
             $(document).on('click.mobileConv', '.mobile-conversation-item', function(e) {
                 // Don't trigger if delete button was clicked
                 if ($(e.target).hasClass('mobile-delete-conversation') || $(e.target).closest('.mobile-delete-conversation').length) {
@@ -466,10 +542,7 @@ console.log('PNG Metadata Viewer Conversation Manager Module with Auto-save Load
                 const $item = $(this);
                 const conversationId = $item.attr('data-id') || $item.attr('data-conversation-id');
                 
-                console.log('Mobile conversation clicked - element:', $item);
-                console.log('Mobile conversation clicked - ID from data-id:', $item.attr('data-id'));
-                console.log('Mobile conversation clicked - ID from data-conversation-id:', $item.attr('data-conversation-id'));
-                console.log('Final conversation ID:', conversationId);
+                console.log('Mobile conversation clicked - ID:', conversationId);
                 
                 if (!conversationId || conversationId === 'undefined') {
                     console.error('Mobile conversation ID is undefined or invalid');
@@ -477,22 +550,8 @@ console.log('PNG Metadata Viewer Conversation Manager Module with Auto-save Load
                     return;
                 }
                 
-                // Check for unsaved changes before loading
-                if (self.hasUnsavedChangesFlag) {
-                    const confirmLoad = confirm('You have unsaved changes. Loading a conversation will lose these changes. Continue?');
-                    if (!confirmLoad) {
-                        return;
-                    }
-                }
-                
-                // Load the conversation
-                console.log('Loading mobile conversation:', conversationId);
-                self.loadConversation(conversationId);
-                
-                // Close mobile menu
-                if (window.PMV_MobileChat && typeof window.PMV_MobileChat.closeMenu === 'function') {
-                    window.PMV_MobileChat.closeMenu();
-                }
+                // Enhanced conversation switching with auto-save
+                self.switchConversationWithAutoSave(conversationId);
             });
             
             // Mobile delete conversation
@@ -503,7 +562,6 @@ console.log('PNG Metadata Viewer Conversation Manager Module with Auto-save Load
                 const $deleteBtn = $(this);
                 const conversationId = $deleteBtn.attr('data-id');
                 
-                console.log('Mobile delete clicked - element:', $deleteBtn);
                 console.log('Mobile delete clicked - ID:', conversationId);
                 
                 if (!conversationId || conversationId === 'undefined') {
@@ -515,6 +573,50 @@ console.log('PNG Metadata Viewer Conversation Manager Module with Auto-save Load
                     self.deleteConversation(conversationId);
                 }
             });
+        },
+        
+        // Enhanced conversation switching with auto-save check
+        switchConversationWithAutoSave: function(newConversationId) {
+            console.log('Switching conversation with auto-save check:', newConversationId);
+            
+            // Check if we have unsaved changes
+            const hasUnsaved = this.hasUnsavedChangesFlag;
+            
+            if (hasUnsaved) {
+                console.log('Unsaved changes detected, checking if they should be saved');
+                
+                // Check if there are user messages to save
+                const messages = this.collectMessagesFromDOM();
+                if (this.validateMessagesForAutoSave(messages)) {
+                    console.log('Valid unsaved changes found, saving before switch');
+                    
+                    // Show saving indicator
+                    this.showSaveStatus('saving');
+                    
+                    // Perform save before switching
+                    this.performAutoSave();
+                    
+                    // Wait for save to complete before switching
+                    setTimeout(() => {
+                        this.proceedWithConversationLoad(newConversationId);
+                    }, 1000);
+                } else {
+                    console.log('No valid user messages, clearing unsaved state and proceeding');
+                    // No user messages, just clear unsaved state and proceed
+                    this.hasUnsavedChangesFlag = false;
+                    this.updateHeaderSaveStatus(false);
+                    this.proceedWithConversationLoad(newConversationId);
+                }
+            } else {
+                // No unsaved changes, proceed directly
+                console.log('No unsaved changes, proceeding with switch');
+                this.proceedWithConversationLoad(newConversationId);
+            }
+            
+            // Close mobile menu if applicable
+            if (window.PMV_MobileChat && window.PMV_MobileChat.closeMenu) {
+                window.PMV_MobileChat.closeMenu();
+            }
         },
         
         // Debug function for mobile conversations
@@ -545,7 +647,7 @@ console.log('PNG Metadata Viewer Conversation Manager Module with Auto-save Load
                 .off('click', '.conversation-item')
                 .off('click', '.delete-conversation')
                 .on('click', '#new-conversation', function() {
-                    self.startNewConversation();
+                    self.startNewConversationWithAutoSave();
                 })
                 .on('click', '#save-conversation', function() {
                     self.manualSave();
@@ -556,16 +658,12 @@ console.log('PNG Metadata Viewer Conversation Manager Module with Auto-save Load
                         return;
                     }
                     
-                    // Check for unsaved changes
-                    if (self.hasUnsavedChangesFlag) {
-                        const confirmLoad = confirm('You have unsaved changes. Loading a conversation will lose these changes. Continue?');
-                        if (!confirmLoad) {
-                            return;
-                        }
-                    }
+                    const id = $(this).data('id') || $(this).data('conversation-id');
+                    console.log('Desktop conversation item clicked:', id);
                     
-                    const id = $(this).data('id');
-                    self.loadConversation(id);
+                    if (id) {
+                        self.switchConversationWithAutoSave(id);
+                    }
                 })
                 .on('click', '.delete-conversation', function(e) {
                     e.stopPropagation();
@@ -585,8 +683,8 @@ console.log('PNG Metadata Viewer Conversation Manager Module with Auto-save Load
             
             // Collect messages using enhanced method that supports editing
             const messages = this.collectMessagesFromDOM();
-            if (messages.length === 0) {
-                this.showToast('Cannot save empty conversation', 'error');
+            if (!this.validateMessagesForAutoSave(messages)) {
+                this.showToast('Cannot save conversation without user messages', 'error');
                 return;
             }
             
@@ -649,10 +747,15 @@ console.log('PNG Metadata Viewer Conversation Manager Module with Auto-save Load
             });
         },
         
-        // Load conversation with improved error handling and unsaved changes check
+        // Enhanced conversation loading with auto-save check
         loadConversation: function(conversationId) {
+            console.log('Loading conversation with auto-save check:', conversationId);
+            this.switchConversationWithAutoSave(conversationId);
+        },
+        
+        // Separate method for actual loading logic
+        proceedWithConversationLoad: function(conversationId) {
             const self = this;
-            console.log('Loading conversation:', conversationId);
             
             // Validate conversation ID
             if (!conversationId || conversationId === 'undefined' || conversationId === 'null') {
@@ -676,7 +779,7 @@ console.log('PNG Metadata Viewer Conversation Manager Module with Auto-save Load
                 url: pmv_ajax_object.ajax_url,
                 type: 'POST',
                 dataType: 'json',
-                timeout: 15000, // 15 second timeout
+                timeout: 15000,
                 data: {
                     action: 'pmv_get_conversation',
                     conversation_id: conversationId,
@@ -688,11 +791,13 @@ console.log('PNG Metadata Viewer Conversation Manager Module with Auto-save Load
                         self.currentConversationId = conversationId;
                         self.hasUnsavedChangesFlag = false; // Clear unsaved changes when loading
                         self.renderConversation(response.data);
+                        
                         // Update both desktop and mobile lists
                         self.renderConversationList();
                         if ($('.mobile-conversations-list, .mobile-conversation-list').length) {
                             self.renderConversationListMobile();
                         }
+                        
                         self.updateHeaderSaveStatus(false);
                         self.showToast('Conversation loaded');
                     } else {
@@ -706,7 +811,6 @@ console.log('PNG Metadata Viewer Conversation Manager Module with Auto-save Load
                         $('#chat-history, #chat-messages').html('<div class="error-message">Connection error. Please try again.</div>');
                         self.showToast('Load failed - connection error', 'error');
                         console.error('Load error:', {xhr, status, error, conversationId});
-                        console.error('Response text:', xhr.responseText);
                     }
                 },
                 complete: function() {
@@ -773,40 +877,80 @@ console.log('PNG Metadata Viewer Conversation Manager Module with Auto-save Load
             });
         },
         
-        // Start new conversation with unsaved changes check
+        // Enhanced new conversation with auto-save check
         startNewConversation: function() {
-            // Check for unsaved changes
+            console.log('Starting new conversation with auto-save check');
+            this.startNewConversationWithAutoSave();
+        },
+        
+        // New conversation with auto-save check
+        startNewConversationWithAutoSave: function() {
+            console.log('Starting new conversation with enhanced auto-save check');
+            
+            // Check for unsaved changes and save if needed
             if (this.hasUnsavedChangesFlag) {
-                const confirmNew = confirm('You have unsaved changes. Starting a new conversation will lose these changes. Continue?');
-                if (!confirmNew) {
-                    return;
+                const messages = this.collectMessagesFromDOM();
+                
+                if (this.validateMessagesForAutoSave(messages)) {
+                    const confirmNew = confirm('You have unsaved changes. Save before starting a new conversation?');
+                    if (confirmNew) {
+                        // Save current conversation first
+                        this.performAutoSave();
+                        
+                        // Wait for save to complete before starting new conversation
+                        setTimeout(() => {
+                            this.proceedWithNewConversation();
+                        }, 1000);
+                        return;
+                    }
                 }
             }
+            
+            // Proceed with new conversation
+            this.proceedWithNewConversation();
+        },
+        
+        // Separate method for new conversation logic
+        proceedWithNewConversation: function() {
+            console.log('Proceeding with new conversation');
             
             // Clear any ongoing requests
             if (this.currentAjaxRequest) {
                 this.currentAjaxRequest.abort();
             }
             
+            // Reset state
             this.currentConversationId = null;
             this.hasUnsavedChangesFlag = false;
+            
+            // Clear chat
             $('#chat-history, #chat-messages').empty();
             this.addFirstMessage();
+            
             // Update both lists
             this.renderConversationList();
             if ($('.mobile-conversations-list, .mobile-conversation-list').length) {
                 this.renderConversationListMobile();
             }
+            
             this.updateHeaderSaveStatus(false);
             $('#chat-input').focus();
+            
+            console.log('New conversation started');
         },
         
-        // Update current conversation with new message (for auto-save integration)
+        // Enhanced message update tracking with validation
         updateCurrentConversationWithMessage: function(role, content) {
-            // This method is called when new messages are added
             console.log('Message added to conversation:', {role, content, conversationId: this.currentConversationId});
-            this.markAsModified();
-            this.scheduleAutoSave(3000); // Auto-save in 3 seconds
+            
+            // Only mark as modified and schedule auto-save if there are user messages
+            const messages = this.collectMessagesFromDOM();
+            if (this.validateMessagesForAutoSave(messages)) {
+                this.markAsModified();
+                this.scheduleAutoSave(role === 'user' ? 2000 : 3000); // Faster save for user messages
+            } else {
+                console.log('Not scheduling auto-save: no user messages yet');
+            }
         },
         
         // Enhanced message collection with editing support
@@ -1038,4 +1182,76 @@ console.log('PNG Metadata Viewer Conversation Manager Module with Auto-save Load
             }[m]));
         }
     };
+
+    // Enhanced auto-save integration with event handling
+    $(document).ready(function() {
+        // Enhanced auto-save monitoring
+        $(document).on('message:added', function(e, data) {
+            console.log('Message added event detected in conversation manager with validation');
+            if (window.PMV_ConversationManager && window.PMV_ConversationManager.isReady) {
+                const messages = window.PMV_ConversationManager.collectMessagesFromDOM();
+                if (window.PMV_ConversationManager.validateMessagesForAutoSave(messages)) {
+                    window.PMV_ConversationManager.markAsModified();
+                    window.PMV_ConversationManager.scheduleAutoSave(3000);
+                } else {
+                    console.log('Message added but no valid user messages for auto-save');
+                }
+            }
+        });
+
+        $(document).on('message:edited', function(e, $message) {
+            console.log('Message edited event detected in conversation manager');
+            if (window.PMV_ConversationManager && window.PMV_ConversationManager.isReady) {
+                window.PMV_ConversationManager.markAsModified();
+                window.PMV_ConversationManager.scheduleAutoSave(1000);
+            }
+        });
+
+        $(document).on('message:deleted', function(e, $message) {
+            console.log('Message deleted event detected in conversation manager');
+            if (window.PMV_ConversationManager && window.PMV_ConversationManager.isReady) {
+                window.PMV_ConversationManager.markAsModified();
+                window.PMV_ConversationManager.scheduleAutoSave(1000);
+            }
+        });
+
+        $(document).on('message:regenerated', function(e, $message, newContent) {
+            console.log('Message regenerated event detected in conversation manager');
+            if (window.PMV_ConversationManager && window.PMV_ConversationManager.isReady) {
+                window.PMV_ConversationManager.markAsModified();
+                window.PMV_ConversationManager.scheduleAutoSave(2000);
+            }
+        });
+
+        // Enhanced beforeunload handler
+        $(window).on('beforeunload', function(e) {
+            if (window.PMV_ConversationManager && 
+                window.PMV_ConversationManager.hasUnsavedChangesFlag) {
+                
+                const messages = window.PMV_ConversationManager.collectMessagesFromDOM();
+                if (window.PMV_ConversationManager.validateMessagesForAutoSave(messages)) {
+                    const message = 'You have unsaved conversation changes. Are you sure you want to leave?';
+                    e.returnValue = message;
+                    return message;
+                }
+            }
+        });
+
+        // Enhanced page visibility change handler
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden && 
+                window.PMV_ConversationManager && 
+                window.PMV_ConversationManager.hasUnsavedChangesFlag) {
+                
+                const messages = window.PMV_ConversationManager.collectMessagesFromDOM();
+                if (window.PMV_ConversationManager.validateMessagesForAutoSave(messages)) {
+                    console.log('Page hidden with valid unsaved changes, triggering auto-save');
+                    window.PMV_ConversationManager.performAutoSave();
+                }
+            }
+        });
+
+        console.log('Enhanced conversation manager integration complete');
+    });
+
 })(jQuery);
