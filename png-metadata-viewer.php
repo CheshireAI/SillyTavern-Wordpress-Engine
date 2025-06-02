@@ -37,6 +37,35 @@ if (file_exists(PMV_PLUGIN_DIR . 'integration.php')) {
     require_once PMV_PLUGIN_DIR . 'integration.php';
 }
 
+// FIXED: Proper script localization function with correct API option names
+function pmv_localize_scripts() {
+    // Localize script with correct option names
+    wp_localize_script('png-metadata-viewer-chat', 'pmv_ajax_object', [
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'plugin_url' => PMV_PLUGIN_URL,
+        'user_id' => get_current_user_id(),
+        'nonce' => wp_create_nonce('pmv_ajax_nonce'),
+        
+        // API settings with CORRECT option names (matching admin-settings.php)
+        'api_key' => get_option('openai_api_key', ''), // Changed from pmv_openai_api_key
+        'api_model' => get_option('openai_model', 'gpt-3.5-turbo'), // Changed from pmv_api_model
+        'api_base_url' => get_option('openai_api_base_url', 'https://api.openai.com/v1'), // Changed from pmv_api_base_url
+        
+        // Chat settings
+        'chat_button_text' => get_option('png_metadata_chat_button_text', 'Chat'),
+        'cards_per_page' => get_option('png_metadata_cards_per_page', 12),
+        'conversation_enabled' => true,
+        
+        // Debug info
+        'debug' => [
+            'api_key_set' => !empty(get_option('openai_api_key', '')),
+            'api_base_url' => get_option('openai_api_base_url', 'https://api.openai.com/v1'),
+            'model' => get_option('openai_model', 'gpt-3.5-turbo'),
+            'version' => PMV_VERSION
+        ]
+    ]);
+}
+
 // Function to enqueue script files
 function pmv_enqueue_scripts() {
     // Register and enqueue main script
@@ -112,21 +141,226 @@ function pmv_enqueue_scripts() {
     // Enqueue dashicons for the UI
     wp_enqueue_style('dashicons');
     
-    // Pass data to scripts
-    wp_localize_script(
-        'png-metadata-viewer-chat',
-        'pmv_ajax_object',
-        array(
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'plugin_url' => PMV_PLUGIN_URL,
-            'user_id' => get_current_user_id(),
-            'nonce' => wp_create_nonce('pmv_ajax_nonce'),
-            'chat_button_text' => get_option('png_metadata_chat_button_text', 'Chat'),
-            'conversation_enabled' => true
-        )
-    );
+    // FIXED: Use the proper localization function
+    pmv_localize_scripts();
 }
 add_action('wp_enqueue_scripts', 'pmv_enqueue_scripts');
+
+// Debug function to check all OpenAI-related options
+function pmv_debug_api_settings() {
+    if (!current_user_can('administrator')) {
+        return;
+    }
+    
+    error_log('=== PMV API Settings Debug ===');
+    error_log('openai_api_key: ' . (get_option('openai_api_key') ? 'SET (' . strlen(get_option('openai_api_key')) . ' chars)' : 'NOT SET'));
+    error_log('pmv_openai_api_key: ' . (get_option('pmv_openai_api_key') ? 'SET (' . strlen(get_option('pmv_openai_api_key')) . ' chars)' : 'NOT SET'));
+    error_log('openai_model: ' . get_option('openai_model', 'NOT SET'));
+    error_log('pmv_api_model: ' . get_option('pmv_api_model', 'NOT SET'));
+    error_log('openai_api_base_url: ' . get_option('openai_api_base_url', 'NOT SET'));
+    error_log('pmv_api_base_url: ' . get_option('pmv_api_base_url', 'NOT SET'));
+    error_log('==============================');
+}
+
+// Add this AJAX handler to test from admin
+add_action('wp_ajax_pmv_debug_settings', function() {
+    if (!current_user_can('administrator')) {
+        wp_die('Insufficient permissions');
+    }
+    
+    $all_options = [
+        'openai_api_key' => get_option('openai_api_key', ''),
+        'pmv_openai_api_key' => get_option('pmv_openai_api_key', ''),
+        'openai_model' => get_option('openai_model', ''),
+        'pmv_api_model' => get_option('pmv_api_model', ''),
+        'openai_api_base_url' => get_option('openai_api_base_url', ''),
+        'pmv_api_base_url' => get_option('pmv_api_base_url', ''),
+        'png_metadata_chat_button_text' => get_option('png_metadata_chat_button_text', ''),
+    ];
+    
+    wp_send_json_success($all_options);
+});
+
+// Fix any existing misnamed options (run this once)
+function pmv_fix_option_names() {
+    // Check if we have the old option names and migrate them
+    $old_api_key = get_option('pmv_openai_api_key');
+    if ($old_api_key && !get_option('openai_api_key')) {
+        update_option('openai_api_key', $old_api_key);
+        delete_option('pmv_openai_api_key');
+        error_log('PMV: Migrated API key from pmv_openai_api_key to openai_api_key');
+    }
+    
+    $old_model = get_option('pmv_api_model');
+    if ($old_model && !get_option('openai_model')) {
+        update_option('openai_model', $old_model);
+        delete_option('pmv_api_model');
+        error_log('PMV: Migrated model from pmv_api_model to openai_model');
+    }
+    
+    $old_base_url = get_option('pmv_api_base_url');
+    if ($old_base_url && !get_option('openai_api_base_url')) {
+        update_option('openai_api_base_url', $old_base_url);
+        delete_option('pmv_api_base_url');
+        error_log('PMV: Migrated base URL from pmv_api_base_url to openai_api_base_url');
+    }
+}
+
+// Run the fix function once on admin init
+add_action('admin_init', 'pmv_fix_option_names');
+
+/**
+ * Show admin notice about API key status
+ */
+function pmv_api_key_status_notice() {
+    if (!current_user_can('administrator')) {
+        return;
+    }
+    
+    // Only show on PMV admin pages
+    $screen = get_current_screen();
+    if (!$screen || strpos($screen->id, 'png-metadata') === false) {
+        return;
+    }
+    
+    $api_key = get_option('openai_api_key', '');
+    $api_base_url = get_option('openai_api_base_url', '');
+    $model = get_option('openai_model', '');
+    
+    if (empty($api_key)) {
+        ?>
+        <div class="notice notice-warning">
+            <p><strong>PNG Metadata Viewer:</strong> OpenAI API key is not configured. 
+            <a href="<?= admin_url('options-general.php?page=png-metadata-viewer&tab=openai') ?>">Configure it here</a> to enable chat functionality.</p>
+        </div>
+        <?php
+    } else {
+        ?>
+        <div class="notice notice-success">
+            <p><strong>PNG Metadata Viewer:</strong> API key is configured ✓ 
+            (<?= esc_html(strlen($api_key)) ?> characters, Model: <?= esc_html($model ?: 'default') ?>)
+            <a href="<?= admin_url('options-general.php?page=png-metadata-viewer&tab=api_test') ?>">Test connection</a></p>
+        </div>
+        <?php
+    }
+    
+    // Debug info for troubleshooting
+    if (isset($_GET['pmv_debug']) && $_GET['pmv_debug'] === '1') {
+        ?>
+        <div class="notice notice-info">
+            <p><strong>Debug Info:</strong></p>
+            <ul>
+                <li>openai_api_key: <?= get_option('openai_api_key') ? 'SET (' . strlen(get_option('openai_api_key')) . ' chars)' : 'NOT SET' ?></li>
+                <li>openai_model: <?= esc_html(get_option('openai_model', 'NOT SET')) ?></li>
+                <li>openai_api_base_url: <?= esc_html(get_option('openai_api_base_url', 'NOT SET')) ?></li>
+                <li>pmv_openai_api_key (old): <?= get_option('pmv_openai_api_key') ? 'SET (old format)' : 'NOT SET' ?></li>
+            </ul>
+        </div>
+        <?php
+    }
+}
+add_action('admin_notices', 'pmv_api_key_status_notice');
+
+/**
+ * Add debug link to settings page
+ */
+function pmv_add_debug_link() {
+    if (!current_user_can('administrator')) {
+        return;
+    }
+    
+    $screen = get_current_screen();
+    if ($screen && strpos($screen->id, 'png-metadata') !== false) {
+        echo '<p><a href="' . add_query_arg('pmv_debug', '1') . '">Show debug info</a></p>';
+    }
+}
+add_action('admin_footer', 'pmv_add_debug_link');
+
+/**
+ * Quick fix button for admin
+ */
+function pmv_add_quick_fix_button() {
+    if (!current_user_can('administrator')) {
+        return;
+    }
+    
+    // Check if we're on the PMV settings page
+    if (!isset($_GET['page']) || $_GET['page'] !== 'png-metadata-viewer') {
+        return;
+    }
+    
+    // Check if we have old option names
+    $has_old_options = get_option('pmv_openai_api_key') || get_option('pmv_api_model') || get_option('pmv_api_base_url');
+    
+    if ($has_old_options) {
+        ?>
+        <div class="notice notice-warning">
+            <p><strong>Notice:</strong> Found old API setting names. 
+            <a href="<?= wp_nonce_url(admin_url('admin-post.php?action=pmv_migrate_options'), 'pmv_migrate_options') ?>" class="button">
+                Migrate to New Format
+            </a></p>
+        </div>
+        <?php
+    }
+}
+add_action('admin_notices', 'pmv_add_quick_fix_button');
+
+/**
+ * Handle option migration
+ */
+add_action('admin_post_pmv_migrate_options', function() {
+    if (!current_user_can('administrator') || !wp_verify_nonce($_GET['_wpnonce'], 'pmv_migrate_options')) {
+        wp_die('Unauthorized');
+    }
+    
+    $migrated = [];
+    
+    // Migrate API key
+    $old_key = get_option('pmv_openai_api_key');
+    if ($old_key) {
+        update_option('openai_api_key', $old_key);
+        delete_option('pmv_openai_api_key');
+        $migrated[] = 'API key';
+    }
+    
+    // Migrate model
+    $old_model = get_option('pmv_api_model');
+    if ($old_model) {
+        update_option('openai_model', $old_model);
+        delete_option('pmv_api_model');
+        $migrated[] = 'Model';
+    }
+    
+    // Migrate base URL
+    $old_url = get_option('pmv_api_base_url');
+    if ($old_url) {
+        update_option('openai_api_base_url', $old_url);
+        delete_option('pmv_api_base_url');
+        $migrated[] = 'Base URL';
+    }
+    
+    $message = empty($migrated) ? 'No settings needed migration.' : 'Migrated: ' . implode(', ', $migrated);
+    
+    wp_redirect(add_query_arg([
+        'page' => 'png-metadata-viewer',
+        'tab' => 'openai',
+        'pmv_message' => urlencode($message)
+    ], admin_url('options-general.php')));
+    exit;
+});
+
+/**
+ * Show migration message
+ */
+add_action('admin_notices', function() {
+    if (isset($_GET['pmv_message'])) {
+        ?>
+        <div class="notice notice-success is-dismissible">
+            <p><?= esc_html(urldecode($_GET['pmv_message'])) ?></p>
+        </div>
+        <?php
+    }
+});
 
 // Function to enqueue chat scripts and pass necessary data
 function pmv_enqueue_chat_scripts() {
@@ -365,7 +599,7 @@ function pmv_activate_plugin() {
         update_option('pmv_default_user_monthly_limit', 100000); // Default: 100K tokens per month for users
     }
     
-    // Add OpenAI specific default settings if they don't exist
+    // Add OpenAI specific default settings if they don't exist - USING CORRECT OPTION NAMES
     if (!get_option('openai_api_base_url')) {
         update_option('openai_api_base_url', 'https://api.openai.com/v1/');
     }
@@ -376,6 +610,18 @@ function pmv_activate_plugin() {
     
     if (!get_option('openai_temperature')) {
         update_option('openai_temperature', 0.7);
+    }
+    
+    if (!get_option('openai_max_tokens')) {
+        update_option('openai_max_tokens', 1000);
+    }
+    
+    if (!get_option('openai_presence_penalty')) {
+        update_option('openai_presence_penalty', 0.6);
+    }
+    
+    if (!get_option('openai_frequency_penalty')) {
+        update_option('openai_frequency_penalty', 0.3);
     }
     
     // Set default styling for chat button if not set
@@ -659,3 +905,6 @@ function pmv_add_token_usage_hooks() {
     }, 10, 3);
 }
 add_action('init', 'pmv_add_token_usage_hooks');
+
+// Uncomment this line temporarily to debug API settings if needed
+// add_action('admin_init', 'pmv_debug_api_settings');
