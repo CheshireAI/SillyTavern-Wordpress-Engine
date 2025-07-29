@@ -1,6 +1,267 @@
-/* Enhanced PNG Metadata Viewer Styles - With Dark Theme, Centered Layout, and More Cards Per Breakpoint */
+/* Enhanced PNG Metadata Viewer Styles - MASONRY COMPATIBLE - FIXED CONFLICTS */
+/* ===== ADMIN INTEGRATION & DEBUG STYLES ===== */
+/* Admin JS Integration Support */
+.pmv-admin-loading {
+  position: relative;
+  opacity: 0.7;
+  pointer-events: none;
+}
 
-/* CSS Variables for consistent colors and values */
+.pmv-admin-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid #ddd;
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  z-index: 1000;
+}
+
+/* File Upload Preview Styles */
+.file-preview {
+  margin: 8px 0 0 0;
+  padding: 0;
+  list-style: none;
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.file-preview li {
+  padding: 6px 12px;
+  border-bottom: 1px solid #eee;
+  font-size: 13px;
+  color: #666;
+}
+
+.file-preview li:last-child {
+  border-bottom: none;
+}
+
+/* Toast Notification Styles - Enhanced */
+.pmv-toast {
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  z-index: 999999 !important;
+  padding: 12px 20px !important;
+  border-radius: 6px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  max-width: 350px !important;
+  word-wrap: break-word !important;
+}
+
+.pmv-toast.success {
+  background: #27ae60 !important;
+  color: white !important;
+}
+
+.pmv-toast.error {
+  background: #e74c3c !important;
+  color: white !important;
+}
+
+.pmv-toast.warning {
+  background: #f39c12 !important;
+  color: white !important;
+}
+
+.pmv-toast.info {
+  background: #3498db !important;
+  color: white !important;
+}
+
+.pmv-toast:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.4) !important;
+}
+
+/* Conversation Manager Error Display */
+.pmv-conversation-error {
+  position: fixed !important;
+  top: 20px !important;
+  right: 20px !important;
+  z-index: 999999 !important;
+  background: #ffebee !important;
+  border: 2px solid #f44336 !important;
+  border-radius: 8px !important;
+  padding: 20px !important;
+  max-width: 400px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+}
+
+.pmv-conversation-error h4 {
+  margin: 0 0 10px 0 !important;
+  color: #d32f2f !important;
+  font-size: 16px !important;
+}
+
+.pmv-conversation-error p {
+  margin: 0 0 10px 0 !important;
+  color: #666 !important;
+  font-size: 14px !important;
+}
+
+.pmv-conversation-error ul {
+  margin: 0 0 15px 20px !important;
+  color: #666 !important;
+  font-size: 14px !important;
+}
+
+.pmv-conversation-error button {
+  background: var(--button-bg) !important;
+  color: white !important;
+  border: none !important;
+  padding: 8px 16px !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  margin-right: 8px !important;
+  font-size: 13px !important;
+}
+
+.pmv-conversation-error button:hover {
+  background: var(--button-hover) !important;
+}
+
+/* Debug Console Styles */
+.pmv-debug-console {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.9);
+  color: #00ff00;
+  padding: 10px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  max-width: 300px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 999998;
+  border: 1px solid #333;
+  display: none; /* Hidden by default */
+}
+
+.pmv-debug-console.active {
+  display: block;
+}
+
+.pmv-debug-console .debug-line {
+  margin-bottom: 2px;
+  word-wrap: break-word;
+}
+
+.pmv-debug-console .debug-error {
+  color: #d32f2f;
+}
+
+.pmv-debug-console .debug-warning {
+  color: #ffaa00;
+}
+
+.pmv-debug-console .debug-info {
+  color: #3b6cd4;
+}
+
+/* Admin Upload Success/Feedback Styles */
+.pmv-upload-feedback {
+  background: #d4edda;
+  color: #155724;
+  padding: 15px;
+  border-radius: 5px;
+  margin: 15px 0;
+  border: 1px solid #c3e6cb;
+  font-weight: 500;
+}
+
+.pmv-upload-feedback.error {
+  background: #f8d7da;
+  color: #721c24;
+  border-color: #f5c6cb;
+}
+
+.pmv-upload-feedback.warning {
+  background: #fff3cd;
+  color: #856404;
+  border-color: #ffeaa7;
+}
+
+/* Enhanced File Input Styling */
+input[type="file"][name*="pmv_png_upload"] {
+  width: 100%;
+  padding: 10px;
+  border: 2px dashed #ddd;
+  border-radius: 6px;
+  background: #fafafa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+input[type="file"][name*="pmv_png_upload"]:hover {
+  border-color: var(--primary-color);
+  background: #f0f8ff;
+}
+
+input[type="file"][name*="pmv_png_upload"]:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 5px rgba(0, 115, 170, 0.3);
+}
+
+/* Responsive adjustments for admin elements */
+@media (max-width: 768px) {
+  .pmv-toast {
+    bottom: 10px !important;
+    right: 10px !important;
+    left: 10px !important;
+    max-width: none !important;
+  }
+  
+  .pmv-conversation-error {
+    top: 10px !important;
+    right: 10px !important;
+    left: 10px !important;
+    max-width: none !important;
+  }
+  
+  .pmv-debug-console {
+    bottom: 5px !important;
+    left: 5px !important;
+    right: 5px !important;
+    max-width: none !important;
+  }
+}
+
+/* Admin Integration Debug Mode */
+body.pmv-debug-mode .pmv-debug-console {
+  display: block !important;
+}
+
+body.pmv-debug-mode::before {
+  content: "PMV DEBUG MODE ACTIVE";
+  position: fixed;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #d32f2f;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: bold;
+  z-index: 1000000;
+}
+/* ===== CSS VARIABLES ===== */
 :root {
   --dark-bg: #222;
   --darker-bg: #1a1a1a;
@@ -9,16 +270,47 @@
   --bright-text: #fff;
   --border-dark: #444;
   --border-darker: #333;
-  --primary-color: #0073aa;
-  --primary-hover: #005c87;
+  --primary-color: var(--button-bg);
+  --primary-hover: var(--button-hover);
   --primary-light: #0088cc;
   --error-color: #aa1616;
   --card-bg: #333;
   --shadow-light: 0 2px 5px rgba(0,0,0,0.2);
   --shadow-medium: 0 4px 8px rgba(0,0,0,0.3);
   --shadow-heavy: 0 5px 15px rgba(0,0,0,0.4);
-  --sidebar-width: 280px;
   --input-area-height: 68px;
+  --card-h: clamp(680px, 80vh, 1000px);
+}
+
+/* --- Modern Consistent Color Scheme --- */
+:root {
+  --card-bg: #23293a;
+  --card-info-bg: #2d3548;
+  --image-bg: #181e2a;
+  --card-name-accent: #43e97b;
+  --tag-bg: #283046;
+  --tag-text: #a3bffa;
+  --download-gradient: linear-gradient(90deg, #27ae60 0%, #43e97b 100%);
+  --chat-gradient: linear-gradient(90deg, var(--button-bg) 0%, var(--button-hover) 100%);
+  --text-main: #e0e6ed;
+  --border-main: #3a4256;
+}
+
+/* --- Refined Dark Grey & Subtle Accent Color Scheme --- */
+:root {
+  --bg-main: #181a1b;
+  --card-bg: #232323;
+  --card-info-bg: #232629;
+  --image-bg: #181a1b;
+  --button-bg: #23404e;
+  --button-hover: #2d5363;
+  --accent-purple: #6c4f8c;
+  --text-main: #e0e0e0;
+  --border-main: #232629;
+  --tag-bg: #232629;
+  --tag-text: #bba6e8;
+  --pagination-bg: #232323;
+  --pagination-active: #2d5363;
 }
 
 /* ===== BASE STYLES ===== */
@@ -48,2251 +340,1555 @@
   to { transform: rotate(360deg); }
 }
 
-/* ===== IMPROVED MASONRY GRID CENTERING SYSTEM ===== */
-/* Main container - properly centered with improved spacing */
-.png-cards-loading-wrapper {
-  position: relative;
-  min-height: 200px;
-  width: 100%;
-  max-width: 1800px; /* Increased from 1600px for better use of space */
-  margin: 0 auto; /* Center the entire gallery */
-  padding: 0 20px; /* Reduced and consistent padding */
-  box-sizing: border-box;
+/* ===== LOADING ANIMATION SYSTEM ===== */
+/* Loading overlay for masonry layout - REMOVED: No longer needed */
+.masonry-loading-overlay {
+  display: none !important; /* FIXED: Remove grey loading box */
+  visibility: hidden !important;
+  opacity: 0 !important;
 }
 
-/* Responsive container padding - more conservative */
-@media (max-width: 1400px) {
-  .png-cards-loading-wrapper {
-    padding: 0 15px;
-  }
+.masonry-loading-overlay.hidden {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }
+
+.masonry-loading-spinner {
+  display: none !important; /* FIXED: Remove spinner */
+}
+
+.masonry-loading-text {
+  display: none !important; /* FIXED: Remove loading text */
+}
+
+/* Card loading states - SIMPLIFIED */
+.png-cards.loading .png-card {
+  opacity: 0 !important;
+  transform: translateY(20px) !important;
+  transition: opacity 0.6s ease, transform 0.6s ease !important;
+  display: none !important;
+}
+
+.png-cards.loaded .png-card {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  display: block !important;
+}
+
+/* FIXED: Ensure cards are visible when loaded state is applied */
+.png-cards.loaded .png-card.show {
+  display: block !important;
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+/* FIXED: Override any conflicting display rules when cards are shown */
+.png-card.show {
+  display: block !important;
+}
+
+/* FIXED: Force visibility when both loaded and show classes are present */
+.png-cards.loaded .png-card.show {
+  display: block !important;
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  visibility: visible !important;
+}
+
+/* Staggered card appearance */
+/* Removed staggered animation delays for cleaner appearance */
+
+/* Container loading state */
+.png-cards-loading {
+  position: relative;
+  min-height: 400px;
+  transition: opacity 0.3s ease;
+}
+
+.png-cards-loading.loading {
+  opacity: 0.8;
+}
+
+.png-cards-loading.loaded {
+  opacity: 1;
+}
+
+/* Ensure loading overlay works with dark theme */
+.masonry-loading-overlay {
+  background: rgba(26, 26, 26, 0.95) !important;
+  backdrop-filter: blur(2px);
+}
+
+/* Smooth transitions for all loading states */
+.png-cards,
+.png-cards-loading,
+.masonry-loading-overlay {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* ===== MASONRY CONTAINER SYSTEM - FIXED FOR COMPATIBILITY ===== */
+.png-cards-loading-wrapper,
+.png-cards-loading {
+  position: relative;
+  width: 100%;
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 0 clamp(10px, 2vw, 30px);
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.png-cards-loading {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.png-cards-loading.loaded {
+  opacity: 1;
+}
+
+/* FIXED: MASONRY CONTAINER - PROPER HEIGHT CALCULATION */
+.png-cards {
+  margin: 0 auto !important;
+  padding: 0 0 80px 0 !important; /* FIXED: Increased bottom padding */
+  background-color: var(--dark-bg);
+  position: relative;
+  text-align: left;
+  min-height: 400px !important; /* FIXED: Ensure minimum height */
+  overflow: visible !important; /* FIXED: Allow content to extend */
+}
+
+/* CSS Grid is now the primary layout system - UPDATED FOR MORE CARDS PER ROW */
+.png-cards {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important; /* REDUCED from 240px to allow more cards */
+  grid-auto-rows: var(--card-height) !important; /* Use new card height variable */
+  gap: 15px !important; /* REDUCED gap to fit more cards */
+  padding: 0 20px 80px 20px !important;
+  margin: 0 auto !important;
+  max-width: 2000px !important; /* INCREASED max-width for wider displays */
+  min-height: 400px !important;
+}
+
+/* Individual Card - RESPONSIVE HEIGHT CALCULATION */
+.png-card {
+  background: #2a2a2a !important;
+  border: 1px solid #404040 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: var(--card-height) !important; /* Use responsive variable instead of fixed 640px */
+  min-height: var(--card-height) !important;
+  max-height: var(--card-height) !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  color: #f0f0f0 !important;
+  width: 100% !important;
+}
+
+.png-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Image Container */
+.png-image-container {
+  height: var(--image-height) !important; /* Use percentage variable instead of fixed 250px */
+  overflow: hidden !important;
+  background: #1a1a1a !important;
+  border-radius: 12px 12px 0 0 !important;
+  position: relative !important;
+  display: flex !important; /* ADDED: Use flexbox for perfect centering */
+  align-items: center !important; /* ADDED: Center vertically */
+  justify-content: center !important; /* ADDED: Center horizontally */
+}
+
+.png-image-container img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important; /* CHANGED: Show full image without cropping */
+  object-position: center !important; /* Center the image */
+  transition: transform 0.3s ease !important;
+  background: transparent !important; /* ADDED: Remove any background */
+}
+
+.png-card:hover .png-image-container img {
+  transform: scale(1.05) !important;
+}
+
+/* Character Modal Image Styles - ADDED */
+.character-image {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  background: #1a1a1a !important;
+  border-radius: 8px !important;
+  padding: 10px !important;
+  margin: 20px 0 !important;
+  max-height: 60vh !important;
+  overflow: hidden !important;
+}
+
+.character-image img {
+  width: auto !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important; /* Show full image without cropping */
+  object-position: center !important;
+  border-radius: 4px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important; /* ADDED: Subtle shadow for better appearance */
+}
+
+/* Chat Message Images - ADDED */
+.chat-message-content-wrapper img {
+  max-width: 100% !important;
+  height: auto !important;
+  object-fit: contain !important; /* Show full image without cropping */
+  border-radius: 4px !important;
+  margin-top: 5px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important; /* ADDED: Subtle shadow */
+}
+
+/* Image Generation Results - ADDED: Ensure generated images also display without cropping */
+#image-results img {
+  max-width: 100% !important;
+  height: auto !important;
+  object-fit: contain !important;
+  border-radius: 4px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  background: #1a1a1a !important;
+}
+
+/* Card Info Container */
+.png-card-info {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 16px !important;
+  gap: 12px !important;
+  height: calc(640px - 250px) !important; /* FIXED: Exact height calculation (total - image height) */
+  max-height: calc(640px - 250px) !important;
+  overflow: hidden !important;
+}
+
+/* Character Name */
+.png-card-name {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  margin: 0 !important;
+  line-height: 1.3 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  text-align: center !important;
+  justify-content: center !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Description - FIXED TEXT WRAPPING */
+.png-card-description {
+  font-size: 14px !important;
+  color: #b0b0b0 !important;
+  line-height: 1.5 !important;
+  margin: 0 !important;
+  flex-grow: 0 !important; /* do not consume extra space pushing other elements */
+  height: 200px !important; /* explicit fixed height */
+  max-height: 200px !important; /* reinforce height cap */
+  overflow-y: auto !important; /* enable internal scroll for long text */
+  overflow-x: hidden !important; /* avoid horizontal scroll */
+  white-space: normal !important;
+  text-align: left !important;
+  padding: 12px !important;
+  background: #1a1a1a !important;
+  border-radius: 8px !important;
+  border: 1px solid #404040 !important;
+  height: 200px !important; /* FIXED: Consistent height for descriptions */
+  hyphens: auto !important;
+  overflow-wrap: break-word !important;
+  -webkit-line-clamp: unset !important;
+}
+
+/* Tags - Fixed height with internal scrolling */
+.png-card-tags {
+  font-size: 12px !important;
+  color: #888 !important;
+  margin: 0 !important;
+  padding: 12px !important;
+  background: #1a1a1a !important;
+  border-radius: 8px !important;
+  border: 1px solid #404040 !important;
+  overflow-y: auto !important; /* Allow scrolling within tags area */
+  overflow-x: hidden !important;
+  word-wrap: break-word !important;
+  white-space: normal !important;
+  line-height: 1.5 !important;
+  height: var(--tags-height) !important; /* Fixed height for consistency - now 100px */
+  min-height: var(--tags-height) !important;
+  max-height: var(--tags-height) !important;
+  display: block !important;
+  hyphens: auto !important;
+  overflow-wrap: break-word !important;
+  text-align: left !important;
+  flex-shrink: 0 !important; /* Don't compress tags section */
+}
+
+.png-card-tags::before {
+  content: "Tags: " !important;
+  font-weight: 600 !important;
+  color: #f0f0f0 !important;
+  display: inline !important; /* CRITICAL: Inline for text flow */
+}
+
+/* BUTTON CONTAINER - GUARANTEED VISIBILITY */
+.png-card-buttons {
+  display: flex !important;
+  gap: 12px !important;
+  padding: 20px !important;
+  background: #2a2a2a !important;
+  border-top: 1px solid #404040 !important;
+  margin-top: auto !important;
+  flex-shrink: 0 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 10 !important;
+  flex-direction: column !important;
+}
+
+/* BUTTONS - GUARANTEED VISIBILITY AND FUNCTIONALITY */
+.png-download-button,
+.png-chat-button {
+  flex: 1 !important;
+  padding: 12px 16px !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  text-align: center !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  color: white !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  min-height: 44px !important;
+  line-height: 1.2 !important;
+}
+
+.png-download-button {
+  background: #006064 !important;
+  color: white !important;
+  border: 1px solid #006064 !important;
+}
+
+.png-chat-button {
+  background: var(--button-bg) !important;
+}
+
+.png-download-button:hover {
+  background: var(--button-hover) !important;
+  transform: translateY(-1px) !important;
+}
+
+.png-chat-button:hover {
+  background: var(--button-hover) !important;
+  transform: translateY(-1px) !important;
+}
+
+.png-download-button:active,
+.png-chat-button:active {
+  transform: translateY(0) !important;
+}
+
+/* OLD RESPONSIVE DESIGN RULES REMOVED - CONFLICTS WITH NEW RESPONSIVE SYSTEM */
 
 @media (max-width: 768px) {
-  .png-cards-loading-wrapper {
-    padding: 0 12px;
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)) !important;
+    gap: 12px !important;
+  }
+  
+  .png-card-name {
+    font-size: 16px !important;
+    text-align: center !important;
+  }
+  
+  .png-card-description {
+    font-size: 13px !important;
+  }
+  
+  .png-card-buttons {
+    padding: 16px !important;
+  }
+  
+  .png-download-button,
+  .png-chat-button {
+    font-size: 13px !important;
+    padding: 10px 12px !important;
   }
 }
 
 @media (max-width: 480px) {
-  .png-cards-loading-wrapper {
-    padding: 0 10px;
+  .png-cards {
+    grid-template-columns: 1fr !important;
+    grid-auto-rows: 550px !important; /* FIXED: Consistent larger height for small screens */
+    gap: 15px !important;
+    padding: 0 10px 40px 10px !important;
+  }
+  .png-card {
+    height: 550px !important; /* FIXED: Consistent larger height for small screens */
+    min-height: 550px !important;
+    max-height: 550px !important;
+  }
+  .png-card-info {
+    height: calc(550px - 250px) !important;
+    max-height: calc(550px - 250px) !important;
   }
 }
 
-.png-cards-loading {
-  opacity: 0;
-  transition: opacity 1s ease;
-}
-
-/* FIXED: Remove negative margins that break centering */
-.png-cards {
-  width: 100% !important;
-  margin: 0 !important; /* Remove negative margins */
-  padding: 0 !important;
-  display: block;
-  box-sizing: border-box;
-  background-color: var(--dark-bg);
-  position: relative;
-  max-width: 100%;
+/* Force show buttons for debugging */
+body .png-card .png-card-buttons {
+  display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
 }
 
-.png-cards:after {
-  content: '';
-  display: block;
-  clear: both;
+body .png-card .png-download-button,
+body .png-card .png-chat-button {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
-/* Fix the grid spacing without negative margins */
-.grid-sizer,
+/* CRITICAL OVERRIDES - ENSURE PROPER CARD SIZING */
+.png-cards {
+  grid-auto-rows: 620px !important;
+  align-items: start !important;
+}
+
 .png-card {
-  box-sizing: border-box;
-  float: left;
-  padding: 10px; /* Consistent padding instead of negative margins */
-  transition: all 0.3s ease;
-}
-
-/* ===== MORE CARDS PER BREAKPOINT - IMPROVED CONSERVATIVE SYSTEM ===== */
-
-/* Ultra-wide screens (6 columns) - 2000px+ */
-@media (min-width: 2000px) {
-  .grid-sizer,
-  .png-card {
-    width: 16.666% !important; /* 6 columns */
-  }
-}
-
-/* Very wide screens (5 columns) - 1600px to 1999px */
-@media (min-width: 1600px) and (max-width: 1999px) {
-  .grid-sizer,
-  .png-card {
-    width: 20% !important; /* 5 columns */
-  }
-}
-
-/* Wide screens (5 columns) - 1200px to 1599px */
-@media (min-width: 1200px) and (max-width: 1599px) {
-  .grid-sizer,
-  .png-card {
-    width: 20% !important; /* 5 columns instead of 4 */
-  }
-}
-
-/* Medium screens (4 columns) - 900px to 1199px */
-@media (min-width: 900px) and (max-width: 1199px) {
-  .grid-sizer,
-  .png-card {
-    width: 25% !important; /* 4 columns */
-  }
-}
-
-/* Small tablets (4 columns) - 700px to 899px */
-@media (min-width: 700px) and (max-width: 899px) {
-  .grid-sizer,
-  .png-card {
-    width: 25% !important; /* 4 columns instead of 3 */
-  }
-  .png-image-container {
-    height: 160px !important;
-  }
-}
-
-/* Large mobile (3 columns) - 500px to 699px */
-@media (min-width: 500px) and (max-width: 699px) {
-  .grid-sizer,
-  .png-card {
-    width: 33.333% !important; /* 3 columns instead of 2 */
-  }
-  .png-image-container {
-    height: 140px !important;
-  }
-  .png-card {
-    min-height: 220px;
-  }
-}
-
-/* Mobile devices (2 columns) - 400px to 499px */
-@media (min-width: 400px) and (max-width: 499px) {
-  .grid-sizer,
-  .png-card {
-    width: 50% !important; /* 2 columns instead of 1 */
-  }
-  .png-image-container {
-    height: 130px !important;
-  }
-  .png-card {
-    padding: 8px !important;
-    min-height: 200px;
-  }
-}
-
-/* Very small mobile (1 column) - below 400px only */
-@media (max-width: 399px) {
-  .grid-sizer,
-  .png-card {
-    width: 100% !important; /* 1 column */
-  }
-  .png-image-container {
-    height: 150px !important;
-  }
-  .png-card {
-    padding: 8px !important;
-    min-height: 180px;
-  }
-}
-
-/* ===== FILTERING SYSTEM ===== */
-.png-filters-container {
-  text-align: center;
-  margin: 0 auto 30px auto;
-  padding: 20px;
-  background: var(--dark-bg);
-  border-radius: 8px;
-  box-shadow: var(--shadow-light);
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 15px;
-  max-width: 1600px; /* Match gallery max-width */
-}
-
-/* Responsive filters */
-@media (max-width: 768px) {
-  .png-filters-container {
-    padding: 15px;
-    gap: 10px;
-  }
-}
-
-.png-filter-wrapper {
-  display: inline-block;
-  margin: 5px 10px;
-  vertical-align: middle;
-  flex: 1;
-  min-width: 200px;
-  max-width: 300px;
-}
-
-@media (max-width: 600px) {
-  .png-filter-wrapper {
-    min-width: 100%;
-    max-width: 100%;
-    margin: 5px 0;
-  }
-}
-
-.png-filter-wrapper label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: bold;
-  color: #b9b9b9;
-  text-align: center;
-}
-
-.select2-container--default .select2-selection--multiple {
-  border-radius: 4px;
-  border: 1px solid var(--border-dark);
-  background-color: var(--card-bg);
-  color: var(--light-text);
-}
-
-.select2-container--default .select2-selection--multiple .select2-selection__choice {
-  background-color: var(--dark-bg);
-  color: white;
-  border: none;
-  border-radius: 3px;
-  padding: 2px 8px;
-}
-
-.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
-  color: rgba(255, 255, 255, 0.7);
-  margin-right: 5px;
-}
-
-.select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
-  color: white;
-}
-
-.png-active-filters {
-  margin: 10px 0 20px;
-  padding: 15px;
-  background: var(--dark-bg);
-  border: 1px solid #4d4949;
-  border-radius: 4px;
-  color: var(--light-text);
-}
-
-.png-filter-tag {
-  display: inline-block;
-  background: #404040;
-  padding: 3px 8px;
-  margin: 2px;
-  border-radius: 3px;
-  font-size: 13px;
-  color: var(--light-text);
-}
-
-.png-remove-tag {
-  cursor: pointer;
-  margin-left: 5px;
-  font-weight: bold;
-  color: #888;
-}
-
-.png-remove-tag:hover {
-  color: #ff6b6b;
-}
-
-.png-filter-group {
-  margin-bottom: 8px;
-  color: var(--light-text);
-}
-
-.png-clear-filters {
-  background: #555;
-  border: 1px solid #686868;
-  padding: 5px 10px;
-  border-radius: 3px;
-  cursor: pointer;
-  font-size: 13px;
-  color: var(--light-text);
-}
-
-.png-clear-filters:hover {
-  background: var(--primary-color);
-  color: white;
-}
-
-/* ===== CHARACTER CARDS ===== */
-.png-card {
-  margin-bottom: 20px;
-  border-radius: 8px;
-  box-shadow: var(--shadow-light);
-  background-color: var(--card-bg);
-  border: 1px solid var(--border-dark);
-  color: var(--light-text);
-  /* Dynamic min-height based on breakpoint - set by JavaScript */
-  min-height: 320px;
-}
-
-.png-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-heavy);
-  z-index: 1;
-}
-
-.png-image-container {
-  overflow: hidden;
-  position: relative;
-  border-radius: 4px;
-  background-color: var(--dark-bg);
-  height: 180px; /* Default height, overridden by responsive rules */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 10px;
-}
-
-.png-image-container img {
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.3s ease;
-  cursor: pointer;
-  max-width: 100%;
-  max-height: 100%;
-}
-
-.png-image-container img:hover {
-  transform: scale(1.05);
+  height: 620px !important;
+  min-height: 620px !important;
+  max-height: 620px !important;
 }
 
 .png-card-info {
-  padding: 10px;
-  text-align: center;
-  background-color: var(--card-bg);
-}
-
-.png-card-name {
-  font-weight: bold;
-  margin-bottom: 5px;
-  font-size: 16px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  padding: 5px;
-  border-radius: 4px 4px 0 0;
-  background-color: var(--darker-bg);
-  color: var(--light-text);
+  height: calc(620px - 250px) !important;
+  max-height: calc(620px - 250px) !important;
+  overflow: hidden !important;
 }
 
 .png-card-description {
-  font-size: 13px;
-  color: var(--gray-text);
-  margin-bottom: 8px;
-  line-height: 1.4;
-  max-height: 60px;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
+  height: 200px !important;
+  max-height: 200px !important;
+  overflow: hidden !important;
 }
 
 .png-card-tags {
-  font-size: 12px;
-  margin-bottom: 10px;
-  background-color: var(--darker-bg);
-  padding: 5px;
-  border-radius: 4px;
-  max-height: 40px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--gray-text);
-}
-
-.png-card-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 5px;
-  padding: 0px;
-  font-size: 2vh !important;
-}
-
-/* ===== BUTTONS ===== */
-.png-download-button,
-.png-chat-button,
-.png-secondary-button {
-  padding: 10px 18px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  text-decoration: none;
-  display: inline-block;
-  transition: all 0.2s ease;
-  text-align: center;
-  flex: 1;
-  min-width: calc(50% - 5px);
-  font-size: font-size: 2vh !important;
-}
-
-a:visited {
-  color: #f1f1f1 !important;
-}
-
-.png-download-button {
-  background: #586768 !important;
-  color: var(--light-text) !important;
-  border: 1px solid #555;
-  padding: 10px;
-}
-
-.png-chat-button {
-  background: #5e655a !important;
-  color: white;
-  border: none;
-}
-
-.png-download-button:hover {
-  background: #556769 !important;
-  transform: translateY(-2px);
-}
-
-.png-chat-button:hover {
-  background: #646d5f !important;
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-medium);
-}
-
-/* ===== MODALS ===== */
-.png-modal {
-  display: none;
-  background-color: rgba(0,0,0,0.85);
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 1001;
-  overflow: auto;
-}
-
-.png-modal-content {
-  margin: 5% auto;
-  padding: 25px;
-  border-radius: 8px;
-  max-width: 90%;
-  max-height: 90%;
-  overflow-y: auto;
-  background-color: var(--dark-bg);
-  color: var(--light-text);
-  box-shadow: 0 5px 25px rgba(0,0,0,0.4);
-  position: relative;
-}
-
-/* Responsive modal adjustments */
-@media (max-width: 768px) {
-  .png-modal-content {
-    margin: 2% auto;
-    padding: 15px;
-    max-width: 95%;
-    max-height: 95%;
-  }
-}
-
-.close-modal {
-  position: absolute;
-  top: 15px;
-  right: 20px;
-  font-size: 28px;
-  font-weight: bold;
-  color: #888;
-  cursor: pointer;
-  z-index: 10;
-  transition: color 0.2s ease;
-}
-
-.close-modal:hover {
-  color: var(--light-text);
-}
-
-/* ===== CHARACTER DETAILS ===== */
-.character-modal-wrapper {
-  padding: 20px;
-  max-width: 100%;
-  max-height: 100%;
-  overflow-y: auto;
-}
-
-@media (max-width: 600px) {
-  .character-modal-wrapper {
-    padding: 10px;
-  }
-}
-
-.character-details {
-  background: linear-gradient(to bottom, #2a2a2a, var(--dark-bg));
-  border-radius: 12px;
-  overflow: hidden;
-  color: var(--light-text);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  padding: 15px;
-}
-
-.character-header {
-  padding: 18px;
-  background: linear-gradient(to right, var(--card-bg), var(--dark-bg));
-  border-bottom: 1px solid var(--border-dark);
-  margin-bottom: 25px;
-  text-align: center;
-}
-
-.character-header h2 {
-  margin: 0 0 10px 0;
-  color: var(--bright-text);
-  font-size: 24px;
-  letter-spacing: 0.5px;
-}
-
-@media (max-width: 600px) {
-  .character-header h2 {
-    font-size: 20px;
-  }
-}
-
-.character-creator, .character-version {
-  font-size: 14px;
-  color: #bbb;
-  font-style: italic;
-  margin: 5px 0;
-}
-
-.character-image {
-  text-align: center;
-  padding: 20px;
-  background: rgba(30,30,30,0.7);
-  margin-bottom: 20px;
-}
-
-@media (max-width: 600px) {
-  .character-image {
-    padding: 15px;
-  }
-}
-
-.character-image img {
-  border-radius: 8px;
-  border: 2px solid var(--border-dark);
-  box-shadow: 0 3px 8px rgba(0,0,0,0.3);
-  max-height: 180px;
-  transition: transform 0.2s ease;
-  max-width: 100%;
-}
-
-.character-image img:hover {
-  transform: scale(1.03);
-}
-
-#character-info {
-  padding: 18px;
-}
-
-@media (max-width: 600px) {
-  #character-info {
-    padding: 10px;
-  }
-}
-
-.character-section {
-  margin-bottom: 22px;
-  border-bottom: 1px solid var(--border-darker);
-  padding-bottom: 18px;
-  animation: fadeIn 0.4s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0.7; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.character-section:last-child {
-  border-bottom: none;
-}
-
-.character-section h3 {
-  margin: 0 0 12px 0;
-  color: var(--primary-light);
-  font-size: 17px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  position: relative;
-  padding-left: 14px;
-  border-bottom: 1px solid var(--border-dark);
-  padding-bottom: 5px;
-}
-
-.character-section h3::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 2px;
-  height: calc(100% - 4px);
-  width: 4px;
-  background: #92d87e !important;
-  border-radius: 2px;
-}
-
-.character-field {
-  white-space: pre-wrap;
-  line-height: 1.6;
-  margin-bottom: 12px;
-  font-size: 15px;
-  color: #ddd;
-}
-
-@media (max-width: 600px) {
-  .character-field {
-    font-size: 14px;
-  }
-}
-
-.system-prompt, .example-messages {
-  background: var(--darker-bg);
-  padding: 15px;
-  border-radius: 8px;
-  border-left: 3px solid #56db65 !important;
-  font-family: 'Courier New', monospace;
-}
-
-@media (max-width: 600px) {
-  .system-prompt, .example-messages {
-    padding: 10px;
-  }
-}
-
-.lorebook-entry {
-  margin-bottom: 15px;
-  background: rgba(26,26,26,0.7);
-  padding: 15px;
-  border-radius: 8px;
-  border-left: 3px solid var(--primary-light);
-  transition: background 0.2s ease;
-}
-
-.lorebook-entry:hover {
-  background: rgba(30,30,30,0.9);
-}
-
-.lorebook-entry.disabled {
-  border-left-color: #555;
-  opacity: 0.7;
-}
-
-.entry-header {
-  margin-bottom: 10px;
-  color: var(--primary-light);
-  font-weight: bold;
-}
-
-.entry-content {
-  padding: 10px;
-  background: #313030;
-  border: 1px solid var(--border-dark);
-  border-radius: 4px;
-  margin-top: 5px;
-  color: var(--light-text);
-}
-
-.entry-meta {
-  font-size: 12px;
-  color: var(--gray-text);
-  margin-top: 5px;
-}
-
-.key-tag {
-  background: #164260;
-  color: white;
-  padding: 3px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  margin-right: 5px;
-  display: inline-block;
-  margin-bottom: 3px;
-}
-
-.tags-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 5px;
-}
-
-.tag-item {
-  background: linear-gradient(to right, #2b352a, #2f3e2b) !important;
-  color: white;
-  padding: 5px 10px;
-  border-radius: 12px;
-  font-size: 12px;
-  display: inline-block;
-  transition: transform 0.2s ease;
-}
-
-.tag-item:hover {
-  transform: translateY(-2px);
-}
-
-.tech-info {
-  font-size: 14px;
-  color: var(--gray-text);
-  background: rgba(20,20,20,0.3);
-  border-radius: 8px;
-  padding: 10px;
-}
-
-.tech-row {
-  margin-bottom: 6px;
-  display: flex;
-  justify-content: space-between;
-}
-
-.tech-row strong {
-  color: #bae7b1 !important;
-}
-
-.character-footer {
-  margin-top: 30px;
-  padding: 18px;
-  background: linear-gradient(to right, var(--card-bg), var(--dark-bg));
-  border-top: 1px solid var(--border-dark);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  text-align: center;
-}
-
-/* Responsive character footer */
-@media (max-width: 768px) {
-  .character-footer {
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .footer-left,
-  .footer-center,
-  .footer-right {
-    width: 100%;
-  }
-
-  .conversation-controls {
-    justify-content: center;
-  }
-}
-
-/* ===== CHARACTER TABS ===== */
-.character-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
-  border-bottom: 1px solid var(--border-dark);
-  gap: 2px;
-}
-
-.tab-btn {
-  padding: 10px 20px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-weight: 500;
-  color: var(--gray-text);
-  transition: all 0.3s;
-  border-bottom: 2px solid transparent;
-  background-color: var(--darker-bg);
-}
-
-.tab-btn:hover {
-  background-color: var(--card-bg);
-}
-
-.tab-btn.active {
-  border-bottom: 2px solid var(--primary-color);
-  color: var(--primary-color);
-}
-
-.tab-content {
-  display: none;
-  margin-bottom: 30px;
-  animation: fadeIn 0.3s ease;
-  color: var(--light-text);
-}
-
-/* ===== ALTERNATE GREETINGS ===== */
-.alternate-greeting {
-  margin-bottom: 15px;
-  padding: 15px;
-  background-color: var(--darker-bg);
-  border-left: 3px solid var(--primary-color);
-  border-radius: 0 4px 4px 0;
-  color: var(--light-text);
-}
-
-.greeting-item {
-  margin-bottom: 10px;
-  padding: 8px;
-  background: var(--darker-bg);
-  border-radius: 4px;
-}
-
-/* ===== EXTENSION ENTRIES ===== */
-.extension-entry {
-  margin-bottom: 20px;
-  padding: 15px;
-  background-color: var(--darker-bg);
-  border-radius: 5px;
-  color: var(--light-text);
-}
-
-.extension-entry h4 {
-  margin-top: 0;
-  color: var(--light-text);
-  border-bottom: 1px solid var(--border-dark);
-  padding-bottom: 5px;
-}
-
-/* ===== CHAT INTERFACE - FIXED FOR FULLSCREEN ===== */
-#png-modal.fullscreen-chat {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  z-index: 999999 !important;
-  background: rgba(0, 0, 0, 0.95) !important;
-  margin: 0 !important;
-  padding: 0 !important;
+  height: 80px !important;
+  max-height: 80px !important;
   overflow: hidden !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.png-modal-content.chat-mode {
-  width: 100% !important;
-  height: 100% !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  position: relative !important;
-  overflow: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
-  background-color: var(--darker-bg) !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-}
-
-/* Body styles when chat modal is open */
-body.chat-modal-open {
-  overflow: hidden !important;
-  height: 100vh !important;
-  position: fixed !important;
-  width: 100% !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  background-color: var(--darker-bg) !important;
-}
-
-html.chat-modal-open {
-  overflow: hidden !important;
-}
-
-/* Make chat container truly full height and width */
-.chat-container {
-  display: flex !important;
-  height: 100% !important;
-  width: 100% !important;
-  overflow: hidden !important;
-  position: relative !important;
-  background-color: var(--darker-bg) !important;
-}
-
-/* FIXED Chat Sidebar for both desktop and mobile */
-.chat-sidebar {
-  width: var(--sidebar-width);
-  background: var(--dark-bg);
-  border-right: 1px solid var(--border-dark);
-  transition: transform 0.3s ease-in-out;
-  height: 100% !important;
-  position: absolute !important;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  z-index: 100;
   overflow-y: auto !important;
 }
 
-/* FIXED minimized state for desktop */
-.chat-sidebar.minimized {
-  transform: translateX(-100%);
-}
-
-/* FIXED: Correctly position chat main based on sidebar */
-.chat-main {
-  flex: 1 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  position: absolute !important;
-  left: var(--sidebar-width);
-  top: 0;
-  bottom: 0;
-  right: 0;
-  height: 100% !important;
-  width: calc(100% - var(--sidebar-width)) !important;
-  transition: left 0.3s ease, width 0.3s ease !important;
-  overflow: hidden !important;
-  z-index: 1 !important;
-}
-
-/* When sidebar is minimized, adjust main content width */
-.chat-sidebar.minimized ~ .chat-main {
-  left: 0 !important;
-  width: 100% !important;
-}
-
-/* FIXED Chat header */
-#chat-header {
-  padding: 15px;
-  background: var(--dark-bg);
-  border-bottom: 1px solid var(--border-dark);
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  position: relative;
-  z-index: 3;
-  flex: 0 0 auto;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* FIXED Toggle button */
-.sidebar-toggle-btn {
-  background: none;
-  border: 1px solid var(--border-dark);
-  color: var(--light-text);
-  padding: 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  min-width: 30px;
-  min-height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 5;
-}
-
-.chat-modal-name {
-  flex: 1;
-  font-weight: bold;
-  font-size: 18px;
-  text-align: center;
-}
-
-/* FIXED Close button */
-.close-chat-btn {
-  background: none;
-  border: none;
-  color: var(--light-text);
-  cursor: pointer;
-  font-size: 18px;
-  padding: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 30px;
-  min-height: 30px;
-}
-
-/* ===== FIXED CHAT HISTORY - Proper scrolling behavior ===== */
-#chat-history {
+/* FIX: Let flexbox allocate leftover height so buttons remain visible */
+.png-card-info {
+  height: auto !important;
+  max-height: none !important;
   flex: 1 1 auto !important;
+}
+
+body .png-card .png-card-buttons,
+.png-card-buttons {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 16px !important;
+    margin-top: auto !important;
+    background: #2a2a2a !important;
+    border-top: 1px solid #404040 !important;
+    flex-shrink: 0 !important;
+}
+
+/* === PMV OVERRIDE: Increase card height for buttons visibility === */
+:root {
+  --card-h: clamp(680px, 80vh, 1000px);
+}
+
+.png-cards {
+  grid-auto-rows: var(--card-h) !important;
+}
+
+.png-card {
+  height: var(--card-h) !important;
+  min-height: var(--card-h) !important;
+  max-height: var(--card-h) !important;
+}
+
+/* Ensure info section can grow */
+.png-card-info {
+  height: auto !important;
+  max-height: none !important;
+  flex: 1 1 auto !important;
+}
+
+/* ===== OVERRIDE: Hide grey loading overlay during character gallery load ===== */
+.pmv-loading-overlay {
+  display: none !important; /* Remove overlay */
+  background: transparent !important; /* Ensure no background shows */
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* ===== HOTFIX: Prevent description overflow into button area ===== */
+.png-card-description {
+    flex-grow: 0 !important; /* do not consume extra space pushing other elements */
+    height: 200px !important; /* explicit fixed height */
+    max-height: 200px !important; /* reinforce height cap */
+    overflow-y: auto !important; /* enable internal scroll for long text */
+    overflow-x: hidden !important; /* avoid horizontal scroll */
+}
+
+/* Ensure card info container doesn\'t expand beyond card height */
+.png-card-info {
+    overflow: hidden !important; /* clip child overflow */
+}
+
+.png-download-button::before,
+.png-chat-button::before {
+    content: none !important;
+    display: none !important;
+}
+
+.png-download-button,
+.png-chat-button {
+    display: block !important;
+ }
+
+/* Override background colors */
+.png-download-button,
+.png-chat-button {
+    background: var(--button-bg) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-main) !important;
+}
+
+.png-download-button:hover,
+.png-chat-button:hover {
+    background: var(--button-hover) !important;
+}
+
+/* === FINAL OVERRIDE FOR BUTTON PALETTE === */
+.png-download-button, .png-chat-button {
+    background: var(--button-bg) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-main) !important;
+}
+
+.png-download-button:hover, .png-chat-button:hover {
+    background: var(--button-hover) !important;
+}
+
+/* ===== IMPROVED RESPONSIVE CARD LAYOUT SYSTEM ===== */
+
+/* Dynamic card height based on viewport height for true responsiveness */
+:root {
+  --card-height: clamp(600px, 80vh, 1000px); /* Responsive height between 600px and 80% viewport height */
+  --card-max-height: 80vh;
+  --image-height: 30%; /* 30% of card height for image */
+  --card-padding: 2%;
+  --button-height: 15%; /* 15% of card height for buttons */
+  --tags-height: 20%; /* 20% of card info area for tags */
+  --description-height: 60%; /* 60% of card info area for description */
+}
+
+/* Responsive adjustments for different viewport sizes */
+@media (max-width: 480px) {
+  :root {
+    --card-height: clamp(500px, 75vh, 800px); /* Smaller range for mobile */
+    --image-height: 25%; /* Less space for image on mobile */
+    --card-padding: 1.5%;
+    --tags-height: 25%; /* More space for tags on mobile */
+    --description-height: 55%; /* Less for description on mobile */
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  :root {
+    --card-height: clamp(550px, 78vh, 900px);
+    --image-height: 28%;
+    --tags-height: 22%;
+    --description-height: 58%;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  :root {
+    --card-height: clamp(600px, 79vh, 950px);
+    --image-height: 29%;
+    --tags-height: 21%;
+    --description-height: 59%;
+  }
+}
+
+@media (min-width: 1025px) {
+  :root {
+    --card-height: clamp(650px, 80vh, 1000px);
+    --image-height: 30%;
+    --tags-height: 20%;
+    --description-height: 60%;
+  }
+}
+
+/* Grid Container - Consistent card sizing */
+.png-cards {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important; /* Reduced from 240px to allow more cards */
+  grid-auto-rows: var(--card-height) !important; /* Fixed height for all cards */
+  gap: 15px !important;
+  padding: 20px !important;
+  margin: 0 auto !important;
+  max-width: 2000px !important;
+  background-color: #1a1a1a !important;
+  min-height: 400px !important;
+  align-items: start !important;
+}
+
+/* Individual Card - Fixed Height for Consistency */
+.png-card {
+  background: #2a2a2a !important;
+  border: 1px solid #404040 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important; /* Hide overflow to maintain card shape */
   display: flex !important;
   flex-direction: column !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  padding: 20px !important;
-  position: relative !important;
-  z-index: 1 !important;
-  background-color: #232323 !important;
-  -webkit-overflow-scrolling: touch !important;
-  padding-bottom: calc(var(--input-area-height) + 20px) !important;
-}
-
-/* CRITICAL: Remove any spacers that push content down */
-#chat-history::after,
-#chat-history-spacer {
-  display: none !important;
-}
-
-/* Ensure messages don't crowd at the bottom */
-.chat-message {
-  padding: 12px;
-  margin: 5px 0 !important;
-  border-radius: 8px;
-  max-width: 80%;
-  animation: messageAppear 0.3s ease;
-  width: auto;
-  flex-shrink: 0 !important;
+  height: var(--card-height) !important; /* Fixed height for all cards */
+  min-height: var(--card-height) !important;
+  max-height: var(--card-height) !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  color: #f0f0f0 !important;
+  width: 100% !important;
   box-sizing: border-box !important;
 }
 
-.chat-message.user {
-  background: #353535 !important;
-  margin-left: auto;
-  color: white;
+.png-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
+  z-index: 2 !important;
 }
 
-.chat-message.bot {
-  background: var(--card-bg);
-  margin-right: auto;
+/* Image Container - Percentage-based height */
+.png-image-container {
+  height: var(--image-height) !important;
+  min-height: var(--image-height) !important;
+  max-height: var(--image-height) !important;
+  overflow: hidden !important;
+  background: #1a1a1a !important;
+  border-radius: 12px 12px 0 0 !important;
+  position: relative !important;
+  flex: 0 0 var(--image-height) !important;
+  display: flex !important; /* ADDED: Use flexbox for perfect centering */
+  align-items: center !important; /* ADDED: Center vertically */
+  justify-content: center !important; /* ADDED: Center horizontally */
 }
 
-.chat-message.error {
-  background: var(--error-color);
-  color: white;
-  margin: 10px auto;
-  text-align: center;
+.png-image-container img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important; /* Show full image without cropping */
+  object-position: center !important; /* Center the image */
+  transition: transform 0.3s ease !important;
+  background: transparent !important; /* ADDED: Remove any background */
 }
 
-/* Typing indicator */
-.typing-indicator {
-  padding: 12px;
-  margin: 10px 0;
-  border-radius: 8px;
-  background: var(--card-bg);
-  color: var(--gray-text);
-  width: max-content;
-  animation: typingPulse 1.5s infinite;
+.png-card:hover .png-image-container img {
+  transform: scale(1.05) !important;
 }
 
-@keyframes typingPulse {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
-}
-
-.close-modal {
-  display:none
-}
-
-/* FIXED: Input row now stays fixed at the bottom */
-#chat-input-row {
-  position: fixed !important;
-  bottom: 0 !important;
-  left: var(--sidebar-width);
-  right: 0;
-  z-index: 1000 !important;
-  background-color: var(--dark-bg) !important;
-  padding: 15px !important;
-  border-top: 1px solid var(--border-dark) !important;
+/* Card Info Container - Flexible height using remaining space */
+.png-card-info {
+  flex: 1 1 auto !important;
   display: flex !important;
-  gap: 10px !important;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1) !important;
-  height: var(--input-area-height);
-  box-sizing: border-box;
-  transition: left 0.3s ease;
+  flex-direction: column !important;
+  padding: var(--card-padding) !important;
+  gap: 1% !important;
+  overflow: hidden !important; /* Prevent overflow from affecting card size */
+  height: auto !important; /* Let flexbox handle the height */
+  max-height: none !important; /* Remove fixed max-height */
 }
 
-/* When sidebar is minimized, adjust input row position */
-.chat-sidebar.minimized ~ .chat-main #chat-input-row {
-  left: 0 !important;
+/* Character Name - Always visible */
+.png-card-name {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  margin: 0 !important;
+  line-height: 1.3 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  height: 24px !important; /* Fixed height for consistency */
+  text-align: center !important;
 }
 
-#chat-input {
-  flex: 1;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid var(--border-dark);
-  background: var(--darker-bg);
-  color: var(--light-text);
-  resize: none;
-  min-height: 24px;
-  max-height: 200px;
-  overflow-y: auto;
+/* Description - Flexible with scrolling */
+.png-card-description {
+  font-size: 14px !important;
+  color: #b0b0b0 !important;
+  line-height: 1.5 !important;
+  margin: 0 !important;
+  flex: 1 1 var(--description-height) !important; /* Use percentage variable for description space */
+  min-height: var(--description-height) !important; /* Use percentage instead of fixed 400px */
+  max-height: var(--description-height) !important; /* Set max height for consistency */
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  white-space: normal !important;
+  text-align: left !important;
+  padding: 2% !important; /* Use percentage padding */
+  background: #1a1a1a !important;
+  border-radius: 8px !important;
+  border: 1px solid #404040 !important;
+  hyphens: auto !important;
+  overflow-wrap: break-word !important;
+  word-break: break-word !important;
 }
 
-#send-chat {
-  padding: 12px 20px;
-  border: none;
-  border-radius: 8px;
-  background: var(--primary-color);
-  color: white;
-  cursor: pointer;
-  min-width: 80px;
-}
-
-/* Fix for button states */
-#send-chat.sending {
-  background-color: #555 !important;
-  cursor: wait !important;
-}
-
-#send-chat:disabled {
-  background: #555;
-  cursor: not-allowed;
-}
-
-/* FIXED CONVERSATION CONTROLS */
-.conversation-controls {
-  display: flex;
-  padding: 15px;
-  gap: 10px;
-  border-bottom: 1px solid var(--border-dark);
-}
-
-/* IMPROVED Conversations panel */
-.conversations-panel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
-  height: auto !important;
-}
-
-.conversations-panel h3 {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: var(--darker-bg);
-  border-bottom: 1px solid var(--border-dark);
-  margin: 0;
-  padding: 15px;
-}
-
-.conversation-list {
+/* Tags - Percentage-based height with internal scrolling */
+.png-card-tags {
+  font-size: 12px !important;
+  color: #888 !important;
+  margin: 0 !important;
+  padding: 2% !important; /* Use percentage padding */
+  background: #1a1a1a !important;
+  border-radius: 8px !important;
+  border: 1px solid #404040 !important;
+  overflow-y: auto !important; /* Allow scrolling within tags area */
+  overflow-x: hidden !important;
+  word-wrap: break-word !important;
+  white-space: normal !important;
+  line-height: 1.5 !important;
+  height: var(--tags-height) !important; /* Use percentage variable */
+  min-height: var(--tags-height) !important;
+  max-height: var(--tags-height) !important;
   display: block !important;
-  overflow-y: auto;
-  max-height: calc(100vh - 150px);
-  padding: 15px !important;
-  background-color: var(--dark-bg);
+  hyphens: auto !important;
+  overflow-wrap: break-word !important;
+  text-align: left !important;
+  flex: 0 0 var(--tags-height) !important; /* Fixed percentage space for tags */
 }
 
-/* Conversation items with solid styling */
-.conversation-item {
-  display: block;
-  margin: 0 0 15px 0 !important;
-  padding: 12px !important;
-  background: var(--card-bg);
-  border-radius: 8px;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  border: 1px solid var(--border-dark);
-  position: relative;
+.png-card-tags::before {
+  content: "Tags: " !important;
+  font-weight: 600 !important;
+  color: #f0f0f0 !important;
+  display: inline !important;
 }
 
-.conversation-btn {
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background 0.2s ease;
+/* Button Container - Always visible at bottom */
+.png-card-buttons {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1% !important; /* Use percentage gap */
+  padding: var(--card-padding) !important;
+  background: #2a2a2a !important;
+  border-top: 1px solid #404040 !important;
+  flex: 0 0 var(--button-height) !important; /* Use percentage-based height */
+  min-height: var(--button-height) !important;
+  max-height: var(--button-height) !important;
+  box-sizing: border-box !important;
 }
 
-.conversation-btn:hover {
-  background: var(--primary-hover);
+/* Buttons - Guaranteed visibility with responsive sizing */
+.png-download-button,
+.png-chat-button {
+  flex: 1 !important;
+  padding: 2% 4% !important; /* Use percentage padding */
+  border: none !important;
+  border-radius: 8px !important;
+  font-size: clamp(12px, 1.5vw, 16px) !important; /* Responsive font size */
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  text-align: center !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  color: white !important;
+  display: block !important;
+  min-height: 25% !important; /* Percentage-based minimum height */
+  line-height: 1.2 !important;
+  box-sizing: border-box !important;
 }
 
-/* EMPTY CONVERSATION LIST */
-.conversation-list:empty::before {
-  content: "No saved conversations";
-  display: block;
-  color: var(--gray-text);
-  padding: 15px;
-  text-align: center;
-  font-style: italic;
+.png-download-button {
+  background: #006064 !important;
+  color: white !important;
+  border: 1px solid #006064 !important;
 }
 
-.no-conversations,
-.error-loading,
-.loading-conversations {
-  color: var(--gray-text);
-  text-align: center;
-  padding: 15px;
-  font-style: italic;
+.png-chat-button {
+  background: var(--button-bg) !important;
 }
 
-/* ===== MOBILE STYLES - ENHANCED WITH INPUT FIXES ===== */
-@media (max-width: 768px) {
-  /* Force mobile layout when chat is open */
-  body.chat-modal-open {
-    overflow: hidden !important;
-    position: fixed !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    top: 0 !important;
-    left: 0 !important;
-    touch-action: none !important;
-  }
+.png-download-button:hover {
+  background: var(--button-hover) !important;
+  transform: translateY(-1px) !important;
+}
 
-  body.chat-modal-open #png-modal.fullscreen-chat {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    background: #1a1a1a !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    z-index: 999999 !important;
-  }
+.png-chat-button:hover {
+  background: var(--button-hover) !important;
+  transform: translateY(-1px) !important;
+}
 
-  body.chat-modal-open .png-modal-content.chat-mode {
-    width: 100vw !important;
-    height: 100vh !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    max-width: 100vw !important;
-    max-height: 100vh !important;
-    border-radius: 0 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    background: #1a1a1a !important;
-    overflow: hidden !important;
-    position: relative !important;
-  }
-
-  body.chat-modal-open .chat-container {
-    width: 100% !important;
-    height: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    overflow: hidden !important;
-    position: relative !important;
-  }
-
-  body.chat-modal-open .chat-sidebar {
-    display: none !important;
-    visibility: hidden !important;
-    width: 0 !important;
-    height: 0 !important;
-  }
-
-  body.chat-modal-open .chat-main {
-    width: 100% !important;
-    height: 100% !important;
-    left: 0 !important;
-    top: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    position: relative !important;
-    display: flex !important;
-    flex-direction: column !important;
-    overflow: hidden !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  body.chat-modal-open #chat-header {
-    height: 60px !important;
-    min-height: 60px !important;
-    max-height: 60px !important;
-    flex: 0 0 60px !important;
-    background: #222 !important;
-    border-bottom: 1px solid #444 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    padding: 0 15px !important;
-    box-sizing: border-box !important;
-    width: 100% !important;
-    position: relative !important;
-    z-index: 10 !important;
-  }
-
-  body.chat-modal-open #toggle-sidebar {
-    display: none !important;
-    visibility: hidden !important;
-  }
-
-  body.chat-modal-open #mobile-menu-toggle {
-    display: flex !important;
-    visibility: visible !important;
-    background: #707070 !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 6px !important;
-    padding: 8px 12px !important;
-    font-size: 14px !important;
-    cursor: pointer !important;
-    align-items: center !important;
-    gap: 5px !important;
-  }
-
-  body.chat-modal-open .close-modal {
-    display: none !important;
-  }
-
-  /* ENHANCED: Mobile chat history with better layout and scrolling */
-  body.chat-modal-open #chat-history {
-    flex: 1 1 auto !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
+/* Responsive Grid Adjustments */
+@media (max-width: 480px) {
+  .png-cards {
+    grid-template-columns: 1fr !important;
+    grid-auto-rows: var(--card-height) !important;
+    gap: 15px !important;
     padding: 15px !important;
-    background: #232323 !important;
-    color: white !important;
-    height: auto !important;
-    min-height: 200px !important;
-    max-height: none !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    position: relative !important;
-    z-index: 1 !important;
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    -webkit-overflow-scrolling: touch !important;
-    font-size: 15px !important;
-    line-height: 1.4 !important;
-    /* Dynamic padding - will be set by JavaScript */
-    padding-bottom: 90px !important;
-    /* Critical: Enable proper touch scrolling */
-    touch-action: pan-y !important;
-    -webkit-touch-callout: none !important;
-    -webkit-user-select: none !important;
-    user-select: none !important;
-    /* Ensure scrolling works properly */
-    scroll-behavior: smooth !important;
   }
-
-  /* Enhanced chat messages for mobile */
-  body.chat-modal-open #chat-history .chat-message {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    margin: 10px 0 !important;
-    padding: 12px !important;
-    background: #333 !important;
-    color: white !important;
-    border-radius: 8px !important;
-    max-width: 90% !important;
-    word-wrap: break-word !important;
-    overflow-wrap: break-word !important;
-    font-size: 15px !important;
-    line-height: 1.4 !important;
-    position: relative !important;
-    z-index: 2 !important;
-    box-sizing: border-box !important;
-  }
-
-  body.chat-modal-open #chat-history .chat-message.user {
-    background: #303430 !important;
-    margin-left: auto !important;
-    margin-right: 0 !important;
-  }
-
-  body.chat-modal-open #chat-history .chat-message.bot {
-    background: #2b3430 !important;
-    margin-left: 0 !important;
-    margin-right: auto !important;
-  }
-
-  /* CRITICAL: Enhanced mobile input area - prevents off-screen pushing */
-  body.chat-modal-open #chat-input-row {
-    /* Fixed positioning to keep input visible */
-    position: fixed !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100% !important;
-    /* Height and spacing */
-    height: auto !important;
-    min-height: 70px !important;
-    max-height: 150px !important;
-    /* Layout and styling */
-    background: #222 !important;
-    border-top: 1px solid #444 !important;
-    padding: 10px 15px !important;
-    display: flex !important;
-    align-items: flex-end !important;
-    gap: 10px !important;
-    box-sizing: border-box !important;
-    z-index: 1000 !important;
-    /* Smooth transitions */
-    transition: height 0.2s ease !important;
-  }
-
-  /* Enhanced mobile textarea - prevents zoom and overflow */
-  body.chat-modal-open #chat-input {
-    flex: 1 !important;
-    padding: 10px !important;
-    background: white !important;
-    color: black !important;
-    border: 1px solid #444 !important;
-    border-radius: 8px !important;
-    /* Critical: Size constraints to prevent off-screen pushing */
-    min-height: 40px !important;
-    max-height: 120px !important;
-    height: auto !important;
-    /* Typography - 16px prevents iOS zoom */
+  
+  .png-card-name {
     font-size: 16px !important;
-    line-height: 1.4 !important;
-    /* Behavior */
-    resize: none !important;
-    overflow-y: auto !important;
-    box-sizing: border-box !important;
-    /* Touch improvements */
-    -webkit-appearance: none !important;
-    -webkit-border-radius: 8px !important;
   }
-
-  /* Enhanced send button for mobile */
-  body.chat-modal-open #send-chat {
-    background: #4a6da7 !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 8px !important;
-    padding: 10px 15px !important;
-    height: 40px !important;
-    min-width: 70px !important;
-    font-size: 14px !important;
-    font-weight: bold !important;
-    cursor: pointer !important;
-    flex: 0 0 auto !important;
-    box-sizing: border-box !important;
-    align-self: flex-end !important;
+  
+  .png-card-description {
+    font-size: 13px !important;
+  }
+  
+  .png-card-tags {
+    font-size: 11px !important;
+  }
+  
+  .png-download-button,
+  .png-chat-button {
+    font-size: 13px !important;
+    padding: 8px 12px !important;
   }
 }
 
-/* Desktop toggle visibility */
-@media (min-width: 769px) {
-  body.chat-modal-open #mobile-menu-toggle {
-    display: none !important;
-    visibility: hidden !important;
-  }
+/* OLD RESPONSIVE RULES REMOVED - CONFLICTS WITH NEW RESPONSIVE DESIGN */
 
-  body.chat-modal-open #toggle-sidebar {
+@media (min-width: 1801px) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important; /* Allow natural fitting instead of forcing 4 cards */
+    grid-auto-rows: var(--card-height) !important;
+    gap: 15px !important;
+  }
+}
+
+/* OLD ZOOM RULES REMOVED - REPLACED WITH BETTER RESPONSIVE DESIGN */
+
+/* Override any conflicting rules for consistent sizing */
+.png-card {
+  height: var(--card-height) !important;
+  min-height: var(--card-height) !important;
+  max-height: var(--card-height) !important;
+}
+
+.png-card-info {
+  height: calc(var(--card-height) - var(--image-height) - var(--button-height)) !important;
+  max-height: calc(var(--card-height) - var(--image-height) - var(--button-height)) !important;
+  overflow: hidden !important;
+}
+
+.png-card-tags {
+  height: var(--tags-height) !important;
+  max-height: var(--tags-height) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+/* Responsive Grid Adjustments - Updated to allow more cards per row */
+@media (max-width: 480px) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important; /* Reduced for more cards */
+    grid-auto-rows: var(--card-height) !important;
+    gap: 15px !important;
+    padding: 15px !important;
+  }
+  
+  .png-card-name {
+    font-size: 16px !important;
+    text-align: center !important;
+  }
+  
+  .png-card-description {
+    font-size: 13px !important;
+  }
+  
+  .png-card-tags {
+    font-size: 11px !important;
+  }
+  
+  .png-download-button,
+  .png-chat-button {
+    font-size: 13px !important;
+    padding: 8px 12px !important;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important; /* Reduced for more cards */
+    grid-auto-rows: var(--card-height) !important;
+    gap: 16px !important;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important; /* Reduced for more cards */
+    grid-auto-rows: var(--card-height) !important;
+    gap: 18px !important;
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1400px) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important; /* Reduced for more cards */
+    grid-auto-rows: var(--card-height) !important;
+    gap: 20px !important;
+  }
+}
+
+@media (min-width: 1401px) and (max-width: 1800px) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)) !important; /* FURTHER REDUCED for more cards */
+    grid-auto-rows: var(--card-height) !important;
+    gap: 22px !important;
+  }
+}
+
+@media (min-width: 1801px) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important; /* REDUCED to allow more cards per row */
+    grid-auto-rows: var(--card-height) !important;
+    gap: 24px !important;
+  }
+}
+
+/* Zoom-specific responsive adjustments - Updated for more cards */
+@media (min-resolution: 1.25dppx) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important; /* Much smaller for zoom */
+    grid-auto-rows: var(--card-height) !important;
+  }
+}
+
+@media (min-resolution: 1.5dppx) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important; /* Even smaller for higher zoom */
+    grid-auto-rows: var(--card-height) !important;
+  }
+}
+
+@media (min-resolution: 2dppx) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important; /* Smallest for highest zoom */
+    grid-auto-rows: var(--card-height) !important;
+  }
+}
+
+/* ===== FINAL COMPREHENSIVE RESPONSIVE LAYOUT SYSTEM ===== */
+/* This section overrides all previous fixed heights with percentage-based responsive design */
+
+/* Responsive CSS Variables */
+:root {
+  --card-height: clamp(600px, 80vh, 1000px); /* Responsive card height */
+  --image-height: 30%; /* 30% of card for image */
+  --info-height: 60%; /* 60% of card for info area */
+  --button-height: 10%; /* 10% of card for buttons */
+  --card-padding: 2%;
+  --tags-height: 25%; /* 25% of info area for tags */
+  --description-height: 65%; /* 65% of info area for description */
+  --name-height: 10%; /* 10% of info area for name */
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 480px) {
+  :root {
+    --card-height: clamp(500px, 70vh, 700px);
+    --image-height: 35%; /* INCREASED from 25% to 35% to give more space for images on mobile */
+    --info-height: 55%; /* DECREASED to accommodate larger image area */
+    --button-height: 10%;
+    --tags-height: 30%; /* More space for tags on mobile */
+    --description-height: 60%; /* Less for description on mobile */
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  :root {
+    --card-height: clamp(550px, 75vh, 800px);
+    --tags-height: 28%;
+    --description-height: 62%;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  :root {
+    --card-height: clamp(600px, 78vh, 900px);
+    --tags-height: 26%;
+    --description-height: 64%;
+  }
+}
+
+/* OVERRIDE ALL PREVIOUS CARD DEFINITIONS */
+.png-cards {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important; /* REDUCED from 240px to allow more cards per row */
+  grid-auto-rows: var(--card-height) !important;
+  gap: 15px !important; /* REDUCED gap to fit more cards */
+  padding: 20px !important;
+  margin: 0 auto !important;
+  max-width: 2000px !important; /* INCREASED max-width for wider displays */
+  background-color: #1a1a1a !important;
+  min-height: 400px !important;
+  align-items: start !important;
+}
+
+/* OVERRIDE ALL PREVIOUS CARD STYLES */
+.png-card {
+  background: #2a2a2a !important;
+  border: 1px solid #404040 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: var(--card-height) !important;
+  min-height: var(--card-height) !important;
+  max-height: var(--card-height) !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  color: #f0f0f0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.png-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
+  z-index: 2 !important;
+}
+
+/* OVERRIDE ALL PREVIOUS IMAGE CONTAINER STYLES */
+.png-image-container {
+  height: var(--image-height) !important;
+  min-height: var(--image-height) !important;
+  max-height: var(--image-height) !important;
+  overflow: hidden !important;
+  background: #1a1a1a !important;
+  border-radius: 12px 12px 0 0 !important;
+  position: relative !important;
+  flex: 0 0 var(--image-height) !important;
+  display: flex !important; /* ADDED: Use flexbox for perfect centering */
+  align-items: center !important; /* ADDED: Center vertically */
+  justify-content: center !important; /* ADDED: Center horizontally */
+}
+
+.png-image-container img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important; /* Show full image without cropping */
+  object-position: center !important; /* Center the image */
+  transition: transform 0.3s ease !important;
+  background: transparent !important; /* ADDED: Remove any background */
+}
+
+.png-card:hover .png-image-container img {
+  transform: scale(1.05) !important;
+}
+
+/* OVERRIDE ALL PREVIOUS CARD INFO STYLES */
+.png-card-info {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: var(--card-padding) !important;
+  gap: 1% !important;
+  overflow: hidden !important;
+  height: auto !important;
+  max-height: none !important;
+  box-sizing: border-box !important;
+}
+
+/* OVERRIDE ALL PREVIOUS NAME STYLES */
+.png-card-name {
+  font-size: clamp(16px, 2vw, 18px) !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  margin: 0 !important;
+  line-height: 1.3 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  flex: 0 0 var(--name-height) !important;
+  min-height: var(--name-height) !important;
+  max-height: var(--name-height) !important;
+  display: flex !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+/* OVERRIDE ALL PREVIOUS DESCRIPTION STYLES */
+.png-card-description {
+  font-size: clamp(12px, 1.5vw, 14px) !important;
+  color: #b0b0b0 !important;
+  line-height: 1.5 !important;
+  margin: 0 !important;
+  flex: 1 1 var(--description-height) !important;
+  min-height: var(--description-height) !important;
+  max-height: var(--description-height) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  white-space: normal !important;
+  text-align: left !important;
+  padding: var(--card-padding) !important;
+  background: #1a1a1a !important;
+  border-radius: 8px !important;
+  border: 1px solid #404040 !important;
+  hyphens: auto !important;
+  overflow-wrap: break-word !important;
+  word-break: break-word !important;
+  box-sizing: border-box !important;
+}
+
+/* OVERRIDE ALL PREVIOUS TAG STYLES */
+.png-card-tags {
+  font-size: clamp(10px, 1.2vw, 12px) !important;
+  color: #888 !important;
+  margin: 0 !important;
+  padding: var(--card-padding) !important;
+  background: #1a1a1a !important;
+  border-radius: 8px !important;
+  border: 1px solid #404040 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  word-wrap: break-word !important;
+  white-space: normal !important;
+  line-height: 1.5 !important;
+  height: var(--tags-height) !important;
+  min-height: var(--tags-height) !important;
+  max-height: var(--tags-height) !important;
+  display: block !important;
+  hyphens: auto !important;
+  overflow-wrap: break-word !important;
+  text-align: left !important;
+  flex: 0 0 var(--tags-height) !important;
+  box-sizing: border-box !important;
+}
+
+.png-card-tags::before {
+  content: "Tags: " !important;
+  font-weight: 600 !important;
+  color: #f0f0f0 !important;
+  display: inline !important;
+}
+
+/* OVERRIDE ALL PREVIOUS BUTTON CONTAINER STYLES */
+.png-card-buttons {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1% !important;
+  padding: var(--card-padding) !important;
+  background: #2a2a2a !important;
+  border-top: 1px solid #404040 !important;
+  flex: 0 0 var(--button-height) !important;
+  min-height: var(--button-height) !important;
+  max-height: var(--button-height) !important;
+  box-sizing: border-box !important;
+  margin-top: auto !important;
+}
+
+/* OVERRIDE ALL PREVIOUS BUTTON STYLES */
+.png-download-button,
+.png-chat-button {
+  flex: 1 !important;
+  padding: 1% 2% !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-size: clamp(11px, 1.3vw, 14px) !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  text-align: center !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  color: white !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 40% !important;
+  line-height: 1.2 !important;
+  box-sizing: border-box !important;
+}
+
+.png-download-button {
+  background: #006064 !important;
+  color: white !important;
+  border: 1px solid #006064 !important;
+}
+
+.png-chat-button {
+  background: var(--button-bg) !important;
+}
+
+.png-download-button:hover {
+  background: var(--button-hover) !important;
+  transform: translateY(-1px) !important;
+}
+
+.png-chat-button:hover {
+  background: var(--button-hover) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* MOBILE RESPONSIVE OVERRIDES */
+@media (max-width: 480px) {
+  .png-cards {
+    grid-template-columns: 1fr !important;
+    gap: 15px !important;
+    padding: 15px !important;
+  }
+  
+  /* Fix image cropping on mobile - Higher specificity to override main rules */
+  .png-cards .png-card .png-image-container {
+    height: var(--image-height) !important;
+    min-height: 180px !important; /* Increased minimum height for better mobile display */
+    max-height: 250px !important; /* Cap maximum height */
+    overflow: visible !important; /* Allow image to show fully */
     display: flex !important;
-    visibility: visible !important;
-    background: none !important;
-    border: 1px solid #444 !important;
-    color: white !important;
-    padding: 8px !important;
-    border-radius: 4px !important;
-    cursor: pointer !important;
     align-items: center !important;
     justify-content: center !important;
-    min-width: 30px !important;
-    min-height: 30px !important;
+    background: #1a1a1a !important;
+    border-radius: 12px 12px 0 0 !important;
+    flex: none !important; /* Don't let flexbox shrink this */
   }
-
-  /* Desktop input sizing */
-  #chat-input {
-    max-height: 200px !important;
-    min-height: 50px !important;
+  
+  .png-cards .png-card .png-image-container img {
+    width: auto !important; /* Let width adjust naturally */
+    height: auto !important; /* Let height adjust naturally */
+    max-width: 100% !important; /* Don't exceed container width */
+    max-height: 100% !important; /* Don't exceed container height */
+    object-fit: contain !important; /* Ensure full image is visible */
+    object-position: center !important;
+    background: transparent !important;
+    border-radius: 8px !important;
+    transform: none !important; /* Disable any transforms that might affect sizing */
   }
-}
-
-/* Force all chat messages to be visible with high contrast */
-.chat-message {
-  color: #FFFFFF !important;
-  background-color: #333333 !important;
-  padding: 12px !important;
-  margin: 8px 0 !important;
-  border-radius: 8px !important;
-  max-width: 85% !important;
-  align-self: flex-start !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
-  font-size: 16px !important;
-  line-height: 1.5 !important;
-  position: relative !important;
-  z-index: 50 !important;
-}
-
-.chat-message strong {
-  color: #FFFFFF !important;
-  font-weight: bold !important;
-}
-
-.chat-message.user {
-  background-color: #2b2e2a !important;
-  align-self: flex-end !important;
-}
-
-.chat-message.bot {
-  background-color: #252d2a !important;
-}
-
-.chat-message.error {
-  background-color: #8B0000 !important;
-}
-
-/* ===== MOBILE CHAT HANDLER STYLES ===== */
-.pmv-mobile-overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 999998;
-  backdrop-filter: blur(2px);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.pmv-mobile-overlay.open {
-  opacity: 1;
-}
-
-.pmv-mobile-sidebar {
-  display: none;
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 80%;
-  max-width: 350px;
-  height: 100%;
-  background: #232323;
-  z-index: 999999;
-  box-shadow: -3px 0 15px rgba(0,0,0,0.3);
-  transform: translateX(100%);
-  transition: transform 0.3s ease-in-out;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.pmv-mobile-sidebar.open {
-  transform: translateX(0) !important;
-}
-
-.mobile-sidebar-content {
-  padding: 20px;
-}
-
-.mobile-sidebar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.mobile-sidebar-header h3 {
-  color: white;
-  margin: 0;
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.mobile-close-btn {
-  background: rgba(255,255,255,0.2);
-  border: none;
-  color: white;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.mobile-new-chat-btn {
-  width: 100%;
-  padding: 12px;
-  background: #303030 !important;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-bottom: 20px;
-  font-weight: bold;
-  font-size: 14px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  transition: transform 0.2s;
-}
-
-.mobile-new-chat-btn:hover {
-  transform: translateY(-1px);
-  background: #303030 !important;
-}
-
-.mobile-conversations-list {
-  max-height: 60vh;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.mobile-sidebar-footer {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(255,255,255,0.2);
-}
-
-.mobile-save-chat-btn {
-  width: 100%;
-  padding: 12px;
-  background: #344534 !important;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 14px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  transition: transform 0.2s;
-}
-
-.mobile-save-chat-btn:hover {
-  transform: translateY(-1px);
-}
-
-/* Mobile conversation items */
-.mobile-conversation-item {
-  position: relative;
-  padding: 15px;
-  margin-bottom: 10px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(68, 89, 63, 0.1);
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-.mobile-conversation-item.active {
-  background: #3a423a;
-  border: 1px solid rgba(68, 89, 63, 0.1);
-}
-
-.mobile-conversation-item:hover {
-  background: #444d44 !important;
-  transform: translateX(5px);
-}
-
-.mobile-conversation-item .conversation-title {
-  font-weight: normal;
-  color: white;
-  margin-bottom: 5px;
-  font-size: 14px;
-  line-height: 1.3;
-  word-wrap: break-word;
-  padding-right: 30px;
-}
-
-.mobile-conversation-item.active .conversation-title {
-  font-weight: bold;
-}
-
-.mobile-conversation-item .conversation-meta {
-  font-size: 11px;
-  color: rgba(255,255,255,0.7);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.mobile-conversation-item.active .conversation-meta {
-  color: rgba(255,255,255,0.9);
-}
-
-.mobile-delete-conversation {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(231, 76, 60, 0.8);
-  color: white;
-  border: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.7;
-  transition: opacity 0.3s;
-  z-index: 10;
-}
-
-.mobile-delete-conversation:hover {
-  opacity: 1;
-}
-
-.active-indicator {
-  position: absolute;
-  left: 5px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 60%;
-  background: white;
-  border-radius: 2px;
-}
-
-/* Mobile loading and error states */
-.mobile-loading-container {
-  color: #bdc3c7;
-  padding: 15px;
-  text-align: center;
-}
-
-.mobile-loading-spinner {
-  border: 2px solid #3498db;
-  border-top: 2px solid transparent;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 10px;
-}
-
-.mobile-empty-state {
-  color: #bdc3c7;
-  text-align: center;
-  padding: 20px;
-  font-style: italic;
-}
-
-.mobile-empty-state .empty-icon {
-  font-size: 24px;
-  margin-bottom: 10px;
-}
-
-.mobile-empty-state .empty-title {
-  margin-bottom: 5px;
-}
-
-.mobile-empty-state .empty-subtitle {
-  font-size: 12px;
-  margin-top: 5px;
-  opacity: 0.7;
-}
-
-.mobile-error-state {
-  color: #e74c3c;
-  text-align: center;
-  padding: 20px;
-}
-
-.mobile-error-state .error-icon {
-  font-size: 24px;
-  margin-bottom: 10px;
-}
-
-.mobile-error-state .error-title {
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-.mobile-error-state .error-message {
-  font-size: 12px;
-  opacity: 0.9;
-  margin-bottom: 15px;
-}
-
-.error-retry-btn {
-  padding: 8px 15px;
-  background: #3498db;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-/* Mobile menu button */
-.pmv-mobile-menu-btn {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  z-index: 1000;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  padding: 0;
-}
-
-.pmv-mobile-menu-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.4);
-}
-
-.hamburger-icon {
-  width: 18px;
-  height: 18px;
-  position: relative;
-  transform: rotate(0deg);
-  transition: 0.3s ease-in-out;
-}
-
-.hamburger-icon span {
-  display: block;
-  position: absolute;
-  height: 2px;
-  width: 100%;
-  background: white;
-  border-radius: 1px;
-  opacity: 1;
-  left: 0;
-  transform: rotate(0deg);
-  transition: 0.25s ease-in-out;
-}
-
-.hamburger-icon span:nth-child(1) {
-  top: 0px;
-}
-
-.hamburger-icon span:nth-child(2) {
-  top: 8px;
-}
-
-.hamburger-icon span:nth-child(3) {
-  top: 16px;
-}
-
-.pmv-mobile-menu-btn.menu-open .hamburger-icon span:nth-child(1) {
-  top: 8px;
-  transform: rotate(135deg);
-}
-
-.pmv-mobile-menu-btn.menu-open .hamburger-icon span:nth-child(2) {
-  opacity: 0;
-  left: -60px;
-}
-
-.pmv-mobile-menu-btn.menu-open .hamburger-icon span:nth-child(3) {
-  top: 8px;
-  transform: rotate(-135deg);
-}
-
-/* Mobile menu state */
-body.mobile-menu-open {
-  overflow: hidden;
-}
-
-/* Animations */
-@keyframes messageAppear {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Fix for iOS devices */
-@supports (-webkit-touch-callout: none) {
-  #chat-history {
-    -webkit-overflow-scrolling: touch !important;
-  }
-
-  .chat-container,
-  .chat-main,
-  #png-modal.fullscreen-chat,
-  .png-modal-content.chat-mode {
-    height: -webkit-fill-available !important;
-  }
-
-  #chat-input-row {
-    bottom: env(safe-area-inset-bottom, 0) !important;
-  }
-
-  body.chat-modal-open {
-    position: fixed !important;
-    overflow: hidden !important;
-    -webkit-overflow-scrolling: touch !important;
-  }
-
-  body.chat-modal-open #chat-history {
-    -webkit-overflow-scrolling: touch !important;
-  }
-}
-
-/* Scrollbars */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--darker-bg);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--border-dark);
-  border-radius: 4px;
-}
-
-/* Mobile landscape fixes and additional input positioning */
-@media (max-width: 768px) and (orientation: landscape) {
-  body.chat-modal-open #chat-history {
-    padding-bottom: 80px !important;
-  }
-
-  body.chat-modal-open #chat-input-row {
+  
+  /* Ensure card height accommodates larger image area */
+  .png-cards .png-card {
     height: auto !important;
-    min-height: 60px !important;
-    max-height: 100px !important;
-  }
-
-  body.chat-modal-open #chat-input {
-    min-height: 36px !important;
-    max-height: 80px !important;
-  }
-
-  body.chat-modal-open #send-chat {
-    height: 36px !important;
+    min-height: 500px !important;
+    max-height: none !important;
   }
 }
 
-/* Additional mobile input safety measures and scrolling fixes */
-@media (max-width: 768px) {
-  /* Ensure input area never gets clipped */
-  body.chat-modal-open #chat-input-row {
-    /* Use viewport units for consistent positioning */
-    bottom: 0 !important;
-    max-height: 25vh !important;
-    /* Ensure it stays above everything */
-    z-index: 9999 !important;
-    /* Prevent any margins or padding from breaking layout */
-    margin: 0 !important;
-    /* Webkit-specific fixes */
-    -webkit-transform: translateZ(0) !important;
-    transform: translateZ(0) !important;
+@media (min-width: 481px) and (max-width: 768px) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+    gap: 16px !important;
   }
+}
 
-  /* Enhanced chat history scrolling */
-  body.chat-modal-open #chat-history {
-    /* Force proper scrolling behavior */
-    -webkit-overflow-scrolling: touch !important;
-    overflow-scrolling: touch !important;
-    /* Ensure scroll area is properly defined */
-    min-height: 300px !important;
-    /* Enable momentum scrolling */
-    -webkit-momentum-scrolling: touch !important;
-    /* Prevent scroll bounce at top/bottom */
-    overscroll-behavior: contain !important;
-    -webkit-overscroll-behavior: contain !important;
-    /* Smooth scrolling */
-    scroll-behavior: smooth !important;
-    /* Ensure content can overflow */
-    contain: layout style !important;
+@media (min-width: 769px) and (max-width: 1024px) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
+    gap: 18px !important;
   }
+}
 
-  /* Ensure chat messages are properly contained */
-  body.chat-modal-open #chat-history .chat-message {
-    /* Prevent messages from interfering with scroll */
-    contain: layout style paint !important;
-    will-change: auto !important;
+@media (min-width: 1025px) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
+    gap: 20px !important;
   }
+}
 
-  /* Keyboard-safe input handling */
-  body.chat-modal-open.keyboard-open #chat-input-row {
-    /* Stick to bottom even with keyboard */
-    position: fixed !important;
-    bottom: 0 !important;
-    transform: none !important;
-    -webkit-transform: none !important;
-  }
+/* REMOVE ALL CONFLICTING FIXED HEIGHT OVERRIDES */
+/* This ensures percentage-based system takes precedence */
 
-  /* Enhanced keyboard-open state for chat history */
-  body.chat-modal-open.keyboard-open #chat-history {
-    /* Ensure scrollable area remains accessible */
-    max-height: calc(100vh - 200px) !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-  }
+/* ===== FINAL MOBILE IMAGE FIX - MAXIMUM SPECIFICITY ===== */
+/* This section must be at the very end to override all other rules */
 
-  /* Input field specific mobile fixes */
-  body.chat-modal-open #chat-input {
-    /* Prevent expansion beyond safe limits */
-    max-height: 100px !important;
-    /* Ensure consistent sizing */
-    line-height: 1.2 !important;
-    /* Prevent iOS zoom and enhance UX */
-    -webkit-appearance: none !important;
-    appearance: none !important;
-    -webkit-user-select: text !important;
-    user-select: text !important;
-  }
-
-  /* Safe area handling for newer devices */
-  body.chat-modal-open #chat-input-row {
-    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0)) !important;
-  }
-
-  /* Force chat container to be properly scrollable */
-  body.chat-modal-open .chat-container {
+@media screen and (max-width: 480px) {
+  /* Force proper card layout on mobile with contained images */
+  body .png-cards .png-card {
+    height: 500px !important;
+    min-height: 500px !important;
+    max-height: 500px !important;
     overflow: hidden !important;
-    height: 100vh !important;
-    max-height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: #2a2a2a !important;
+    border: 1px solid #404040 !important;
+    border-radius: 12px !important;
   }
-
-  body.chat-modal-open .chat-main {
+  
+  body .png-cards .png-card .png-image-container {
+    height: 180px !important;
+    min-height: 180px !important;
+    max-height: 180px !important;
     overflow: hidden !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+    background: #1a1a1a !important;
+    border-radius: 12px 12px 0 0 !important;
+  }
+  
+  body .png-cards .png-card .png-image-container img {
+    width: 100% !important;
     height: 100% !important;
-    max-height: 100% !important;
-  }
-}
-
-/* ===== RESPONSIVE SEARCH CONTAINER ===== */
-.search-container {
-  position: relative;
-  max-width: 100%;
-  margin: 0 auto 20px auto;
-  padding: 0 20px;
-}
-
-@media (max-width: 600px) {
-  .search-container {
-    margin-bottom: 15px;
-    padding: 0 15px;
-  }
-
-  .search-container input {
-    font-size: 16px !important; /* Prevent zoom on iOS */
-  }
-}
-
-/* ===== ACCESSIBILITY IMPROVEMENTS ===== */
-@media (prefers-reduced-motion: reduce) {
-  .png-card,
-  .png-image-container img,
-  .spinner,
-  .typing-indicator {
-    animation: none !important;
+    object-fit: contain !important;
+    object-position: center !important;
+    background: transparent !important;
+    transform: none !important;
     transition: none !important;
   }
+  
+  /* Adjust info area to fit remaining space */
+  body .png-cards .png-card .png-card-info {
+    flex: 1 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: hidden !important;
+    padding: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  /* Ensure buttons stay at bottom */
+  body .png-cards .png-card .png-card-buttons {
+    flex-shrink: 0 !important;
+    margin-top: auto !important;
+    padding: 12px !important;
+  }
 }
 
-@media (prefers-contrast: high) {
-  .png-card {
-    border-width: 2px !important;
-  }
+/* ===== CONVERSATION MODAL RESPONSIVE FIXES ===== */
 
+/* Ensure conversation modal is properly responsive */
+.png-modal-content.chat-mode {
+  position: relative !important;
+  z-index: 10000 !important;
+  background: #fff !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Mobile responsive fixes for conversation modal */
+@media (max-width: 768px) {
+  .png-modal-content.chat-mode {
+    width: 95% !important;
+    height: 90vh !important;
+    max-height: none !important;
+    margin: 2.5vh auto !important;
+    border-radius: 8px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+  }
+  
+  /* Ensure conversation items are visible */
+  .conversation-item {
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: #333 !important;
+    border: 1px solid #ddd !important;
+    margin-bottom: 8px !important;
+    padding: 12px !important;
+    border-radius: 6px !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  .conversation-title {
+    color: #333 !important;
+    font-weight: bold !important;
+    font-size: 14px !important;
+    line-height: 1.3 !important;
+  }
+  
+  .conversation-date {
+    color: #666 !important;
+    font-size: 12px !important;
+    margin-top: 5px !important;
+  }
+  
+  /* Ensure conversation sidebar is properly positioned */
+  .conversation-sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 10001 !important;
+    background: rgba(0, 0, 0, 0.9) !important;
+    transform: translateX(-100%) !important;
+    transition: transform 0.3s ease !important;
+  }
+  
+  .conversation-sidebar.open {
+    transform: translateX(0) !important;
+  }
+  
+  /* Improve sidebar content visibility */
+  .conversation-sidebar .sidebar-header h3 {
+    color: #fff !important;
+    font-size: 18px !important;
+    margin-bottom: 15px !important;
+  }
+  
+  .conversation-sidebar .sidebar-actions button {
+    background: #007bff !important;
+    color: #fff !important;
+    border: none !important;
+    padding: 10px 15px !important;
+    border-radius: 6px !important;
+    font-size: 14px !important;
+    margin: 5px !important;
+  }
+  
+  .conversation-sidebar .sidebar-actions button:hover {
+    background: #0056b3 !important;
+  }
+  
+  /* Ensure chat messages are visible */
   .chat-message {
-    border: 1px solid currentColor !important;
+    max-width: 85% !important;
+    margin-bottom: 12px !important;
+    padding: 12px !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+  }
+  
+  .chat-message.user {
+    background: #2d4a7d !important;
+    color: #fff !important;
+    margin-left: auto !important;
+  }
+  
+  .chat-message.bot {
+    background: #444 !important;
+    color: #fff !important;
+    margin-right: auto !important;
   }
 }
 
-/* ===== DARK MODE SUPPORT ===== */
-@media (prefers-color-scheme: dark) {
-  body:not(.light-mode) {
-    background-color: var(--darker-bg);
-    color: var(--light-text);
+/* Small mobile responsive fixes */
+@media (max-width: 480px) {
+  .png-modal-content.chat-mode {
+    width: 98% !important;
+    height: 95vh !important;
+    margin: 2.5vh auto !important;
+  }
+  
+  /* Further improve text visibility on very small screens */
+  .conversation-item {
+    padding: 15px !important;
+    margin-bottom: 10px !important;
+  }
+  
+  .conversation-title {
+    font-size: 16px !important;
+    line-height: 1.3 !important;
+  }
+  
+  .conversation-date {
+    font-size: 13px !important;
+    margin-top: 5px !important;
+  }
+  
+  /* Ensure chat messages are visible */
+  .chat-message {
+    max-width: 90% !important;
+    margin-bottom: 15px !important;
+    padding: 12px !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+  }
+  
+  .chat-message.user {
+    background: #2d4a7d !important;
+    color: #fff !important;
+    margin-left: auto !important;
+  }
+  
+  .chat-message.bot {
+    background: #444 !important;
+    color: #fff !important;
+    margin-right: auto !important;
   }
 }
 
-/* ===== HIGH DPI / RETINA DISPLAY SUPPORT ===== */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .png-image-container img {
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
-  }
+/* Ensure proper z-index layering */
+.fullscreen-chat {
+  z-index: 9998 !important;
 }
 
-/* ===== PRINT STYLES ===== */
-@media print {
-  .png-filters-container,
-  .png-card-buttons,
-  .character-footer,
-  .conversation-controls,
-  #chat-input-row,
-  .pmv-mobile-sidebar,
-  .pmv-mobile-overlay {
-    display: none !important;
-  }
-
-  .png-card {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
+.png-modal {
+  z-index: 9999 !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+  backdrop-filter: blur(2px) !important;
 }
 
-/* ===== CENTERING AND LAYOUT IMPROVEMENTS ===== */
-/* Better centering for the main container and title */
-.png-metadata-viewer,
-.masonry-gallery-container {
-  max-width: 1800px; /* Increased to match wrapper */
-  margin: 0 auto;
-  padding: 0 20px; /* Match wrapper padding */
+.conversation-sidebar {
+  z-index: 10001 !important;
 }
 
-/* Center the title if it exists */
-.gallery-title,
-.page-title h1,
-h1 {
-  text-align: center;
-  margin: 30px auto;
-  max-width: 1200px;
+/* Improve text contrast in conversation items */
+.conversation-item {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #333 !important;
+  border: 1px solid #ddd !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
 }
 
-/* RESPONSIVE CARD MINIMUM HEIGHTS BY BREAKPOINT */
-@media (min-width: 1600px) {
-  .png-card {
-    min-height: 350px;
-  }
+.conversation-item:hover {
+  background: rgba(255, 255, 255, 1) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
 }
 
-@media (min-width: 1200px) and (max-width: 1599px) {
-  .png-card {
-    min-height: 340px;
-  }
+.conversation-item.active {
+  background: rgba(59, 130, 246, 0.1) !important;
+  border-color: #3b82f6 !important;
 }
 
-@media (min-width: 900px) and (max-width: 1199px) {
-  .png-card {
-    min-height: 320px;
-  }
+.conversation-title {
+  color: #333 !important;
+  font-weight: 600 !important;
 }
 
-@media (min-width: 700px) and (max-width: 899px) {
-  .png-card {
-    min-height: 300px;
-  }
+.conversation-date {
+  color: #666 !important;
 }
 
-@media (min-width: 500px) and (max-width: 699px) {
-  .png-card {
-    min-height: 280px;
-  }
-  .png-card-name {
-    font-size: 15px;
-  }
-  .png-card-description {
-    font-size: 12px;
-  }
+/* ===== FINAL OVERRIDE: FORCE CHARACTER NAME CENTERING ===== */
+body .png-card .png-card-name,
+.png-card .png-card-name,
+.png-card-name {
+  text-align: center !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  margin: 0 auto !important;
+  min-height: 24px !important;
+  height: 100% !important;
 }
 
-@media (min-width: 400px) and (max-width: 499px) {
-  .png-card {
-    min-height: 260px;
-  }
-  .png-card-info {
-    padding: 8px;
-  }
-  .png-card-name {
-    font-size: 14px;
-    padding: 4px;
-  }
-  .png-card-description {
-    font-size: 12px;
-    max-height: 48px;
-    -webkit-line-clamp: 2;
-  }
-  .png-card-tags {
-    font-size: 11px;
-    max-height: 32px;
-  }
-  .png-card-buttons {
-    gap: 3px;
-    padding: 0px;
-  }
-  .png-download-button,
-  .png-chat-button {
-    padding: 10px 1px 10px 1px !important;
-    font-size: font-size: 2vh !important;
-    min-width: calc(50% - 2px);
-  }
-}
-
-@media (max-width: 399px) {
-  .png-card {
-    min-height: 240px;
-  }
-  .png-card-info {
-    padding: 6px;
-  }
-  .png-card-name {
-    font-size: 13px;
-    padding: 3px;
-  }
-  .png-card-description {
-    font-size: 11px;
-    max-height: 44px;
-    -webkit-line-clamp: 2;
-  }
-  .png-card-tags {
-    font-size: 10px;
-    max-height: 28px;
-  }
-  .png-card-buttons {
-    gap: 2px;
-    padding: 0px;
-  }
-  .png-download-button,
-  .png-chat-button {
-    padding: 6px 10px;
-    font-size: font-size: 2vh !important;
-    min-width: calc(50% - 1px);
-  }
-}
-
-/* Ensure proper tag filter styling */
-.tag-filters,
-.filter-wrap {
-  max-width: 1600px;
-  margin: 0 auto 30px auto;
-  padding: 0 20px;
-}
-
-.filter-btn {
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  margin: 5px;
-  transition: background 0.2s;
-}
-
-.filter-btn:hover {
-  background: var(--primary-hover);
-}
-
-.filter-actions {
-  text-align: center;
-  margin: 15px 0;
-}
-
-.filter-info {
-  text-align: center;
-  color: var(--gray-text);
-  font-size: 14px;
-  margin-top: 10px;
-}
-
-.filter-row {
-  margin-bottom: 15px;
-  text-align: center;
-}
-
-.filter-row label {
-  display: block;
-  margin-bottom: 5px;
-  color: var(--light-text);
-  font-weight: bold;
-}
-
-.tag-filter {
-  width: 100%;
-  max-width: 400px;
-  margin: 0 auto;
+/* Ensure parent containers don't interfere with centering */
+body .png-card .png-card-info,
+.png-card .png-card-info,
+.png-card-info {
+  text-align: center !important;
 }

@@ -11,6 +11,11 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// Include image generation handlers
+require_once plugin_dir_path(__FILE__) . 'includes/swarmui-api-handler.php';
+require_once plugin_dir_path(__FILE__) . 'includes/nanogpt-api-handler.php';
+require_once plugin_dir_path(__FILE__) . 'includes/unified-image-handler.php';
+
 /**
  * Enqueue Select2 library for enhanced dropdown filtering
  */
@@ -229,18 +234,22 @@ add_action('init', 'pmv_add_debug_info');
  * Register custom styles for enhanced display
  */
 function pmv_register_enhanced_styles() {
-    wp_register_style(
-        'pmv-enhanced-styles',
-        plugins_url('enhanced-styles.css', __FILE__),
-        array(),
-        filemtime(plugin_dir_path(__FILE__) . 'enhanced-styles.css')
-    );
+    // Remove this function to prevent conflicts with main plugin enqueuing
+    // The enhanced styles are already enqueued in the main plugin file
+    return;
+    
+    // wp_register_style(
+    //     'pmv-enhanced-styles',
+    //     plugins_url('enhanced-styles.css', __FILE__),
+    //     array(),
+    //     filemtime(plugin_dir_path(__FILE__) . 'enhanced-styles.css')
+    // );
     
     // Only enqueue on pages with our shortcode
-    global $post;
-    if (is_a($post, 'WP_Post') && has_shortcode($post->post_content, 'png_metadata_viewer')) {
-        wp_enqueue_style('pmv-enhanced-styles');
-    }
+    // global $post;
+    // if (is_a($post, 'WP_Post') && has_shortcode($post->post_content, 'png_metadata_viewer')) {
+    //     wp_enqueue_style('pmv-enhanced-styles');
+    // }
 }
 add_action('wp_enqueue_scripts', 'pmv_register_enhanced_styles');
 
