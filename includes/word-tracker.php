@@ -39,6 +39,9 @@ class PMV_Word_Usage_Tracker {
      * @param string $message The user message
      */
     public static function track_chat_completion($response, $user_id, $message) {
+        // Debug logging
+        error_log('PMV: Token tracker called - User ID: ' . $user_id . ', Message length: ' . strlen($message));
+        
         // Extract token usage from the response
         $prompt_tokens = isset($response['usage']['prompt_tokens']) ? intval($response['usage']['prompt_tokens']) : 0;
         $completion_tokens = isset($response['usage']['completion_tokens']) ? intval($response['usage']['completion_tokens']) : 0;
@@ -608,6 +611,59 @@ class PMV_Word_Usage_Tracker {
 
 // Initialize the word usage tracker
 PMV_Word_Usage_Tracker::init();
+
+// Test function to verify token counter is working
+function pmv_test_token_counter() {
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+    
+    // Create a test response
+    $test_response = array(
+        'usage' => array(
+            'prompt_tokens' => 100,
+            'completion_tokens' => 50,
+            'total_tokens' => 150
+        ),
+        'choices' => array(
+            array(
+                'message' => array(
+                    'content' => 'This is a test response'
+                )
+            )
+        )
+    );
+    
+    $user_id = get_current_user_id();
+    $test_message = 'This is a test message';
+    
+    // Trigger the token tracking
+    do_action('pmv_after_chat_completion', $test_response, $user_id, $test_message);
+    
+    error_log('PMV: Token counter test completed');
+    
+    // Return success message
+    return 'Token counter test completed. Check error logs for debugging information.';
+}
+
+// Add AJAX handler for testing token counter
+function pmv_ajax_test_token_counter() {
+    // Check nonce
+    if (!wp_verify_nonce($_POST['nonce'], 'pmv_ajax_nonce')) {
+        wp_send_json_error('Invalid security token');
+        return;
+    }
+    
+    // Check permissions
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('Insufficient permissions');
+        return;
+    }
+    
+    $result = pmv_test_token_counter();
+    wp_send_json_success(array('message' => $result));
+}
+add_action('wp_ajax_pmv_test_token_counter', 'pmv_ajax_test_token_counter');
 
 // Add user profile fields for token usage
 function pmv_add_user_token_limit_field($user) {

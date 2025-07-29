@@ -111,48 +111,27 @@ function png_metadata_viewer_shortcode($atts) {
         echo '<button id="pmv-clear-filters" class="pmv-filter-button pmv-filter-clear">Clear All</button>';
         echo '</div>';
         
+        // Active filters container (will be populated by JavaScript)
+        echo '<div class="pmv-active-filters" style="display: none;"></div>';
+        
         echo '</div>';
         echo '</div>';
     }
     
-    // Pagination info (will be updated by AJAX)
-    echo '<div class="pmv-pagination-info" style="text-align: center; margin: 10px 0; color: #666; font-size: 14px; padding: 10px;">
-        <span style="background: #f1f1f1; padding: 5px 10px; border-radius: 3px;">Loading character gallery...</span>
-    </div>';
-    
-    // LOADING OVERLAY - Will show during initial load and filter changes
-    echo '<div id="pmv-loading-overlay" class="pmv-loading-overlay">
-        <div class="pmv-loading-content">
-            <div class="pmv-spinner">
-                <div class="pmv-spinner-ring"></div>
-                <div class="pmv-spinner-ring"></div>
-                <div class="pmv-spinner-ring"></div>
-            </div>
-            <div class="pmv-loading-text">Loading Characters...</div>
-            <div class="pmv-loading-subtext">Please wait while we load your gallery</div>
-        </div>
-    </div>';
+
     
     // Main gallery container - AJAX will populate this
     echo '<div class="pmv-gallery-container" data-folder="' . esc_attr($folder) . '" data-category="' . esc_attr($category) . '" data-cards-per-page="' . esc_attr($cards_per_page) . '">';
     
-    // Masonry wrapper for centering
-    echo '<div class="pmv-masonry-wrapper">';
+    // Simplified gallery wrapper - no loading overlays
     echo '<div class="png-cards-loading">';
     echo '<div class="png-cards">';
-    echo '<div class="grid-sizer"></div>'; // Required for masonry
     // Cards will be loaded by AJAX
     echo '</div>'; // Close png-cards
     echo '</div>'; // Close png-cards-loading
-    echo '</div>'; // Close pmv-masonry-wrapper
     
-    // AJAX loading indicator (smaller, for filter changes)
+    // Simple loading indicator (smaller, for filter changes)
     echo '<div class="pmv-ajax-loading" style="display: none;">
-        <div class="pmv-spinner">
-            <div class="pmv-spinner-ring"></div>
-            <div class="pmv-spinner-ring"></div>
-            <div class="pmv-spinner-ring"></div>
-        </div>
         <div>Loading...</div>
     </div>';
     
@@ -167,11 +146,10 @@ function png_metadata_viewer_shortcode($atts) {
     echo '<script>
     jQuery(document).ready(function($) {
         console.log("PMV AJAX: Shortcode initialized");
-        
+
         // Set initial filter values from URL
         const urlParams = new URLSearchParams(window.location.search);
         
-        // Update filter inputs with URL values
         if (urlParams.get("pmv_search")) {
             $("#pmv-search").val(urlParams.get("pmv_search"));
         }
@@ -205,21 +183,15 @@ function png_metadata_viewer_shortcode($atts) {
         }
         
         // Listen for successful card loading
-        $(document).on("pmv_cards_loaded", function(event, data) {
-            console.log("PMV AJAX: Cards loaded event received", data);
-            if (data && data.pagination) {
-                updatePaginationInfo(data.pagination);
-                console.log("PMV AJAX: Pagination info updated");
-            }
+        $(document).on("pmv_pagination_updated", function(event, pagination) {
+            console.log("PMV AJAX: pagination updated event received", pagination);
+            updatePaginationInfo(pagination);
         });
-        
-        // Listen for loading errors
-        $(document).on("pmv_load_error", function(event, error) {
-            console.log("PMV AJAX: Load error event received", error);
-            $(".pmv-pagination-info").html(`<span style="color: #d63638;">Error: ${error}</span>`);
-        });
-        
-        console.log("PMV AJAX: Event listeners attached");
+
+        // Trigger initial load if grid is ready
+        if (window.pmvGrid) {
+            window.pmvGrid.loadCards(1, window.pmvGrid.getCurrentFilters());
+        }
     });
     </script>';
     
@@ -227,186 +199,3 @@ function png_metadata_viewer_shortcode($atts) {
 }
 
 add_shortcode('png_metadata_viewer', 'png_metadata_viewer_shortcode');
-
-// AJAX handler to get character cards
-add_action('wp_ajax_pmv_get_character_cards', 'pmv_ajax_get_character_cards');
-add_action('wp_ajax_nopriv_pmv_get_character_cards', 'pmv_ajax_get_character_cards');
-
-function pmv_ajax_get_character_cards() {
-    // Verify nonce
-    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'pmv_ajax_nonce')) {
-        wp_send_json_error(array('message' => 'Security verification failed'));
-    }
-    
-    // Get parameters
-    $page = max(1, intval($_POST['page'] ?? 1));
-    $per_page = max(1, intval($_POST['per_page'] ?? 12));
-    $folder = sanitize_text_field($_POST['folder'] ?? '');
-    $category = sanitize_text_field($_POST['category'] ?? '');
-    
-    // Get filters
-    $filters = array(
-        'search' => sanitize_text_field($_POST['search'] ?? ''),
-        'filter1' => sanitize_text_field($_POST['filter1'] ?? ''),
-        'filter2' => sanitize_text_field($_POST['filter2'] ?? ''),
-        'filter3' => sanitize_text_field($_POST['filter3'] ?? ''),
-        'filter4' => sanitize_text_field($_POST['filter4'] ?? '')
-    );
-    
-    // Get upload directory
-    $upload_dir = wp_upload_dir();
-    $png_cards_dir = trailingslashit($upload_dir['basedir']) . 'png-cards/';
-    $png_cards_url = trailingslashit($upload_dir['baseurl']) . 'png-cards/';
-    
-    // If folder specified, look in subfolder
-    if (!empty($folder)) {
-        $png_cards_dir .= trailingslashit(sanitize_file_name($folder));
-        $png_cards_url .= trailingslashit(sanitize_file_name($folder));
-    }
-    
-    // Check if directory exists
-    if (!file_exists($png_cards_dir)) {
-        wp_send_json_error(array('message' => 'PNG cards directory not found'));
-    }
-    
-    // Get all PNG files
-    $all_files = glob($png_cards_dir . '*.png');
-    
-    if (empty($all_files)) {
-        wp_send_json_success(array(
-            'cards' => array(),
-            'pagination' => array(
-                'total_items' => 0,
-                'total_pages' => 0,
-                'current_page' => 1,
-                'per_page' => $per_page,
-                'has_prev' => false,
-                'has_next' => false
-            )
-        ));
-    }
-    
-    // Process all files
-    $all_characters = array();
-    foreach ($all_files as $file) {
-        try {
-            // Extract metadata
-            $metadata = PNG_Metadata_Reader::extract_highest_spec_fields($file);
-            
-            if (empty($metadata)) {
-                continue;
-            }
-            
-            // Extract tags
-            $tags = array();
-            if (isset($metadata['data']['tags'])) {
-                if (is_array($metadata['data']['tags'])) {
-                    $tags = $metadata['data']['tags'];
-                } elseif (is_string($metadata['data']['tags'])) {
-                    $tags = array_filter(array_map('trim', explode(',', $metadata['data']['tags'])));
-                }
-            }
-            
-            // Add creator as tag
-            if (!empty($metadata['data']['creator'])) {
-                $creator = trim($metadata['data']['creator']);
-                if (!in_array($creator, $tags)) {
-                    $tags[] = $creator;
-                }
-            }
-            
-            // Get name and description
-            $name = isset($metadata['data']['name']) ? $metadata['data']['name'] : 
-                   (isset($metadata['name']) ? $metadata['name'] : basename($file, '.png'));
-            
-            $description = isset($metadata['data']['description']) ? $metadata['data']['description'] : 
-                          (isset($metadata['description']) ? $metadata['description'] : '');
-            
-            $all_characters[] = array(
-                'file' => $file,
-                'file_url' => $png_cards_url . basename($file),
-                'metadata' => $metadata,
-                'tags' => $tags,
-                'name' => $name,
-                'description' => $description
-            );
-            
-        } catch (Exception $e) {
-            error_log('PNG Metadata AJAX error: ' . $e->getMessage());
-            continue;
-        }
-    }
-    
-    // Apply filters
-    $filtered_characters = $all_characters;
-    
-    // Category filter
-    if (!empty($category)) {
-        $category = strtolower(trim($category));
-        $filtered_characters = array_filter($filtered_characters, function($char) use ($category) {
-            foreach ($char['tags'] as $tag) {
-                if (strtolower(trim($tag)) === $category) {
-                    return true;
-                }
-            }
-            return false;
-        });
-    }
-    
-    // Apply other filters
-    foreach ($filters as $filter_key => $filter_value) {
-        if (empty($filter_value) || $filter_key === 'search') continue;
-        
-        $filter_value = strtolower(trim($filter_value));
-        $filtered_characters = array_filter($filtered_characters, function($char) use ($filter_value) {
-            foreach ($char['tags'] as $tag) {
-                if (strtolower(trim($tag)) === $filter_value) {
-                    return true;
-                }
-            }
-            return false;
-        });
-    }
-    
-    // Apply search
-    if (!empty($filters['search'])) {
-        $search_term = strtolower(trim($filters['search']));
-        $filtered_characters = array_filter($filtered_characters, function($char) use ($search_term) {
-            $searchable = strtolower($char['name'] . ' ' . $char['description'] . ' ' . implode(' ', $char['tags']));
-            return strpos($searchable, $search_term) !== false;
-        });
-    }
-    
-    // Calculate pagination
-    $total = count($filtered_characters);
-    $total_pages = ceil($total / $per_page);
-    $offset = ($page - 1) * $per_page;
-    
-    // Get page of results
-    $page_characters = array_slice($filtered_characters, $offset, $per_page);
-    
-    // Format for response
-    $cards = array();
-    foreach ($page_characters as $char) {
-        $cards[] = array(
-            'file_url' => $char['file_url'],
-            'name' => $char['name'],
-            'description' => substr($char['description'], 0, 150) . (strlen($char['description']) > 150 ? '...' : ''),
-            'tags' => $char['tags'],
-            'metadata' => $char['metadata']
-        );
-    }
-    
-    // Send response
-    wp_send_json_success(array(
-        'cards' => $cards,
-        'pagination' => array(
-            'total_items' => $total,
-            'total_pages' => $total_pages,
-            'current_page' => $page,
-            'per_page' => $per_page,
-            'has_prev' => $page > 1,
-            'has_next' => $page < $total_pages
-        )
-    ));
-}

@@ -5,7 +5,7 @@ if (!defined('ABSPATH')) exit;
 require_once plugin_dir_path(__FILE__) . 'admin-settings-ui.php';
 
 /**
- * Register plugin settings - keeping exactly as in your working version
+ * Register plugin settings - Complete version with keyword flagging
  */
 function pmv_register_plugin_settings() {
     // OpenAI Settings
@@ -103,8 +103,127 @@ function pmv_register_plugin_settings() {
     register_setting('png_metadata_viewer_settings', 'pmv_max_conversations_per_user');
     register_setting('png_metadata_viewer_settings', 'pmv_guest_daily_token_limit');
     register_setting('png_metadata_viewer_settings', 'pmv_default_user_monthly_limit');
+    
+    // Keyword Flagging Settings
+    register_setting('png_metadata_viewer_settings', 'pmv_unsafe_keywords', array(
+        'sanitize_callback' => 'pmv_sanitize_unsafe_keywords'
+    ));
+    register_setting('png_metadata_viewer_settings', 'pmv_enable_keyword_flagging');
+    register_setting('png_metadata_viewer_settings', 'pmv_keyword_case_sensitive');
+    
+    // Image Generation Provider Settings
+    register_setting('png_metadata_viewer_settings', 'pmv_image_provider');
+    
+    // SwarmUI API Settings
+    register_setting('png_metadata_viewer_settings', 'pmv_swarmui_api_url');
+    register_setting('png_metadata_viewer_settings', 'pmv_swarmui_api_key');
+    register_setting('png_metadata_viewer_settings', 'pmv_swarmui_user_token');
+    register_setting('png_metadata_viewer_settings', 'pmv_swarmui_enabled');
+    register_setting('png_metadata_viewer_settings', 'pmv_swarmui_default_model');
+    register_setting('png_metadata_viewer_settings', 'pmv_swarmui_global_daily_limit', array(
+        'type' => 'integer',
+        'default' => 100
+    ));
+    register_setting('png_metadata_viewer_settings', 'pmv_swarmui_global_monthly_limit', array(
+        'type' => 'integer',
+        'default' => 1000
+    ));
+    register_setting('png_metadata_viewer_settings', 'pmv_swarmui_user_daily_limit', array(
+        'type' => 'integer',
+        'default' => 10
+    ));
+    register_setting('png_metadata_viewer_settings', 'pmv_swarmui_user_monthly_limit', array(
+        'type' => 'integer',
+        'default' => 100
+    ));
+    register_setting('png_metadata_viewer_settings', 'pmv_swarmui_guest_daily_limit', array(
+        'type' => 'integer',
+        'default' => 5
+    ));
+    
+    // Nano-GPT API Settings
+    register_setting('png_metadata_viewer_settings', 'pmv_nanogpt_api_url');
+    register_setting('png_metadata_viewer_settings', 'pmv_nanogpt_api_key');
+    register_setting('png_metadata_viewer_settings', 'pmv_nanogpt_enabled');
+    register_setting('png_metadata_viewer_settings', 'pmv_nanogpt_default_model');
+    register_setting('png_metadata_viewer_settings', 'pmv_nanogpt_global_daily_limit', array(
+        'type' => 'integer',
+        'default' => 100
+    ));
+    register_setting('png_metadata_viewer_settings', 'pmv_nanogpt_global_monthly_limit', array(
+        'type' => 'integer',
+        'default' => 1000
+    ));
+    register_setting('png_metadata_viewer_settings', 'pmv_nanogpt_user_daily_limit', array(
+        'type' => 'integer',
+        'default' => 10
+    ));
+    register_setting('png_metadata_viewer_settings', 'pmv_nanogpt_user_monthly_limit', array(
+        'type' => 'integer',
+        'default' => 100
+    ));
+    register_setting('png_metadata_viewer_settings', 'pmv_nanogpt_guest_daily_limit', array(
+        'type' => 'integer',
+        'default' => 5
+    ));
+    
+    // Image Generation Settings
+    register_setting('png_metadata_viewer_settings', 'pmv_swarmui_auto_trigger_keywords');
+    register_setting('png_metadata_viewer_settings', 'pmv_swarmui_allow_prompt_editing');
+    register_setting('png_metadata_viewer_settings', 'pmv_swarmui_default_steps', array(
+        'type' => 'integer',
+        'default' => 20
+    ));
+    register_setting('png_metadata_viewer_settings', 'pmv_swarmui_default_cfg_scale', array(
+        'type' => 'number',
+        'default' => 7.0
+    ));
+    register_setting('png_metadata_viewer_settings', 'pmv_swarmui_default_width', array(
+        'type' => 'integer',
+        'default' => 512
+    ));
+    register_setting('png_metadata_viewer_settings', 'pmv_swarmui_default_height', array(
+        'type' => 'integer',
+        'default' => 512
+    ));
+    
+    // Nano-GPT Image Generation Settings
+    register_setting('png_metadata_viewer_settings', 'pmv_nanogpt_auto_trigger_keywords');
+    register_setting('png_metadata_viewer_settings', 'pmv_nanogpt_allow_prompt_editing');
+    register_setting('png_metadata_viewer_settings', 'pmv_nanogpt_default_steps', array(
+        'type' => 'integer',
+        'default' => 10
+    ));
+    register_setting('png_metadata_viewer_settings', 'pmv_nanogpt_default_scale', array(
+        'type' => 'number',
+        'default' => 7.5
+    ));
+    register_setting('png_metadata_viewer_settings', 'pmv_nanogpt_default_width', array(
+        'type' => 'integer',
+        'default' => 1024
+    ));
+    register_setting('png_metadata_viewer_settings', 'pmv_nanogpt_default_height', array(
+        'type' => 'integer',
+        'default' => 1024
+    ));
 }
 add_action('admin_init', 'pmv_register_plugin_settings');
+
+/**
+ * Sanitize unsafe keywords
+ */
+function pmv_sanitize_unsafe_keywords($value) {
+    if (empty($value)) return '';
+    
+    // Split by comma, trim whitespace, remove empty entries
+    $keywords = array_filter(array_map('trim', explode(',', $value)));
+    
+    // Remove duplicates and sort
+    $keywords = array_unique($keywords);
+    sort($keywords);
+    
+    return implode(', ', $keywords);
+}
 
 /**
  * Sanitize max_tokens value to ensure it's within valid range
@@ -136,7 +255,7 @@ function pmv_add_admin_menu() {
 add_action('admin_menu', 'pmv_add_admin_menu');
 
 /**
- * Admin page wrapper
+ * Admin page wrapper with all tabs
  */
 function pmv_admin_page_wrapper() {
     if (!current_user_can('manage_options')) return;
@@ -149,6 +268,8 @@ function pmv_admin_page_wrapper() {
         'gallery' => 'Gallery Styling',
         'openai' => 'OpenAI Settings',
         'conversations' => 'Conversations',
+        'safety' => 'Content Safety',
+        'swarmui' => 'SwarmUI Settings',
         'upload' => 'Upload Files'
     ];
     
@@ -173,6 +294,23 @@ function pmv_admin_page_wrapper() {
                 <?php pmv_upload_files_tab_content(); ?>
             <?php elseif ($current_tab === 'api_test') : ?>
                 <?php pmv_api_test_tab_content(); ?>
+            <?php elseif ($current_tab === 'safety') : ?>
+                <?php pmv_safety_tab_content(); ?>
+            <?php elseif ($current_tab === 'swarmui') : ?>
+                <form method="post" action="options.php" id="pmv-settings-form">
+                    <?php
+                    settings_fields('png_metadata_viewer_settings');
+                    do_settings_sections('png-metadata-viewer-' . $current_tab);
+                    pmv_swarmui_tab_content();
+                    ?>
+                    
+                    <!-- Hidden fields container for preserving other tab settings -->
+                    <div id="pmv-hidden-fields"></div>
+                    
+                    <?php submit_button('Save Settings'); ?>
+                </form>
+            <?php elseif ($current_tab === 'conversations') : ?>
+                <?php pmv_render_tab_content($current_tab); ?>
             <?php else : ?>
                 <form method="post" action="options.php" id="pmv-settings-form">
                     <?php
@@ -279,7 +417,48 @@ function pmv_admin_page_wrapper() {
                         'pmv_auto_save_conversations': '<?= esc_js(get_option('pmv_auto_save_conversations', 1)) ?>',
                         'pmv_max_conversations_per_user': '<?= esc_js(get_option('pmv_max_conversations_per_user', 50)) ?>',
                         'pmv_guest_daily_token_limit': '<?= esc_js(get_option('pmv_guest_daily_token_limit', 10000)) ?>',
-                        'pmv_default_user_monthly_limit': '<?= esc_js(get_option('pmv_default_user_monthly_limit', 100000)) ?>'
+                        'pmv_default_user_monthly_limit': '<?= esc_js(get_option('pmv_default_user_monthly_limit', 100000)) ?>',
+                        
+                        // Keyword Flagging Settings
+                        'pmv_unsafe_keywords': '<?= esc_js(get_option('pmv_unsafe_keywords', '')) ?>',
+                        'pmv_enable_keyword_flagging': '<?= esc_js(get_option('pmv_enable_keyword_flagging', 1)) ?>',
+                        'pmv_keyword_case_sensitive': '<?= esc_js(get_option('pmv_keyword_case_sensitive', 0)) ?>',
+                        
+                        // SwarmUI Settings
+                        'pmv_image_provider': '<?= esc_js(get_option('pmv_image_provider', 'swarmui')) ?>',
+                        'pmv_swarmui_enabled': '<?= esc_js(get_option('pmv_swarmui_enabled', 0)) ?>',
+                        'pmv_swarmui_api_url': '<?= esc_js(get_option('pmv_swarmui_api_url', '')) ?>',
+                        'pmv_swarmui_api_key': '<?= esc_js(get_option('pmv_swarmui_api_key', '')) ?>',
+                        'pmv_swarmui_user_token': '<?= esc_js(get_option('pmv_swarmui_user_token', '')) ?>',
+                        'pmv_swarmui_default_model': '<?= esc_js(get_option('pmv_swarmui_default_model', 'OfficialStableDiffusion/sd_xl_base_1.0')) ?>',
+                        'pmv_swarmui_global_daily_limit': '<?= esc_js(get_option('pmv_swarmui_global_daily_limit', 100)) ?>',
+                        'pmv_swarmui_global_monthly_limit': '<?= esc_js(get_option('pmv_swarmui_global_monthly_limit', 1000)) ?>',
+                        'pmv_swarmui_user_daily_limit': '<?= esc_js(get_option('pmv_swarmui_user_daily_limit', 10)) ?>',
+                        'pmv_swarmui_user_monthly_limit': '<?= esc_js(get_option('pmv_swarmui_user_monthly_limit', 100)) ?>',
+                        'pmv_swarmui_guest_daily_limit': '<?= esc_js(get_option('pmv_swarmui_guest_daily_limit', 5)) ?>',
+                        'pmv_swarmui_auto_trigger_keywords': '<?= esc_js(get_option('pmv_swarmui_auto_trigger_keywords', 'generate image, create image, draw, picture, photo')) ?>',
+                        'pmv_swarmui_allow_prompt_editing': '<?= esc_js(get_option('pmv_swarmui_allow_prompt_editing', 1)) ?>',
+                        'pmv_swarmui_default_steps': '<?= esc_js(get_option('pmv_swarmui_default_steps', 20)) ?>',
+                        'pmv_swarmui_default_cfg_scale': '<?= esc_js(get_option('pmv_swarmui_default_cfg_scale', 7.0)) ?>',
+                        'pmv_swarmui_default_width': '<?= esc_js(get_option('pmv_swarmui_default_width', 512)) ?>',
+                        'pmv_swarmui_default_height': '<?= esc_js(get_option('pmv_swarmui_default_height', 512)) ?>',
+                        
+                        // Nano-GPT Settings
+                        'pmv_nanogpt_enabled': '<?= esc_js(get_option('pmv_nanogpt_enabled', 0)) ?>',
+                        'pmv_nanogpt_api_url': '<?= esc_js(get_option('pmv_nanogpt_api_url', 'https://nano-gpt.com/api')) ?>',
+                        'pmv_nanogpt_api_key': '<?= esc_js(get_option('pmv_nanogpt_api_key', '')) ?>',
+                        'pmv_nanogpt_default_model': '<?= esc_js(get_option('pmv_nanogpt_default_model', 'recraft-v3')) ?>',
+                        'pmv_nanogpt_global_daily_limit': '<?= esc_js(get_option('pmv_nanogpt_global_daily_limit', 100)) ?>',
+                        'pmv_nanogpt_global_monthly_limit': '<?= esc_js(get_option('pmv_nanogpt_global_monthly_limit', 1000)) ?>',
+                        'pmv_nanogpt_user_daily_limit': '<?= esc_js(get_option('pmv_nanogpt_user_daily_limit', 10)) ?>',
+                        'pmv_nanogpt_user_monthly_limit': '<?= esc_js(get_option('pmv_nanogpt_user_monthly_limit', 100)) ?>',
+                        'pmv_nanogpt_guest_daily_limit': '<?= esc_js(get_option('pmv_nanogpt_guest_daily_limit', 5)) ?>',
+                        'pmv_nanogpt_auto_trigger_keywords': '<?= esc_js(get_option('pmv_nanogpt_auto_trigger_keywords', 'generate image, create image, draw, picture, photo')) ?>',
+                        'pmv_nanogpt_allow_prompt_editing': '<?= esc_js(get_option('pmv_nanogpt_allow_prompt_editing', 1)) ?>',
+                        'pmv_nanogpt_default_steps': '<?= esc_js(get_option('pmv_nanogpt_default_steps', 10)) ?>',
+                        'pmv_nanogpt_default_scale': '<?= esc_js(get_option('pmv_nanogpt_default_scale', 7.5)) ?>',
+                        'pmv_nanogpt_default_width': '<?= esc_js(get_option('pmv_nanogpt_default_width', 1024)) ?>',
+                        'pmv_nanogpt_default_height': '<?= esc_js(get_option('pmv_nanogpt_default_height', 1024)) ?>'
                     };
                     
                     // Before form submission, add hidden fields for all settings not in current tab
@@ -344,64 +523,6 @@ function pmv_render_tab_content($tab) {
 }
 
 /**
- * Conversations tab content
- */
-function pmv_conversations_tab_content() {
-    ?>
-    <h3>Conversation Management</h3>
-    <table class="form-table">
-        <tr>
-            <th>Allow Guest Conversations</th>
-            <td>
-                <input type="checkbox" name="pmv_allow_guest_conversations" value="1" 
-                    <?= checked(1, get_option('pmv_allow_guest_conversations', 1)) ?>>
-                <p class="description">Allow non-logged-in users to chat with characters.</p>
-            </td>
-        </tr>
-        <tr>
-            <th>Auto-save Conversations</th>
-            <td>
-                <input type="checkbox" name="pmv_auto_save_conversations" value="1" 
-                    <?= checked(1, get_option('pmv_auto_save_conversations', 1)) ?>>
-                <p class="description">Automatically save user conversations (for logged-in users).</p>
-            </td>
-        </tr>
-        <tr>
-            <th>Max Conversations per User</th>
-            <td>
-                <input type="number" name="pmv_max_conversations_per_user" 
-                    value="<?= esc_attr(get_option('pmv_max_conversations_per_user', 50)) ?>" 
-                    min="1" max="1000" step="1">
-                <p class="description">Maximum number of conversations each user can save.</p>
-            </td>
-        </tr>
-    </table>
-    
-    <h3>Token Limits</h3>
-    <table class="form-table">
-        <tr>
-            <th>Guest Daily Token Limit</th>
-            <td>
-                <input type="number" name="pmv_guest_daily_token_limit" 
-                    value="<?= esc_attr(get_option('pmv_guest_daily_token_limit', 10000)) ?>" 
-                    min="0" step="1000">
-                <p class="description">Daily token limit for guest users (0 = no limit).</p>
-            </td>
-        </tr>
-        <tr>
-            <th>Default User Monthly Limit</th>
-            <td>
-                <input type="number" name="pmv_default_user_monthly_limit" 
-                    value="<?= esc_attr(get_option('pmv_default_user_monthly_limit', 100000)) ?>" 
-                    min="0" step="1000">
-                <p class="description">Default monthly token limit for registered users (0 = no limit).</p>
-            </td>
-        </tr>
-    </table>
-    <?php
-}
-
-/**
  * API Test tab content
  */
 function pmv_api_test_tab_content() {
@@ -416,6 +537,15 @@ function pmv_api_test_tab_content() {
         </div>
         
         <button id="test-api-btn" class="button button-primary">Test API Connection</button>
+        
+        <h3>Token Counter Test</h3>
+        <p>Test the token counter functionality:</p>
+        
+        <div id="token-test-results" style="margin: 20px 0; padding: 15px; background: #f0f0f0; border-radius: 5px;">
+            <div id="token-test-status">Ready to test...</div>
+        </div>
+        
+        <button id="test-token-counter-btn" class="button button-secondary">Test Token Counter</button>
         
         <h4>Current Settings</h4>
         <ul>
@@ -479,8 +609,289 @@ function pmv_api_test_tab_content() {
                 }
             });
         });
+        
+        // Token counter test
+        $('#test-token-counter-btn').click(function() {
+            const button = $(this);
+            const results = $('#token-test-results');
+            const status = $('#token-test-status');
+            
+            button.prop('disabled', true).text('Testing...');
+            status.text('Testing token counter...');
+            results.css('background', '#fff3cd');
+            
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'pmv_test_token_counter',
+                    nonce: '<?= wp_create_nonce('pmv_ajax_nonce') ?>'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        status.text('✅ Token Counter Test Successful!');
+                        results.css('background', '#d4edda');
+                    } else {
+                        status.text('❌ Token Counter Test Failed');
+                        results.css('background', '#f8d7da');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    status.text('❌ Connection Error');
+                    results.css('background', '#f8d7da');
+                },
+                complete: function() {
+                    button.prop('disabled', false).text('Test Token Counter');
+                }
+            });
+        });
     });
     </script>
     <?php
 }
 
+/**
+ * AJAX handler for admin conversation deletion
+ */
+function pmv_ajax_admin_delete_conversation() {
+    // Check nonce
+    if (!wp_verify_nonce($_POST['nonce'], 'pmv_admin_delete_conversation')) {
+        wp_send_json_error(['message' => 'Invalid security token']);
+        return;
+    }
+    
+    // Check permissions
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error(['message' => 'Insufficient permissions']);
+        return;
+    }
+    
+    $conversation_id = intval($_POST['conversation_id']);
+    if ($conversation_id <= 0) {
+        wp_send_json_error(['message' => 'Invalid conversation ID']);
+        return;
+    }
+    
+    // Delete conversation using the function from conversations-database.php
+    $result = pmv_delete_conversation($conversation_id);
+    
+    if ($result) {
+        wp_send_json_success(['message' => 'Conversation deleted successfully']);
+    } else {
+        wp_send_json_error(['message' => 'Failed to delete conversation']);
+    }
+}
+
+/**
+ * AJAX handler for testing API directly
+ */
+function pmv_ajax_test_api_directly() {
+    // Check nonce
+    if (!wp_verify_nonce($_POST['nonce'], 'pmv_ajax_nonce')) {
+        wp_send_json_error(['message' => 'Invalid security token']);
+        return;
+    }
+    
+    // Check permissions
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error(['message' => 'Insufficient permissions']);
+        return;
+    }
+    
+    $api_key = get_option('openai_api_key', '');
+    $api_base_url = get_option('openai_api_base_url', 'https://api.openai.com/v1/');
+    $model = get_option('openai_model', 'gpt-3.5-turbo');
+    $temperature = floatval(get_option('openai_temperature', 0.7));
+    $max_tokens = intval(get_option('openai_max_tokens', 100));
+    
+    if (empty($api_key)) {
+        wp_send_json_error(['message' => 'API key not configured']);
+        return;
+    }
+    
+    // Prepare test request
+    $test_data = [
+        'model' => $model,
+        'messages' => [
+            [
+                'role' => 'user',
+                'content' => 'Hello! This is a test message to verify the API connection. Please respond with a brief confirmation.'
+            ]
+        ],
+        'temperature' => $temperature,
+        'max_tokens' => min($max_tokens, 100) // Limit for test
+    ];
+    
+    // Make API request
+    $response = wp_remote_post(rtrim($api_base_url, '/') . '/chat/completions', [
+        'timeout' => 30,
+        'headers' => [
+            'Authorization' => 'Bearer ' . $api_key,
+            'Content-Type' => 'application/json',
+        ],
+        'body' => json_encode($test_data)
+    ]);
+    
+    if (is_wp_error($response)) {
+        wp_send_json_error(['message' => 'Request error: ' . $response->get_error_message()]);
+        return;
+    }
+    
+    $response_code = wp_remote_retrieve_response_code($response);
+    $response_body = wp_remote_retrieve_body($response);
+    
+    if ($response_code !== 200) {
+        $error_data = json_decode($response_body, true);
+        $error_message = 'HTTP ' . $response_code;
+        
+        if (isset($error_data['error']['message'])) {
+            $error_message .= ': ' . $error_data['error']['message'];
+        }
+        
+        wp_send_json_error(['message' => $error_message]);
+        return;
+    }
+    
+    $api_response = json_decode($response_body, true);
+    
+    if (!$api_response) {
+        wp_send_json_error(['message' => 'Invalid JSON response from API']);
+        return;
+    }
+    
+    wp_send_json_success([
+        'message' => 'API test successful!',
+        'response' => $api_response
+    ]);
+}
+
+/**
+ * AJAX handler for PNG file upload
+ */
+function pmv_ajax_upload_png() {
+    // Check nonce
+    if (!wp_verify_nonce($_POST['nonce'], 'pmv_upload_nonce')) {
+        wp_send_json_error('Invalid security token');
+        return;
+    }
+    
+    // Check permissions
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('Insufficient permissions');
+        return;
+    }
+    
+    // Check if file was uploaded
+    if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
+        wp_send_json_error('File upload failed');
+        return;
+    }
+    
+    $file = $_FILES['file'];
+    
+    // Validate file type
+    if ($file['type'] !== 'image/png') {
+        wp_send_json_error('Only PNG files are allowed');
+        return;
+    }
+    
+    // Validate file size (e.g., max 10MB)
+    if ($file['size'] > 10 * 1024 * 1024) {
+        wp_send_json_error('File size too large (max 10MB)');
+        return;
+    }
+    
+    // Use WordPress upload handling
+    if (!function_exists('wp_handle_upload')) {
+        require_once(ABSPATH . 'wp-admin/includes/file.php');
+    }
+    
+    $upload_overrides = [
+        'test_form' => false,
+        'mimes' => ['png' => 'image/png']
+    ];
+    
+    $movefile = wp_handle_upload($file, $upload_overrides);
+    
+    if ($movefile && !isset($movefile['error'])) {
+        // File uploaded successfully
+        $file_path = $movefile['file'];
+        $file_url = $movefile['url'];
+        
+        // Try to extract metadata
+        $metadata = pmv_extract_png_metadata($file_path);
+        
+        if ($metadata) {
+            wp_send_json_success([
+                'message' => 'PNG uploaded and metadata extracted successfully',
+                'file_url' => $file_url,
+                'metadata' => $metadata
+            ]);
+        } else {
+            wp_send_json_success([
+                'message' => 'PNG uploaded but no metadata found',
+                'file_url' => $file_url
+            ]);
+        }
+    } else {
+        wp_send_json_error('Upload failed: ' . $movefile['error']);
+    }
+}
+
+/**
+ * Helper function to extract PNG metadata (basic implementation)
+ */
+function pmv_extract_png_metadata($file_path) {
+    // This is a basic implementation - you would expand this based on your needs
+    if (!file_exists($file_path)) {
+        return false;
+    }
+    
+    // Try to read PNG chunks for metadata
+    $handle = fopen($file_path, 'rb');
+    if (!$handle) {
+        return false;
+    }
+    
+    // Skip PNG signature
+    fseek($handle, 8);
+    
+    $metadata = [];
+    
+    while (!feof($handle)) {
+        $chunk_length = unpack('N', fread($handle, 4))[1];
+        $chunk_type = fread($handle, 4);
+        
+        if ($chunk_type === 'tEXt' || $chunk_type === 'iTXt') {
+            $chunk_data = fread($handle, $chunk_length);
+            
+            if ($chunk_type === 'tEXt') {
+                $null_pos = strpos($chunk_data, "\0");
+                if ($null_pos !== false) {
+                    $key = substr($chunk_data, 0, $null_pos);
+                    $value = substr($chunk_data, $null_pos + 1);
+                    $metadata[$key] = $value;
+                }
+            }
+        } else {
+            fseek($handle, $chunk_length, SEEK_CUR);
+        }
+        
+        // Skip CRC
+        fseek($handle, 4, SEEK_CUR);
+        
+        // Stop at IEND chunk
+        if ($chunk_type === 'IEND') {
+            break;
+        }
+    }
+    
+    fclose($handle);
+    
+    return !empty($metadata) ? $metadata : false;
+}
+
+// Register AJAX handlers
+add_action('wp_ajax_pmv_admin_delete_conversation', 'pmv_ajax_admin_delete_conversation');
+add_action('wp_ajax_pmv_test_api_directly', 'pmv_ajax_test_api_directly');
+add_action('wp_ajax_pmv_upload_png', 'pmv_ajax_upload_png');

@@ -1,155 +1,333 @@
 <?php
 /**
- * PNG Metadata Viewer - FIXED AJAX Handlers 
- * Consolidated conversation system with proper table management
+ * PNG Metadata Viewer - UNIFIED AJAX Handlers 
+ * Enhanced conversation system matching conversations-database.php schema
+ * Version: 4.16-UNIFIED
  */
 
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
-// Make sure the metadata reader is loaded
+// Include metadata reader if needed
 if (!class_exists('PNG_Metadata_Extractor')) {
     $metadata_reader_path = plugin_dir_path(__FILE__) . 'metadata-reader.php';
     if (file_exists($metadata_reader_path)) {
         require_once $metadata_reader_path;
-    } else {
-        error_log('PNG Metadata Viewer: metadata-reader.php not found at: ' . $metadata_reader_path);
     }
 }
 
-// ==============================================================================
-// UNIFIED CONVERSATION SYSTEM - FIXED VERSION
-// ==============================================================================
-
 /**
- * FIXED: Unified Conversation Handler Class
+ * UNIFIED: Conversation Handler Class using the same schema as conversations-database.php
  */
 class PMV_Unified_Conversation_Handler {
     
-    private $table_name;
-    private $db_version = '1.1';
+    private $conversations_table;
+    private $messages_table;
+    private $db_version = '1.5';
     
     public function __construct() {
         global $wpdb;
-        // FIXED: Use consistent table name
-        $this->table_name = $wpdb->prefix . 'pmv_conversations';
+        $this->conversations_table = $wpdb->prefix . 'pmv_conversations';
+        $this->messages_table = $wpdb->prefix . 'pmv_conversation_messages';
         
-        // Hook into WordPress
-        add_action('init', array($this, 'init'));
+        // Initialize hooks
+        add_action('init', array($this, 'init'), 5);
+        add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'), 15);
         
-        // Database setup
-        add_action('admin_init', array($this, 'check_database_version'));
-        
-        // FIXED: Unified AJAX handlers with consistent naming
+        // AJAX handlers - using proper WordPress hooks
         add_action('wp_ajax_pmv_save_conversation', array($this, 'ajax_save_conversation'));
         add_action('wp_ajax_pmv_get_conversations', array($this, 'ajax_get_conversations'));
         add_action('wp_ajax_pmv_get_conversation', array($this, 'ajax_get_conversation'));
         add_action('wp_ajax_pmv_delete_conversation', array($this, 'ajax_delete_conversation'));
-        add_action('wp_ajax_pmv_auto_save_conversation', array($this, 'ajax_auto_save_conversation'));
+        add_action('wp_ajax_pmv_debug_conversation_system', array($this, 'ajax_debug_system'));
         
-        // Guest versions (optional)
+        // Guest handlers
         add_action('wp_ajax_nopriv_pmv_save_conversation', array($this, 'ajax_save_conversation_guest'));
         add_action('wp_ajax_nopriv_pmv_get_conversations', array($this, 'ajax_get_conversations_guest'));
+        
+        // Admin hooks
+        add_action('admin_init', array($this, 'check_database'));
+        
+        // Debug logging
+        add_action('init', array($this, 'log_handler_status'));
     }
     
     /**
-     * Initialize and add user data to AJAX object
+     * Log handler registration status for debugging
+     */
+    public function log_handler_status() {
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            $handlers = array(
+                'pmv_save_conversation',
+                'pmv_get_conversations',
+                'pmv_get_conversation',
+                'pmv_delete_conversation'
+            );
+            
+            foreach ($handlers as $handler) {
+                $registered = has_action("wp_ajax_$handler");
+                error_log("PMV: Handler $handler is " . ($registered ? 'REGISTERED' : 'NOT REGISTERED'));
+            }
+        }
+    }
+    
+    /**
+     * Initialize the handler
      */
     public function init() {
-        // Add user data to AJAX localization
-        add_filter('pmv_ajax_localize_data', array($this, 'add_user_data_to_ajax'));
-    }
-    
-    /**
-     * Add user data to AJAX object
-     */
-    public function add_user_data_to_ajax($ajax_data) {
-        if (is_user_logged_in()) {
-            $ajax_data['user_id'] = get_current_user_id();
-            $ajax_data['user_display_name'] = wp_get_current_user()->display_name;
-            $ajax_data['is_logged_in'] = true;
-        } else {
-            $ajax_data['is_logged_in'] = false;
+        // Ensure tables exist
+        if (!$this->tables_exist()) {
+            error_log('PMV: Conversation tables missing, creating...');
+            $this->create_tables();
         }
         
-        $ajax_data['login_url'] = wp_login_url(get_permalink());
-        $ajax_data['register_url'] = wp_registration_url();
-        
-        return $ajax_data;
+        // Validate table structure
+        $this->validate_table_structure();
     }
     
     /**
-     * FIXED: Create the conversation table with proper structure
+     * Enhanced script enqueuing
      */
-    public function create_conversation_table() {
+    public function enqueue_scripts() {
+        if (is_admin()) return;
+        
+        // Get current user data
+        $current_user = wp_get_current_user();
+        
+        // Build localization data
+        $ajax_data = array(
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('pmv_ajax_nonce'),
+            'user_id' => $current_user->ID,
+            'user_display_name' => $current_user->display_name ?: $current_user->user_login,
+            'is_logged_in' => is_user_logged_in(),
+            'login_url' => wp_login_url(get_permalink()),
+            'register_url' => wp_registration_url(),
+            'chat_button_text' => get_option('png_metadata_chat_button_text', 'Chat'),
+            'debug' => array(
+                'conversations_table_exists' => $this->table_exists($this->conversations_table),
+                'messages_table_exists' => $this->table_exists($this->messages_table),
+                'ajax_handlers' => array(
+                    'save' => has_action('wp_ajax_pmv_save_conversation'),
+                    'get_conversations' => has_action('wp_ajax_pmv_get_conversations'),
+                    'get_conversation' => has_action('wp_ajax_pmv_get_conversation'),
+                    'delete' => has_action('wp_ajax_pmv_delete_conversation')
+                ),
+                'wp_version' => get_bloginfo('version'),
+                'plugin_version' => defined('PMV_VERSION') ? PMV_VERSION : '4.16-UNIFIED'
+            )
+        );
+        
+        // Only localize scripts that exist: png-metadata-viewer-chat, pmv-conversation-manager
+        $scripts = array('png-metadata-viewer-chat', 'pmv-conversation-manager');
+        foreach ($scripts as $script) {
+            if (wp_script_is($script, 'enqueued')) {
+                wp_localize_script($script, 'pmv_ajax_object', $ajax_data);
+            }
+        }
+    }
+    
+    /**
+     * Check if specific table exists
+     */
+    private function table_exists($table_name) {
         global $wpdb;
+        $query = $wpdb->prepare("SHOW TABLES LIKE %s", $table_name);
+        return $wpdb->get_var($query) === $table_name;
+    }
+    
+    /**
+     * Check if both tables exist
+     */
+    private function tables_exist() {
+        return $this->table_exists($this->conversations_table) && $this->table_exists($this->messages_table);
+    }
+    
+    /**
+     * Validate table structure
+     */
+    private function validate_table_structure() {
+        if (!$this->tables_exist()) return false;
+        
+        global $wpdb;
+        
+        // Check conversations table
+        $conv_columns = $wpdb->get_results("DESCRIBE {$this->conversations_table}");
+        $conv_column_names = array_column($conv_columns, 'Field');
+        $required_conv_columns = array('id', 'user_id', 'character_id', 'character_name', 'title', 'created_at', 'updated_at');
+        $missing_conv_columns = array_diff($required_conv_columns, $conv_column_names);
+        
+        // Check messages table
+        $msg_columns = $wpdb->get_results("DESCRIBE {$this->messages_table}");
+        $msg_column_names = array_column($msg_columns, 'Field');
+        $required_msg_columns = array('id', 'conversation_id', 'role', 'content', 'created_at');
+        $missing_msg_columns = array_diff($required_msg_columns, $msg_column_names);
+        
+        if (!empty($missing_conv_columns) || !empty($missing_msg_columns)) {
+            error_log('PMV: Table structure issues - Conv missing: ' . implode(', ', $missing_conv_columns) . 
+                     ' | Msg missing: ' . implode(', ', $missing_msg_columns));
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Create database tables using the same schema as conversations-database.php
+     */
+    public function create_tables() {
+        global $wpdb;
+        
+        error_log('PMV: Starting unified table creation...');
         
         $charset_collate = $wpdb->get_charset_collate();
         
-        // FIXED: Consistent table structure
-        $sql = "CREATE TABLE {$this->table_name} (
-            id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-            user_id bigint(20) unsigned NOT NULL,
+        // Conversations table - EXACT same schema as conversations-database.php
+        $conversations_sql = "CREATE TABLE IF NOT EXISTS {$this->conversations_table} (
+            id int(11) NOT NULL AUTO_INCREMENT,
+            user_id bigint(20) UNSIGNED NULL,
             character_id varchar(255) NOT NULL,
-            title varchar(500) NOT NULL,
-            messages longtext NOT NULL,
-            message_count int(11) DEFAULT 0,
+            character_name varchar(255) NOT NULL,
+            title varchar(500) NULL,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             KEY user_id (user_id),
             KEY character_id (character_id),
-            KEY updated_at (updated_at),
-            FOREIGN KEY (user_id) REFERENCES {$wpdb->prefix}users(ID) ON DELETE CASCADE
+            KEY created_at (created_at),
+            KEY updated_at (updated_at)
+        ) $charset_collate;";
+        
+        // Messages table - EXACT same schema as conversations-database.php
+        $messages_sql = "CREATE TABLE IF NOT EXISTS {$this->messages_table} (
+            id int(11) NOT NULL AUTO_INCREMENT,
+            conversation_id int(11) NOT NULL,
+            role enum('user','assistant') NOT NULL,
+            content longtext NOT NULL,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY conversation_id (conversation_id),
+            KEY created_at (created_at)
         ) $charset_collate;";
         
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($sql);
+        $conv_result = dbDelta($conversations_sql);
+        $msg_result = dbDelta($messages_sql);
         
-        // Store database version
-        update_option('pmv_conversation_db_version', $this->db_version);
-        
-        error_log('PMV: Unified conversation table created successfully');
-    }
-    
-    /**
-     * Check database version and upgrade if needed
-     */
-    public function check_database_version() {
-        $installed_version = get_option('pmv_conversation_db_version', '0.0');
-        
-        if ($installed_version !== $this->db_version) {
-            $this->create_conversation_table();
+        // Verify table creation
+        if ($this->tables_exist()) {
+            error_log('PMV: Unified conversation tables created successfully');
+            update_option('pmv_conversation_db_version', $this->db_version);
+            
+            // Test table functionality
+            $this->test_table_functionality();
+        } else {
+            error_log('PMV: Failed to create unified conversation tables');
+            error_log('PMV: Conv SQL: ' . $conversations_sql);
+            error_log('PMV: Msg SQL: ' . $messages_sql);
+            error_log('PMV: Conv Result: ' . print_r($conv_result, true));
+            error_log('PMV: Msg Result: ' . print_r($msg_result, true));
         }
     }
     
     /**
-     * Validate user authentication and permissions
+     * Test table functionality
      */
-    private function validate_user_request($conversation_id = null) {
-        // Check nonce
-        if (!wp_verify_nonce($_POST['nonce'], 'pmv_ajax_nonce')) {
-            return new WP_Error('invalid_nonce', 'Security check failed');
+    private function test_table_functionality() {
+        global $wpdb;
+        
+        // Test conversations table
+        $test_conv_data = array(
+            'user_id' => 1,
+            'character_id' => 'test_functionality',
+            'character_name' => 'Test Character',
+            'title' => 'Test Conversation'
+        );
+        
+        $insert_result = $wpdb->insert($this->conversations_table, $test_conv_data);
+        
+        if ($insert_result) {
+            $test_conv_id = $wpdb->insert_id;
+            
+            // Test messages table
+            $test_msg_data = array(
+                'conversation_id' => $test_conv_id,
+                'role' => 'user',
+                'content' => 'Test message'
+            );
+            
+            $msg_insert_result = $wpdb->insert($this->messages_table, $test_msg_data);
+            
+            if ($msg_insert_result) {
+                $test_msg_id = $wpdb->insert_id;
+                
+                // Clean up test data
+                $wpdb->delete($this->messages_table, array('id' => $test_msg_id), array('%d'));
+                $wpdb->delete($this->conversations_table, array('id' => $test_conv_id), array('%d'));
+                
+                error_log('PMV: Unified table functionality test passed');
+            } else {
+                error_log('PMV: Messages table functionality test failed: ' . $wpdb->last_error);
+            }
+        } else {
+            error_log('PMV: Conversations table functionality test failed: ' . $wpdb->last_error);
+        }
+    }
+    
+    /**
+     * Check database status
+     */
+    public function check_database() {
+        $installed_version = get_option('pmv_conversation_db_version', '0.0');
+        
+        if (version_compare($installed_version, $this->db_version, '<') || !$this->tables_exist()) {
+            $this->create_tables();
+        }
+        
+        $this->maybe_upgrade_conversations_table();
+    }
+    
+    /**
+     * Ensure the conversations table has all required columns (auto-migrate)
+     */
+    private function maybe_upgrade_conversations_table() {
+        global $wpdb;
+        $table = $this->conversations_table;
+        // Add character_name column if missing
+        $column = $wpdb->get_results("SHOW COLUMNS FROM `$table` LIKE 'character_name'");
+        if (empty($column)) {
+            $wpdb->query("ALTER TABLE `$table` ADD COLUMN `character_name` varchar(255) DEFAULT NULL AFTER `character_id`");
+        }
+        // Add any future columns here as needed
+    }
+    
+    /**
+     * Enhanced request validation
+     */
+    private function validate_request($conversation_id = null) {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'pmv_ajax_nonce')) {
+            return new WP_Error('invalid_nonce', 'Security verification failed. Please refresh the page and try again.');
         }
         
         // Check if user is logged in
         if (!is_user_logged_in()) {
-            return new WP_Error('user_not_logged_in', 'Please login to save conversations');
+            return new WP_Error('not_logged_in', 'You must be logged in to save conversations. Please login and try again.');
         }
         
         $user_id = get_current_user_id();
         
-        // If conversation ID is provided, verify ownership
+        // Verify conversation ownership if ID provided
         if ($conversation_id) {
             global $wpdb;
             $owner_id = $wpdb->get_var($wpdb->prepare(
-                "SELECT user_id FROM {$this->table_name} WHERE id = %d",
+                "SELECT user_id FROM {$this->conversations_table} WHERE id = %d",
                 $conversation_id
             ));
             
             if ($owner_id && $owner_id != $user_id) {
-                return new WP_Error('access_denied', 'You do not have permission to access this conversation');
+                return new WP_Error('access_denied', 'You do not have permission to access this conversation.');
             }
         }
         
@@ -157,99 +335,80 @@ class PMV_Unified_Conversation_Handler {
     }
     
     /**
-     * FIXED: Enhanced JSON decoding that handles WordPress escaping
+     * Enhanced JSON handling
      */
-    private function decode_conversation_json($json_string) {
-        error_log("=== PMV JSON DECODE DEBUG ===");
-        error_log("Original length: " . strlen($json_string));
-        error_log("Original preview: " . substr($json_string, 0, 200));
-        
-        // Remove WordPress escaping in multiple passes
-        $clean_json = $json_string;
-        
-        // Method 1: wp_unslash (WordPress recommended)
-        if (function_exists('wp_unslash')) {
-            $clean_json = wp_unslash($clean_json);
+    private function parse_conversation_json($json_string) {
+        if (is_array($json_string)) {
+            return $json_string;
         }
         
-        // Method 2: Manual stripslashes in case wp_unslash isn't enough
-        if (get_magic_quotes_gpc() || strpos($clean_json, '\\"') !== false) {
-            $clean_json = stripslashes($clean_json);
+        if (!is_string($json_string)) {
+            return new WP_Error('invalid_data', 'Conversation data must be a JSON string or array');
         }
         
-        // Method 3: Remove double escaping
-        $clean_json = str_replace('\\"', '"', $clean_json);
-        $clean_json = str_replace("\\'", "'", $clean_json);
-        $clean_json = str_replace('\\\\', '\\', $clean_json);
+        // Clean up WordPress slashes
+        $clean_json = wp_unslash($json_string);
         
-        error_log("Cleaned length: " . strlen($clean_json));
-        error_log("Cleaned preview: " . substr($clean_json, 0, 200));
-        
-        // Try to decode
         $decoded = json_decode($clean_json, true);
         
         if (json_last_error() !== JSON_ERROR_NONE) {
-            error_log("JSON Decode Error: " . json_last_error_msg());
-            return false;
+            $error_msg = 'JSON decode error: ' . json_last_error_msg();
+            error_log('PMV: ' . $error_msg);
+            error_log('PMV: Raw JSON (first 500 chars): ' . substr($clean_json, 0, 500));
+            return new WP_Error('json_error', $error_msg);
         }
         
-        error_log("JSON Decode Success!");
         return $decoded;
     }
     
     /**
-     * Sanitize and validate conversation data
+     * Enhanced conversation data validation
      */
-    private function sanitize_conversation_data($data) {
+    private function validate_conversation_data($data) {
         if (empty($data)) {
-            return new WP_Error('invalid_data', 'No conversation data provided');
+            return new WP_Error('empty_data', 'No conversation data provided');
         }
         
-        // Decode JSON if it's a string
+        // Parse JSON if needed
         if (is_string($data)) {
-            $data = $this->decode_conversation_json($data);
-            if ($data === false) {
-                return new WP_Error('invalid_json', 'Invalid JSON data');
+            $data = $this->parse_conversation_json($data);
+            if (is_wp_error($data)) {
+                return $data;
             }
         }
         
         // Validate required fields
-        if (empty($data['character_id'])) {
-            return new WP_Error('missing_character', 'Character ID is required');
+        $required_fields = array('character_id', 'title', 'messages');
+        foreach ($required_fields as $field) {
+            if (empty($data[$field])) {
+                return new WP_Error('missing_field', "Required field missing: $field");
+            }
         }
         
-        if (empty($data['title'])) {
-            return new WP_Error('missing_title', 'Conversation title is required');
+        // Validate messages array
+        if (!is_array($data['messages'])) {
+            return new WP_Error('invalid_messages', 'Messages must be an array');
         }
         
-        if (empty($data['messages']) || !is_array($data['messages'])) {
-            return new WP_Error('missing_messages', 'Valid messages array is required');
-        }
-        
-        // Validate messages structure
-        foreach ($data['messages'] as $message) {
+        foreach ($data['messages'] as $index => $message) {
             if (!isset($message['role']) || !isset($message['content'])) {
-                return new WP_Error('invalid_message', 'Each message must have role and content');
+                return new WP_Error('invalid_message', "Message at index $index is missing role or content");
             }
             
-            if (!in_array($message['role'], ['user', 'assistant'])) {
-                return new WP_Error('invalid_role', 'Message role must be user or assistant');
+            if (!in_array($message['role'], array('user', 'assistant'))) {
+                return new WP_Error('invalid_role', "Invalid message role at index $index: {$message['role']}");
             }
         }
         
-        // Sanitize data
-        $sanitized = array(
+        // Sanitize and return validated data
+        return array(
+            'id' => isset($data['id']) ? intval($data['id']) : null,
             'character_id' => sanitize_text_field($data['character_id']),
+            'character_name' => sanitize_text_field($data['character_name'] ?? 'Unknown Character'),
             'title' => sanitize_text_field(substr($data['title'], 0, 500)),
             'messages' => $this->sanitize_messages($data['messages']),
             'message_count' => count($data['messages'])
         );
-        
-        if (isset($data['id']) && is_numeric($data['id'])) {
-            $sanitized['id'] = intval($data['id']);
-        }
-        
-        return $sanitized;
     }
     
     /**
@@ -264,7 +423,7 @@ class PMV_Unified_Conversation_Handler {
                 'content' => wp_kses_post($message['content']),
                 'timestamp' => isset($message['timestamp']) ? 
                     sanitize_text_field($message['timestamp']) : 
-                    current_time('mysql')
+                    current_time('c')
             );
         }
         
@@ -272,14 +431,16 @@ class PMV_Unified_Conversation_Handler {
     }
     
     /**
-     * FIXED: Main save conversation AJAX handler
+     * UNIFIED: Enhanced save conversation handler using two-table approach
      */
     public function ajax_save_conversation() {
-        error_log("=== PMV SAVE CONVERSATION START ===");
-        
         try {
-            $user_id = $this->validate_user_request();
+            error_log('=== PMV UNIFIED SAVE CONVERSATION START ===');
+            
+            // Validate request
+            $user_id = $this->validate_request();
             if (is_wp_error($user_id)) {
+                error_log('PMV: Request validation failed: ' . $user_id->get_error_message());
                 wp_send_json_error(array(
                     'message' => $user_id->get_error_message(),
                     'code' => $user_id->get_error_code()
@@ -287,19 +448,19 @@ class PMV_Unified_Conversation_Handler {
                 return;
             }
             
-            // FIXED: Check for conversation parameter (matches frontend)
+            // Get and validate conversation data
             $conversation_raw = $_POST['conversation'] ?? '';
             if (empty($conversation_raw)) {
-                error_log("PMV Save: No conversation data in POST");
-                wp_send_json_error('No conversation data provided');
+                wp_send_json_error(array(
+                    'message' => 'No conversation data provided',
+                    'code' => 'empty_data'
+                ));
                 return;
             }
             
-            error_log("PMV Save: Raw conversation data length: " . strlen($conversation_raw));
-            
-            $conversation_data = $this->sanitize_conversation_data($conversation_raw);
+            $conversation_data = $this->validate_conversation_data($conversation_raw);
             if (is_wp_error($conversation_data)) {
-                error_log("PMV Save: Sanitization failed: " . $conversation_data->get_error_message());
+                error_log('PMV: Data validation failed: ' . $conversation_data->get_error_message());
                 wp_send_json_error(array(
                     'message' => $conversation_data->get_error_message(),
                     'code' => $conversation_data->get_error_code()
@@ -307,267 +468,151 @@ class PMV_Unified_Conversation_Handler {
                 return;
             }
             
-            global $wpdb;
+            // Perform the save operation using two-table approach
+            $result = $this->perform_unified_save_operation($user_id, $conversation_data);
             
+            if (is_wp_error($result)) {
+                error_log('PMV: Save operation failed: ' . $result->get_error_message());
+                wp_send_json_error(array(
+                    'message' => $result->get_error_message(),
+                    'code' => $result->get_error_code()
+                ));
+                return;
+            }
+            
+            error_log('PMV: Unified save successful - ID: ' . $result['id'] . ', Action: ' . $result['action']);
+            wp_send_json_success($result);
+            
+        } catch (Exception $e) {
+            error_log('PMV: Exception in ajax_save_conversation: ' . $e->getMessage());
+            error_log('PMV: Stack trace: ' . $e->getTraceAsString());
+            wp_send_json_error(array(
+                'message' => 'Save operation failed due to an internal error',
+                'code' => 'internal_error'
+            ));
+        }
+    }
+    
+    /**
+     * Perform save operation using unified two-table approach (same as conversations-database.php)
+     */
+    private function perform_unified_save_operation($user_id, $conversation_data) {
+        global $wpdb;
+        
+        // Start transaction
+        $wpdb->query('START TRANSACTION');
+        
+        try {
             // Check if this is an update or create
-            $conversation_id = isset($conversation_data['id']) ? $conversation_data['id'] : null;
+            $conversation_id = $conversation_data['id'];
             $is_update = false;
             
             if ($conversation_id) {
-                // Verify ownership for updates
                 $existing = $wpdb->get_row($wpdb->prepare(
-                    "SELECT id, user_id FROM {$this->table_name} WHERE id = %d",
+                    "SELECT id, user_id FROM {$this->conversations_table} WHERE id = %d",
                     $conversation_id
                 ));
                 
                 if ($existing && $existing->user_id == $user_id) {
                     $is_update = true;
                 } else {
-                    $conversation_id = null; // Force create new if ownership validation fails
+                    $conversation_id = null; // Force create new
                 }
             }
             
-            $data = array(
+            // Prepare conversation data
+            $conv_data = array(
                 'user_id' => $user_id,
                 'character_id' => $conversation_data['character_id'],
+                'character_name' => $conversation_data['character_name'],
                 'title' => $conversation_data['title'],
-                'messages' => wp_json_encode($conversation_data['messages']),
-                'message_count' => $conversation_data['message_count'],
                 'updated_at' => current_time('mysql')
             );
             
             if ($is_update) {
                 // Update existing conversation
                 $result = $wpdb->update(
-                    $this->table_name,
-                    $data,
-                    array('id' => $conversation_id),
-                    array('%d', '%s', '%s', '%s', '%d', '%s'),
-                    array('%d')
+                    $this->conversations_table,
+                    $conv_data,
+                    array('id' => $conversation_id, 'user_id' => $user_id),
+                    array('%d', '%s', '%s', '%s', '%s'),
+                    array('%d', '%d')
                 );
                 
                 if ($result === false) {
-                    error_log("PMV Save: Update failed: " . $wpdb->last_error);
-                    wp_send_json_error('Failed to update conversation');
-                    return;
+                    throw new Exception('Failed to update conversation: ' . $wpdb->last_error);
                 }
+                
+                // Delete old messages
+                $wpdb->delete($this->messages_table, array('conversation_id' => $conversation_id), array('%d'));
                 
                 $action = 'updated';
                 
             } else {
                 // Create new conversation
-                $data['created_at'] = current_time('mysql');
+                $conv_data['created_at'] = current_time('mysql');
                 
                 $result = $wpdb->insert(
-                    $this->table_name,
-                    $data,
-                    array('%d', '%s', '%s', '%s', '%d', '%s', '%s')
+                    $this->conversations_table,
+                    $conv_data,
+                    array('%d', '%s', '%s', '%s', '%s', '%s')
                 );
                 
                 if ($result === false) {
-                    error_log("PMV Save: Insert failed: " . $wpdb->last_error);
-                    wp_send_json_error('Failed to create conversation');
-                    return;
+                    throw new Exception('Failed to create conversation: ' . $wpdb->last_error);
                 }
                 
                 $conversation_id = $wpdb->insert_id;
                 $action = 'created';
             }
             
-            // Clean up old conversations (keep only latest 20 per character)
+            // Save messages to separate table
+            if (!empty($conversation_data['messages'])) {
+                foreach ($conversation_data['messages'] as $message) {
+                    $msg_result = $wpdb->insert(
+                        $this->messages_table,
+                        array(
+                            'conversation_id' => $conversation_id,
+                            'role' => $message['role'],
+                            'content' => $message['content'],
+                            'created_at' => current_time('mysql')
+                        ),
+                        array('%d', '%s', '%s', '%s')
+                    );
+                    
+                    if ($msg_result === false) {
+                        throw new Exception('Failed to save message: ' . $wpdb->last_error);
+                    }
+                }
+            }
+            
+            // Commit transaction
+            $wpdb->query('COMMIT');
+            
+            // Clean up old conversations (keep only latest 50 per character per user)
             $this->cleanup_old_conversations($user_id, $conversation_data['character_id']);
             
-            error_log("PMV Save: Success - ID: $conversation_id, Action: $action");
-            
-            wp_send_json_success(array(
+            return array(
                 'id' => $conversation_id,
                 'action' => $action,
                 'message' => 'Conversation saved successfully',
                 'timestamp' => current_time('mysql')
-            ));
-            
-        } catch (Exception $e) {
-            error_log('PMV Save error: ' . $e->getMessage());
-            wp_send_json_error('Save failed: ' . $e->getMessage());
-        }
-    }
-    
-    /**
-     * Auto-save conversation AJAX handler
-     */
-    public function ajax_auto_save_conversation() {
-        // For auto-save, use the same logic as manual save
-        return $this->ajax_save_conversation();
-    }
-    
-    /**
-     * AJAX handler for getting user conversations
-     */
-    public function ajax_get_conversations() {
-        try {
-            $user_id = $this->validate_user_request();
-            if (is_wp_error($user_id)) {
-                wp_send_json_error(array(
-                    'message' => $user_id->get_error_message(),
-                    'code' => $user_id->get_error_code()
-                ));
-                return;
-            }
-            
-            $character_id = sanitize_text_field($_POST['character_id'] ?? '');
-            if (empty($character_id)) {
-                wp_send_json_error('Character ID is required');
-                return;
-            }
-            
-            global $wpdb;
-            
-            $conversations = $wpdb->get_results($wpdb->prepare(
-                "SELECT id, title, message_count, created_at, updated_at 
-                 FROM {$this->table_name} 
-                 WHERE user_id = %d AND character_id = %s 
-                 ORDER BY updated_at DESC 
-                 LIMIT 50",
-                $user_id,
-                $character_id
-            ));
-            
-            if ($wpdb->last_error) {
-                error_log('PMV Database error: ' . $wpdb->last_error);
-                wp_send_json_error('Database error occurred');
-                return;
-            }
-            
-            wp_send_json_success($conversations);
-            
-        } catch (Exception $e) {
-            error_log('PMV Get conversations error: ' . $e->getMessage());
-            wp_send_json_error('Failed to load conversations: ' . $e->getMessage());
-        }
-    }
-    
-    /**
-     * AJAX handler for getting a specific conversation
-     */
-    public function ajax_get_conversation() {
-        try {
-            $conversation_id = intval($_POST['conversation_id'] ?? 0);
-            if (empty($conversation_id)) {
-                wp_send_json_error('Conversation ID is required');
-                return;
-            }
-            
-            $user_id = $this->validate_user_request($conversation_id);
-            if (is_wp_error($user_id)) {
-                wp_send_json_error(array(
-                    'message' => $user_id->get_error_message(),
-                    'code' => $user_id->get_error_code()
-                ));
-                return;
-            }
-            
-            global $wpdb;
-            
-            $conversation = $wpdb->get_row($wpdb->prepare(
-                "SELECT id, title, messages, created_at, updated_at 
-                 FROM {$this->table_name} 
-                 WHERE id = %d AND user_id = %d",
-                $conversation_id,
-                $user_id
-            ));
-            
-            if (!$conversation) {
-                wp_send_json_error('Conversation not found');
-                return;
-            }
-            
-            // Decode messages
-            $conversation->messages = json_decode($conversation->messages, true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                error_log('PMV JSON decode error for conversation ' . $conversation_id);
-                wp_send_json_error('Conversation data is corrupted');
-                return;
-            }
-            
-            wp_send_json_success($conversation);
-            
-        } catch (Exception $e) {
-            error_log('PMV Get conversation error: ' . $e->getMessage());
-            wp_send_json_error('Failed to load conversation: ' . $e->getMessage());
-        }
-    }
-    
-    /**
-     * AJAX handler for deleting conversations
-     */
-    public function ajax_delete_conversation() {
-        try {
-            $conversation_id = intval($_POST['conversation_id'] ?? 0);
-            if (empty($conversation_id)) {
-                wp_send_json_error('Conversation ID is required');
-                return;
-            }
-            
-            $user_id = $this->validate_user_request($conversation_id);
-            if (is_wp_error($user_id)) {
-                wp_send_json_error(array(
-                    'message' => $user_id->get_error_message(),
-                    'code' => $user_id->get_error_code()
-                ));
-                return;
-            }
-            
-            global $wpdb;
-            
-            $result = $wpdb->delete(
-                $this->table_name,
-                array(
-                    'id' => $conversation_id,
-                    'user_id' => $user_id
-                ),
-                array('%d', '%d')
             );
             
-            if ($result === false) {
-                wp_send_json_error('Failed to delete conversation');
-                return;
-            }
-            
-            if ($result === 0) {
-                wp_send_json_error('Conversation not found or access denied');
-                return;
-            }
-            
-            wp_send_json_success(array(
-                'message' => 'Conversation deleted successfully'
-            ));
-            
         } catch (Exception $e) {
-            error_log('PMV Delete conversation error: ' . $e->getMessage());
-            wp_send_json_error('Delete failed: ' . $e->getMessage());
+            $wpdb->query('ROLLBACK');
+            return new WP_Error('save_failed', $e->getMessage());
         }
     }
     
     /**
-     * Guest conversation handlers (fallback to localStorage)
+     * Clean up old conversations
      */
-    public function ajax_save_conversation_guest() {
-        wp_send_json_error('Please login to save conversations to your account');
-    }
-    
-    public function ajax_get_conversations_guest() {
-        wp_send_json_success(array()); // Empty array for guests
-    }
-    
-    /**
-     * Clean up old conversations to prevent database bloat
-     */
-    private function cleanup_old_conversations($user_id, $character_id, $keep_count = 20) {
+    private function cleanup_old_conversations($user_id, $character_id, $keep_count = 50) {
         global $wpdb;
         
-        // Get conversations older than the keep count
         $old_conversations = $wpdb->get_results($wpdb->prepare(
-            "SELECT id FROM {$this->table_name} 
+            "SELECT id FROM {$this->conversations_table} 
              WHERE user_id = %d AND character_id = %s 
              ORDER BY updated_at DESC 
              LIMIT 100 OFFSET %d",
@@ -580,318 +625,379 @@ class PMV_Unified_Conversation_Handler {
             $ids_to_delete = array_map(function($conv) { return $conv->id; }, $old_conversations);
             $placeholders = implode(',', array_fill(0, count($ids_to_delete), '%d'));
             
+            // Delete messages first
             $wpdb->query($wpdb->prepare(
-                "DELETE FROM {$this->table_name} WHERE id IN ($placeholders)",
+                "DELETE FROM {$this->messages_table} WHERE conversation_id IN ($placeholders)",
                 ...$ids_to_delete
             ));
             
-            error_log("PMV: Cleaned up " . count($ids_to_delete) . " old conversations for user $user_id");
-        }
-    }
-}
-
-// FIXED: Initialize the unified conversation handler
-$pmv_unified_conversation_handler = new PMV_Unified_Conversation_Handler();
-
-// ==============================================================================
-// EXISTING GALLERY AJAX HANDLERS (PRESERVED)
-// ==============================================================================
-
-/**
- * Enhanced get character cards AJAX handler
- */
-add_action('wp_ajax_pmv_get_character_cards', 'pmv_get_character_cards_enhanced_callback');
-add_action('wp_ajax_nopriv_pmv_get_character_cards', 'pmv_get_character_cards_enhanced_callback');
-
-function pmv_get_character_cards_enhanced_callback() {
-    try {
-        // Verify nonce
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'pmv_ajax_nonce')) {
-            throw new Exception('Security verification failed. Please refresh the page and try again.');
-        }
-        
-        // Get parameters with enhanced validation
-        $page = max(1, intval($_POST['page'] ?? 1));
-        $per_page = max(1, min(50, intval($_POST['per_page'] ?? 12)));
-        $search = sanitize_text_field($_POST['search'] ?? '');
-        $category = sanitize_text_field($_POST['category'] ?? '');
-        $creator = sanitize_text_field($_POST['creator'] ?? '');
-        $sort = sanitize_text_field($_POST['sort'] ?? 'newest');
-        $folder = sanitize_text_field($_POST['folder'] ?? '');
-        
-        // Validate sort option
-        $valid_sorts = array('newest', 'oldest', 'name_asc', 'name_desc');
-        if (!in_array($sort, $valid_sorts)) {
-            $sort = 'newest';
-        }
-        
-        // Get upload directory
-        $upload_dir = wp_upload_dir();
-        if (empty($upload_dir['basedir']) || !is_writable($upload_dir['basedir'])) {
-            throw new Exception('Uploads directory not properly configured.');
-        }
-        
-        $png_dir = trailingslashit($upload_dir['basedir']) . 'png-cards/';
-        $png_dir_url = trailingslashit($upload_dir['baseurl']) . 'png-cards/';
-        
-        // Handle folder parameter
-        if (!empty($folder)) {
-            $png_dir .= trailingslashit(sanitize_file_name($folder));
-            $png_dir_url .= trailingslashit(sanitize_file_name($folder));
-        }
-        
-        // Create directory if missing
-        if (!is_dir($png_dir)) {
-            if (!wp_mkdir_p($png_dir)) {
-                throw new Exception('Directory not found and could not be created: ' . $png_dir);
-            }
-        }
-        
-        if (!is_readable($png_dir)) {
-            throw new Exception('Directory not readable: ' . $png_dir);
-        }
-        
-        // Get all files first (for total counting)
-        $all_files = glob($png_dir . '*.png');
-        
-        if (empty($all_files)) {
-            wp_send_json_success([
-                'cards' => [],
-                'pagination' => [
-                    'current_page' => 1,
-                    'per_page' => $per_page,
-                    'total_items' => 0,
-                    'total_pages' => 0,
-                    'has_next' => false,
-                    'has_prev' => false
-                ]
-            ]);
-            return;
-        }
-        
-        // Process all files for filtering and sorting
-        $all_characters = pmv_process_all_files_enhanced($all_files, $png_dir, $png_dir_url);
-        
-        // Apply filters
-        $filtered_characters = pmv_apply_filters_enhanced($all_characters, $search, $category, $creator);
-        
-        // Apply sorting
-        $sorted_characters = pmv_apply_sorting_enhanced($filtered_characters, $sort);
-        
-        $total_filtered = count($sorted_characters);
-        $total_pages = ceil($total_filtered / $per_page);
-        
-        // Ensure page is valid
-        if ($page > $total_pages && $total_pages > 0) {
-            $page = $total_pages;
-        }
-        
-        // Get characters for current page
-        $offset = ($page - 1) * $per_page;
-        $page_characters = array_slice($sorted_characters, $offset, $per_page);
-        
-        // Prepare response data
-        $character_cards = array();
-        foreach ($page_characters as $character) {
-            $character_cards[] = [
-                'file_path' => $character['file_path'],
-                'file_url' => $character['file_url'],
-                'file_name' => $character['file_name'],
-                'name' => $character['name'],
-                'creator' => $character['creator'],
-                'description' => pmv_truncate_text($character['description'], 150),
-                'tags' => $character['tags'],
-                'metadata' => $character['metadata'],
-                'created_at' => $character['created_at']
-            ];
-        }
-        
-        $response_data = [
-            'cards' => $character_cards,
-            'pagination' => [
-                'current_page' => $page,
-                'per_page' => $per_page,
-                'total_items' => $total_filtered,
-                'total_pages' => $total_pages,
-                'has_next' => $page < $total_pages,
-                'has_prev' => $page > 1
-            ]
-        ];
-        
-        wp_send_json_success($response_data);
-        
-    } catch (Exception $e) {
-        error_log("AJAX Gallery Error: " . $e->getMessage());
-        wp_send_json_error([
-            'message' => $e->getMessage()
-        ]);
-    }
-}
-
-// Include helper functions for character processing
-function pmv_process_all_files_enhanced($files, $png_dir, $png_dir_url) {
-    $characters = array();
-    
-    foreach ($files as $file_path) {
-        $file_name = basename($file_path);
-        $file_url = $png_dir_url . $file_name;
-        
-        if (!is_readable($file_path)) {
-            continue;
-        }
-        
-        // Extract character data
-        $character_data = pmv_extract_character_from_png_enhanced($file_path);
-        
-        if (!$character_data) {
-            continue;
-        }
-        
-        // Handle both normalized and direct character data
-        $char_info = isset($character_data['data']) ? $character_data['data'] : $character_data;
-        
-        // Extract and normalize data
-        $name = $char_info['name'] ?? 'Unknown Character';
-        $creator = $char_info['creator'] ?? 'Unknown';
-        $description = $char_info['description'] ?? '';
-        
-        // Extract tags
-        $tags = array();
-        if (isset($char_info['tags'])) {
-            if (is_array($char_info['tags'])) {
-                $tags = $char_info['tags'];
-            } elseif (is_string($char_info['tags'])) {
-                $tags = array_filter(array_map('trim', explode(',', $char_info['tags'])));
-            }
-        }
-        
-        $characters[] = [
-            'file_path' => $file_path,
-            'file_url' => $file_url,
-            'file_name' => $file_name,
-            'name' => $name,
-            'creator' => $creator,
-            'description' => $description,
-            'tags' => $tags,
-            'metadata' => $character_data,
-            'created_at' => date('Y-m-d H:i:s', filemtime($file_path)),
-            'modified_time' => filemtime($file_path)
-        ];
-    }
-    
-    return $characters;
-}
-
-function pmv_apply_filters_enhanced($characters, $search, $category, $creator) {
-    if (empty($search) && empty($category) && empty($creator)) {
-        return $characters;
-    }
-    
-    return array_filter($characters, function($character) use ($search, $category, $creator) {
-        // Search filter
-        if (!empty($search)) {
-            $search_lower = strtolower($search);
-            $searchable_text = strtolower(implode(' ', [
-                $character['name'],
-                $character['description'],
-                $character['creator'],
-                implode(' ', $character['tags'])
-            ]));
+            // Delete conversations
+            $wpdb->query($wpdb->prepare(
+                "DELETE FROM {$this->conversations_table} WHERE id IN ($placeholders)",
+                ...$ids_to_delete
+            ));
             
-            if (strpos($searchable_text, $search_lower) === false) {
-                return false;
-            }
+            error_log('PMV: Cleaned up ' . count($ids_to_delete) . ' old conversations');
         }
-        
-        // Category filter (search in tags)
-        if (!empty($category)) {
-            $category_lower = strtolower($category);
-            $tag_match = false;
+    }
+    
+    /**
+     * Get conversations AJAX handler using unified approach
+     */
+    public function ajax_get_conversations() {
+        try {
+            $user_id = $this->validate_request();
+            if (is_wp_error($user_id)) {
+                wp_send_json_error(array(
+                    'message' => $user_id->get_error_message(),
+                    'code' => $user_id->get_error_code()
+                ));
+                return;
+            }
             
-            foreach ($character['tags'] as $tag) {
-                if (strtolower(trim($tag)) === $category_lower) {
-                    $tag_match = true;
-                    break;
+            $character_id = sanitize_text_field($_POST['character_id'] ?? '');
+            if (empty($character_id)) {
+                wp_send_json_error(array(
+                    'message' => 'Character ID is required',
+                    'code' => 'missing_character_id'
+                ));
+                return;
+            }
+            
+            global $wpdb;
+            
+            // Use same query structure as conversations-database.php
+            $conversations = $wpdb->get_results($wpdb->prepare(
+                "SELECT c.id, c.title, c.created_at, c.updated_at,
+                        (SELECT COUNT(*) FROM {$this->messages_table} m WHERE m.conversation_id = c.id) as message_count
+                 FROM {$this->conversations_table} c
+                 WHERE c.user_id = %d AND c.character_id = %s 
+                 ORDER BY c.updated_at DESC 
+                 LIMIT 50",
+                $user_id,
+                $character_id
+            ));
+            
+            if ($wpdb->last_error) {
+                error_log('PMV: Database error in get_conversations: ' . $wpdb->last_error);
+                wp_send_json_error(array(
+                    'message' => 'Database error occurred',
+                    'code' => 'database_error'
+                ));
+                return;
+            }
+            
+            wp_send_json_success($conversations ?: array());
+            
+        } catch (Exception $e) {
+            error_log('PMV: Exception in ajax_get_conversations: ' . $e->getMessage());
+            wp_send_json_error(array(
+                'message' => 'Failed to load conversations',
+                'code' => 'internal_error'
+            ));
+        }
+    }
+    
+    /**
+     * Get single conversation AJAX handler using unified approach
+     */
+    public function ajax_get_conversation() {
+        try {
+            $conversation_id = intval($_POST['conversation_id'] ?? 0);
+            if (empty($conversation_id)) {
+                wp_send_json_error(array(
+                    'message' => 'Conversation ID is required',
+                    'code' => 'missing_id'
+                ));
+                return;
+            }
+            
+            $user_id = $this->validate_request($conversation_id);
+            if (is_wp_error($user_id)) {
+                wp_send_json_error(array(
+                    'message' => $user_id->get_error_message(),
+                    'code' => $user_id->get_error_code()
+                ));
+                return;
+            }
+            
+            global $wpdb;
+            
+            // Get conversation using same approach as conversations-database.php
+            $conversation = $wpdb->get_row($wpdb->prepare(
+                "SELECT id, character_id, character_name, title, created_at, updated_at 
+                 FROM {$this->conversations_table} 
+                 WHERE id = %d AND user_id = %d",
+                $conversation_id,
+                $user_id
+            ));
+            
+            if (!$conversation) {
+                wp_send_json_error(array(
+                    'message' => 'Conversation not found',
+                    'code' => 'not_found'
+                ));
+                return;
+            }
+            
+            // Get messages from separate table
+            $messages = $wpdb->get_results($wpdb->prepare(
+                "SELECT role, content, created_at 
+                 FROM {$this->messages_table} 
+                 WHERE conversation_id = %d 
+                 ORDER BY created_at ASC",
+                $conversation_id
+            ));
+            
+            if ($wpdb->last_error) {
+                error_log('PMV: Database error getting messages: ' . $wpdb->last_error);
+                wp_send_json_error(array(
+                    'message' => 'Error loading conversation messages',
+                    'code' => 'database_error'
+                ));
+                return;
+            }
+            
+            // Format response same as conversations-database.php
+            $conversation->messages = $messages ?: array();
+            
+            wp_send_json_success($conversation);
+            
+        } catch (Exception $e) {
+            error_log('PMV: Exception in ajax_get_conversation: ' . $e->getMessage());
+            wp_send_json_error(array(
+                'message' => 'Failed to load conversation',
+                'code' => 'internal_error'
+            ));
+        }
+    }
+    
+    /**
+     * Delete conversation AJAX handler using unified approach
+     */
+    public function ajax_delete_conversation() {
+        try {
+            $conversation_id = intval($_POST['conversation_id'] ?? 0);
+            if (empty($conversation_id)) {
+                wp_send_json_error(array(
+                    'message' => 'Conversation ID is required',
+                    'code' => 'missing_id'
+                ));
+                return;
+            }
+            
+            $user_id = $this->validate_request($conversation_id);
+            if (is_wp_error($user_id)) {
+                wp_send_json_error(array(
+                    'message' => $user_id->get_error_message(),
+                    'code' => $user_id->get_error_code()
+                ));
+                return;
+            }
+            
+            global $wpdb;
+            
+            // Start transaction
+            $wpdb->query('START TRANSACTION');
+            
+            try {
+                // Delete messages first (same as conversations-database.php)
+                $messages_deleted = $wpdb->delete(
+                    $this->messages_table,
+                    array('conversation_id' => $conversation_id),
+                    array('%d')
+                );
+                
+                // Delete conversation
+                $conversation_deleted = $wpdb->delete(
+                    $this->conversations_table,
+                    array(
+                        'id' => $conversation_id,
+                        'user_id' => $user_id
+                    ),
+                    array('%d', '%d')
+                );
+                
+                if ($conversation_deleted !== false) {
+                    $wpdb->query('COMMIT');
+                    wp_send_json_success(array(
+                        'message' => 'Conversation deleted successfully'
+                    ));
+                } else {
+                    $wpdb->query('ROLLBACK');
+                    wp_send_json_error(array(
+                        'message' => 'Conversation not found or access denied',
+                        'code' => 'not_found'
+                    ));
+                }
+                
+            } catch (Exception $e) {
+                $wpdb->query('ROLLBACK');
+                throw $e;
+            }
+            
+        } catch (Exception $e) {
+            error_log('PMV: Exception in ajax_delete_conversation: ' . $e->getMessage());
+            wp_send_json_error(array(
+                'message' => 'Failed to delete conversation',
+                'code' => 'internal_error'
+            ));
+        }
+    }
+    
+    /**
+     * Debug system AJAX handler with unified diagnostics
+     */
+    public function ajax_debug_system() {
+        try {
+            if (!wp_verify_nonce($_POST['nonce'], 'pmv_ajax_nonce')) {
+                wp_send_json_error('Invalid nonce');
+                return;
+            }
+            
+            global $wpdb;
+            
+            // Get table columns
+            $conv_columns = array();
+            $msg_columns = array();
+            
+            if ($this->table_exists($this->conversations_table)) {
+                $conv_cols = $wpdb->get_results("DESCRIBE {$this->conversations_table}");
+                foreach ($conv_cols as $col) {
+                    $conv_columns[] = $col->Field;
                 }
             }
             
-            if (!$tag_match) {
-                return false;
+            if ($this->table_exists($this->messages_table)) {
+                $msg_cols = $wpdb->get_results("DESCRIBE {$this->messages_table}");
+                foreach ($msg_cols as $col) {
+                    $msg_columns[] = $col->Field;
+                }
             }
-        }
-        
-        // Creator filter
-        if (!empty($creator)) {
-            $creator_lower = strtolower($creator);
-            if (strtolower(trim($character['creator'])) !== $creator_lower) {
-                return false;
+            
+            $debug_info = array(
+                'conversations_table_exists' => $this->table_exists($this->conversations_table),
+                'messages_table_exists' => $this->table_exists($this->messages_table),
+                'conversations_table_name' => $this->conversations_table,
+                'messages_table_name' => $this->messages_table,
+                'conversations_columns' => $conv_columns,
+                'messages_columns' => $msg_columns,
+                'test_functionality' => false,
+                'user_logged_in' => is_user_logged_in(),
+                'user_id' => get_current_user_id(),
+                'wordpress_version' => get_bloginfo('version'),
+                'plugin_version' => defined('PMV_VERSION') ? PMV_VERSION : '4.16-UNIFIED',
+                'php_version' => PHP_VERSION,
+                'mysql_version' => $wpdb->db_version(),
+                'ajax_handlers' => array(
+                    'save' => has_action('wp_ajax_pmv_save_conversation'),
+                    'get_conversations' => has_action('wp_ajax_pmv_get_conversations'),
+                    'get_conversation' => has_action('wp_ajax_pmv_get_conversation'),
+                    'delete' => has_action('wp_ajax_pmv_delete_conversation')
+                ),
+                'required_columns_check' => array(
+                    'conversations' => array(
+                        'id' => in_array('id', $conv_columns),
+                        'user_id' => in_array('user_id', $conv_columns),
+                        'character_id' => in_array('character_id', $conv_columns),
+                        'character_name' => in_array('character_name', $conv_columns),
+                        'title' => in_array('title', $conv_columns),
+                        'created_at' => in_array('created_at', $conv_columns),
+                        'updated_at' => in_array('updated_at', $conv_columns)
+                    ),
+                    'messages' => array(
+                        'id' => in_array('id', $msg_columns),
+                        'conversation_id' => in_array('conversation_id', $msg_columns),
+                        'role' => in_array('role', $msg_columns),
+                        'content' => in_array('content', $msg_columns),
+                        'created_at' => in_array('created_at', $msg_columns)
+                    )
+                )
+            );
+            
+            // Test basic functionality if tables exist and have required columns
+            if ($debug_info['conversations_table_exists'] && 
+                $debug_info['required_columns_check']['conversations']['character_name']) {
+                
+                $test_data = array(
+                    'user_id' => 1,
+                    'character_id' => 'debug_test_' . time(),
+                    'character_name' => 'Debug Test Character',
+                    'title' => 'Debug Test',
+                    'created_at' => current_time('mysql'),
+                    'updated_at' => current_time('mysql')
+                );
+                
+                $insert_result = $wpdb->insert($this->conversations_table, $test_data);
+                if ($insert_result) {
+                    $test_conv_id = $wpdb->insert_id;
+                    
+                    if ($debug_info['messages_table_exists']) {
+                        $test_msg_data = array(
+                            'conversation_id' => $test_conv_id,
+                            'role' => 'user',
+                            'content' => 'Test message',
+                            'created_at' => current_time('mysql')
+                        );
+                        
+                        $msg_insert_result = $wpdb->insert($this->messages_table, $test_msg_data);
+                        if ($msg_insert_result) {
+                            $test_msg_id = $wpdb->insert_id;
+                            
+                            // Clean up test data
+                            $wpdb->delete($this->messages_table, array('id' => $test_msg_id), array('%d'));
+                            $debug_info['test_functionality'] = true;
+                        }
+                    }
+                    
+                    $wpdb->delete($this->conversations_table, array('id' => $test_conv_id), array('%d'));
+                }
             }
+            
+            wp_send_json_success($debug_info);
+            
+        } catch (Exception $e) {
+            error_log('PMV: Exception in ajax_debug_system: ' . $e->getMessage());
+            wp_send_json_error('Debug system failed: ' . $e->getMessage());
         }
-        
-        return true;
-    });
-}
-
-function pmv_apply_sorting_enhanced($characters, $sort) {
-    switch ($sort) {
-        case 'oldest':
-            usort($characters, function($a, $b) {
-                return $a['modified_time'] - $b['modified_time'];
-            });
-            break;
-            
-        case 'name_asc':
-            usort($characters, function($a, $b) {
-                return strcasecmp($a['name'], $b['name']);
-            });
-            break;
-            
-        case 'name_desc':
-            usort($characters, function($a, $b) {
-                return strcasecmp($b['name'], $a['name']);
-            });
-            break;
-            
-        case 'newest':
-        default:
-            usort($characters, function($a, $b) {
-                return $b['modified_time'] - $a['modified_time'];
-            });
-            break;
     }
     
-    return $characters;
-}
-
-function pmv_extract_character_from_png_enhanced($file_path) {
-    try {
-        if (!class_exists('PNG_Metadata_Extractor')) {
-            error_log('PNG_Metadata_Extractor class not found');
-            return false;
-        }
-        
-        return PNG_Metadata_Extractor::extract_character_data($file_path);
-    } catch (Exception $e) {
-        error_log("Character extraction failed for " . basename($file_path) . ": " . $e->getMessage());
-        return false;
+    /**
+     * Guest handlers
+     */
+    public function ajax_save_conversation_guest() {
+        wp_send_json_error(array(
+            'message' => 'Please login to save conversations to your account',
+            'code' => 'login_required'
+        ));
+    }
+    
+    public function ajax_get_conversations_guest() {
+        wp_send_json_success(array()); // Empty array for guests
     }
 }
 
-function pmv_truncate_text($text, $length) {
-    if (strlen($text) <= $length) return $text;
-    $text = substr($text, 0, $length);
-    return (preg_match('/\s/', $text) ? preg_replace('/\s+?(\S+)?$/', '', $text) : $text) . '...';
-}
+// Initialize the unified conversation handler
+$pmv_unified_conversation_handler = new PMV_Unified_Conversation_Handler();
+
+// ==============================================================================
+// GALLERY AJAX HANDLERS - ENHANCED
+// ==============================================================================
 
 /**
- * Character chat AJAX handler (for AI responses) - FIXED WITH CORRECT OPTION NAMES
+ * Note: AJAX handler for pmv_get_character_cards is now handled by cache-handler.php
+ * to provide caching functionality and better performance
  */
-add_action('wp_ajax_start_character_chat', 'start_character_chat_callback');
-add_action('wp_ajax_nopriv_start_character_chat', 'start_character_chat_callback');
 
-function start_character_chat_callback() {
+/**
+ * Enhanced character chat AJAX handler
+ */
+add_action('wp_ajax_start_character_chat', 'start_character_chat_enhanced');
+add_action('wp_ajax_nopriv_start_character_chat', 'start_character_chat_enhanced');
+
+function start_character_chat_enhanced() {
     try {
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'pmv_ajax_nonce')) {
+        if (!wp_verify_nonce($_POST['nonce'], 'pmv_ajax_nonce')) {
             throw new Exception('Security verification failed');
         }
         
@@ -904,98 +1010,159 @@ function start_character_chat_callback() {
             throw new Exception('Missing required chat parameters');
         }
         
-        $response = pmv_process_chat_request($character_data, $user_message, $conversation_history, $bot_id);
+        $response = pmv_process_chat_request_enhanced($character_data, $user_message, $conversation_history, $bot_id);
         
         wp_send_json_success($response);
         
     } catch (Exception $e) {
-        error_log("Character chat error: " . $e->getMessage());
-        wp_send_json_error(['message' => $e->getMessage()]);
+        error_log('PMV: Character chat error: ' . $e->getMessage());
+        wp_send_json_error(array('message' => $e->getMessage()));
     }
 }
 
 /**
- * FIXED: Process chat request with CORRECTED API option names
+ * Enhanced chat request processing with better prompt handling
  */
-function pmv_process_chat_request($character_data, $user_message, $conversation_history, $bot_id) {
+function pmv_process_chat_request_enhanced($character_data, $user_message, $conversation_history, $bot_id) {
     $character = isset($character_data['data']) ? $character_data['data'] : $character_data;
     
-    // CORRECTED: Get API settings with correct option names
+    // Get API settings with correct option names
     $api_key = get_option('openai_api_key', '');
     $api_model = get_option('openai_model', 'gpt-3.5-turbo');
     $api_base_url = get_option('openai_api_base_url', 'https://api.openai.com/v1');
     $temperature = floatval(get_option('openai_temperature', 0.7));
     $max_tokens = intval(get_option('openai_max_tokens', 1000));
+    $presence_penalty = floatval(get_option('openai_presence_penalty', 0.6));
+    $frequency_penalty = floatval(get_option('openai_frequency_penalty', 0.3));
     
     if (empty($api_key)) {
-        throw new Exception('OpenAI API key not configured');
+        throw new Exception('OpenAI API key not configured. Please check the plugin settings.');
     }
     
     // Clean up API base URL
     $api_base_url = rtrim($api_base_url, '/');
-    if (!str_contains($api_base_url, '/chat/completions')) {
-        if (!str_contains($api_base_url, '/v1')) {
+    if (strpos($api_base_url, '/chat/completions') === false) {
+        if (strpos($api_base_url, '/v1') === false) {
             $api_base_url .= '/v1';
         }
         $api_base_url .= '/chat/completions';
     }
     
-    // Build system prompt
-    $system_prompt = $character['system_prompt'] ?? '';
-    if (empty($system_prompt)) {
-        $system_prompt = "You are " . ($character['name'] ?? 'an AI assistant') . ".";
-        if (!empty($character['personality'])) {
-            $system_prompt .= " " . $character['personality'];
-        }
-        if (!empty($character['scenario'])) {
-            $system_prompt .= " Scenario: " . $character['scenario'];
-        }
+    // Build comprehensive system prompt
+    $system_prompt = '';
+    
+    // Start with character name
+    if (!empty($character['name'])) {
+        $system_prompt .= "You are " . $character['name'] . ".\n\n";
     }
     
-    // Build messages array
-    $messages = [
-        ['role' => 'system', 'content' => $system_prompt]
-    ];
+    // Add description if available
+    if (!empty($character['description'])) {
+        $system_prompt .= "Character Description:\n" . $character['description'] . "\n\n";
+    }
     
-    // Add conversation history
-    foreach ($conversation_history as $msg) {
-        $messages[] = [
-            'role' => $msg['role'],
-            'content' => $msg['content']
-        ];
+    // Add personality if available
+    if (!empty($character['personality'])) {
+        $system_prompt .= "Personality:\n" . $character['personality'] . "\n\n";
+    }
+    
+    // Add scenario if available
+    if (!empty($character['scenario'])) {
+        $system_prompt .= "Scenario:\n" . $character['scenario'] . "\n\n";
+    }
+    
+    // Add example dialogue if available
+    if (!empty($character['mes_example'])) {
+        $system_prompt .= "Example Dialogue:\n" . $character['mes_example'] . "\n\n";
+    }
+    
+    // Add system prompt if provided
+    if (!empty($character['system_prompt'])) {
+        $system_prompt .= $character['system_prompt'] . "\n\n";
+    }
+    
+    // Add behavioral instructions
+    $system_prompt .= "Instructions:\n";
+    $system_prompt .= "- Stay in character at all times\n";
+    $system_prompt .= "- Respond as " . ($character['name'] ?? 'the character') . " would\n";
+    $system_prompt .= "- Keep responses engaging and true to the character\n";
+    $system_prompt .= "- Do not break character or mention that you are an AI\n";
+    
+    // If no system prompt was built, create a basic one
+    if (empty(trim($system_prompt))) {
+        $system_prompt = "You are " . ($character['name'] ?? 'an AI assistant') . ". Stay in character and respond naturally.";
+    }
+    
+    // Log the system prompt for debugging
+    error_log('PMV: System prompt length: ' . strlen($system_prompt));
+    error_log('PMV: System prompt preview: ' . substr($system_prompt, 0, 200) . '...');
+    
+    // Build messages array
+    $messages = array(
+        array('role' => 'system', 'content' => trim($system_prompt))
+    );
+    
+    // Add conversation history with proper validation
+    if (!empty($conversation_history) && is_array($conversation_history)) {
+        foreach ($conversation_history as $msg) {
+            if (isset($msg['role']) && isset($msg['content']) && !empty(trim($msg['content']))) {
+                $messages[] = array(
+                    'role' => $msg['role'] === 'user' ? 'user' : 'assistant',
+                    'content' => trim($msg['content'])
+                );
+            }
+        }
     }
     
     // Add current user message
-    $messages[] = [
-        'role' => 'user',
-        'content' => $user_message
-    ];
+    if (!empty(trim($user_message))) {
+        $messages[] = array(
+            'role' => 'user',
+            'content' => trim($user_message)
+        );
+    }
     
-    // Build request payload
-    $request_payload = [
+    // Log message count for debugging
+    error_log('PMV: Total messages in request: ' . count($messages));
+    error_log('PMV: User message: ' . $user_message);
+    
+    // Build request payload with all parameters
+    $request_payload = array(
         'model' => $api_model,
         'messages' => $messages,
-        'max_tokens' => $max_tokens,
-        'temperature' => $temperature
-    ];
+        'max_tokens' => max(100, min(4000, $max_tokens)), // Ensure reasonable bounds
+        'temperature' => max(0, min(2, $temperature)), // Ensure valid range
+        'presence_penalty' => max(-2, min(2, $presence_penalty)), // Ensure valid range
+        'frequency_penalty' => max(-2, min(2, $frequency_penalty)) // Ensure valid range
+    );
     
-    // Make API request
-    $response = wp_remote_post($api_base_url, [
-        'headers' => [
+    // Log request details
+    error_log('PMV: API Request - Model: ' . $api_model . ', Max Tokens: ' . $request_payload['max_tokens']);
+    
+    // Make API request with better error handling
+    $response = wp_remote_post($api_base_url, array(
+        'headers' => array(
             'Authorization' => 'Bearer ' . $api_key,
             'Content-Type' => 'application/json',
-            'User-Agent' => 'WordPress-PNG-Metadata-Viewer/1.0'
-        ],
+            'User-Agent' => 'WordPress-PNG-Metadata-Viewer/' . (defined('PMV_VERSION') ? PMV_VERSION : '1.0')
+        ),
         'body' => json_encode($request_payload),
-        'timeout' => 300
-    ]);
+        'timeout' => 300,
+        'sslverify' => true
+    ));
     
     if (is_wp_error($response)) {
+        error_log('PMV: API request failed: ' . $response->get_error_message());
         throw new Exception('API request failed: ' . $response->get_error_message());
     }
     
     $response_code = wp_remote_retrieve_response_code($response);
     $body = wp_remote_retrieve_body($response);
+    
+    // Log response details
+    error_log('PMV: API Response Code: ' . $response_code);
+    error_log('PMV: API Response Length: ' . strlen($body));
+    
     $data = json_decode($body, true);
     
     if ($response_code !== 200) {
@@ -1003,18 +1170,37 @@ function pmv_process_chat_request($character_data, $user_message, $conversation_
         if ($data && isset($data['error']['message'])) {
             $error_message .= ': ' . $data['error']['message'];
         }
+        error_log('PMV: API error: ' . $error_message);
+        error_log('PMV: API error response: ' . $body);
         throw new Exception($error_message);
     }
     
     if (!$data || !isset($data['choices'][0]['message']['content'])) {
+        error_log('PMV: Invalid API response format');
+        error_log('PMV: Response data: ' . print_r($data, true));
         throw new Exception('Invalid API response format');
     }
     
-    return [
+    $ai_response = $data['choices'][0]['message']['content'];
+    error_log('PMV: AI Response length: ' . strlen($ai_response));
+    error_log('PMV: AI Response preview: ' . substr($ai_response, 0, 100) . '...');
+    
+    // Get user ID for token tracking
+    $user_id = get_current_user_id();
+    
+    // Debug logging
+    error_log('PMV: About to trigger token tracking action - User ID: ' . $user_id);
+    
+    // Trigger token tracking action
+    do_action('pmv_after_chat_completion', $data, $user_id, $user_message);
+    
+    error_log('PMV: Token tracking action triggered');
+    
+    return array(
         'choices' => $data['choices'],
         'character' => $character,
-        'usage' => $data['usage'] ?? []
-    ];
+        'usage' => $data['usage'] ?? array()
+    );
 }
 
 ?>

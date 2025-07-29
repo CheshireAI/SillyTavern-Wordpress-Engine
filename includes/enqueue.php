@@ -4,17 +4,17 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
-function pmv_enqueue_assets() {
+function pmv_enqueue_frontend_assets() {
     // Get correct paths - very important
     $plugin_url = plugins_url('', dirname(__FILE__)); // Get URL to plugin root
     
-    // Enqueue styles without version (remove filemtime dependency)
-    wp_enqueue_style(
-        'png-metadata-viewer-style', 
-        $plugin_url . '/style.css', 
-        array(), 
-        '4.11'
-    );
+    // Remove the problematic style.css enqueuing since it doesn't exist
+    // wp_enqueue_style(
+    //     'png-metadata-viewer-style', 
+    //     $plugin_url . '/style.css', 
+    //     array(), 
+    //     '4.11'
+    // );
     
     // Enqueue Select2 for enhanced filtering
     wp_enqueue_style(
@@ -32,66 +32,52 @@ function pmv_enqueue_assets() {
         true
     );
     
-    // Enqueue third-party scripts needed for gallery
+    // Load Masonry via WordPress core (jquery-masonry already includes the library)
+    wp_enqueue_script('jquery-masonry');
+    
+    // Enqueue pagination handler
     wp_enqueue_script(
-        'masonry-js', 
-        'https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js', 
-        array('jquery'), 
-        null, 
+        'pmv-pagination-handler',
+        $plugin_url . '/js/pagination-handler.js',
+        array('jquery'),
+        '4.11',
         true
     );
     
+    // Enqueue filter enhancements
     wp_enqueue_script(
-        'imagesloaded-js', 
-        'https://unpkg.com/imagesloaded@4/imagesloaded.pkgd.min.js', 
-        array('jquery'), 
-        null, 
+        'pmv-filter-enhancements',
+        $plugin_url . '/js/filter-enhancements.js',
+        array('jquery', 'select2'),
+        '4.11',
         true
     );
     
-    // Enqueue simple chat CSS
-    wp_enqueue_style(
-        'png-metadata-viewer-chat-style', 
-        $plugin_url . '/simple-chat.css', 
-        array(), 
-        '4.11'
+    // Enqueue conversation manager script (front-end only function)
+    wp_enqueue_script(
+        'pmv-conversation-manager',
+        $plugin_url . '/js/conversation-manager.js',
+        array('jquery'),
+        '4.11',
+        true
     );
     
-    // Enqueue enhanced styles
+    // Enqueue enhanced styles - this contains all the dark theme styling
     wp_enqueue_style(
         'pmv-enhanced-styles',
         $plugin_url . '/enhanced-styles.css',
         array(),
         '4.11'
     );
-    
+
     // Enqueue core chat module script
-    wp_enqueue_script(
-        'png-metadata-viewer-chat', 
-        $plugin_url . '/chat.js', 
-        array('jquery'), 
-        '4.11', 
-        true
-    );
-    
-    // Enqueue mobile chat module script - NEW
-    wp_enqueue_script(
-        'png-metadata-viewer-mobile-chat', 
-        $plugin_url . '/mobile-chat.js', 
-        array('jquery', 'png-metadata-viewer-chat'), // Mobile script depends on main chat script
-        '4.11', 
-        true
-    );
-    
-    // Enqueue main plugin script without filemtime dependency
-    // Add both chat modules as dependencies
-    wp_enqueue_script(
-        'png-metadata-viewer-script', 
-        $plugin_url . '/script.js', 
-        array('jquery', 'masonry-js', 'imagesloaded-js', 'select2', 'png-metadata-viewer-chat', 'png-metadata-viewer-mobile-chat'), 
-        '4.11', 
-        true
-    );
+    // wp_enqueue_script(
+    //     'png-metadata-viewer-chat', 
+    //     $plugin_url . '/chat.js', 
+    //     array('jquery'), 
+    //     '4.11', 
+    //     true
+    // );
     
     // Localize script with AJAX URL and deepseek info
     $user_id = get_current_user_id();
@@ -101,39 +87,61 @@ function pmv_enqueue_assets() {
     $api_base_url = get_option('openai_api_base_url', 'https://api.deepseek.com');
     $model = get_option('openai_model', 'deepseek-chat');
     
-    wp_localize_script(
-        'png-metadata-viewer-chat', // Localize to chat script for early access
-        'pmv_ajax_object', 
-        array(
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'plugin_url' => $plugin_url,
-            'nonce' => wp_create_nonce('pmv_ajax_nonce'),
-            'user_id' => $user_id,
-            'word_tracking_enabled' => $word_tracking_enabled,
-            'chat_button_text' => get_option('png_metadata_chat_button_text', 'Chat'),
-            'api_model' => $model,
-            'api_base_url' => $api_base_url,
-            'debug_info' => 'API: DeepSeek - ' . (empty(get_option('openai_api_key')) ? 'Not Configured' : 'Configured'),
-            'version' => '4.11'
-        )
-    );
+    // wp_localize_script(
+    //     'png-metadata-viewer-chat', // Localize to chat script for early access
+    //     'pmv_ajax_object', 
+    //     array(
+    //         'ajax_url' => admin_url('admin-ajax.php'),
+    //         'plugin_url' => $plugin_url,
+    //         'nonce' => wp_create_nonce('pmv_ajax_nonce'),
+    //         'user_id' => $user_id,
+    //         'word_tracking_enabled' => $word_tracking_enabled,
+    //         'chat_button_text' => get_option('png_metadata_chat_button_text', 'Chat'),
+    //         'api_model' => $model,
+    //         'api_base_url' => $api_base_url,
+    //         'debug_info' => 'API: DeepSeek - ' . (empty(get_option('openai_api_key')) ? 'Not Configured' : 'Configured'),
+    //         'version' => '4.11'
+    //     )
+    // );
 
-    // Add media library for admin, without filemtime
-    if (is_admin()) {
-        wp_enqueue_media();
-        wp_enqueue_script(
-            'pmv-admin-js',
-            $plugin_url . '/admin.js',
-            array('jquery'),
-            '4.11',
-            true
-        );
-    }
+    // Front-end function ends here; admin assets are registered separately.
 }
 
-// Enqueue scripts and styles on both frontend and admin
-add_action('wp_enqueue_scripts', 'pmv_enqueue_assets');
-add_action('admin_enqueue_scripts', 'pmv_enqueue_assets');
+/**
+ * Enqueue admin-only scripts and styles.
+ */
+function pmv_enqueue_admin_assets() {
+    $plugin_url = plugins_url('', dirname(__FILE__));
+
+    // Media uploader & admin helpers
+    wp_enqueue_media();
+    wp_enqueue_script(
+        'pmv-admin-js',
+        $plugin_url . '/admin.js',
+        array('jquery'),
+        '4.11',
+        true
+    );
+
+    // Re-use Select2 & styles in admin when needed (settings pages, etc.)
+    wp_enqueue_style(
+        'select2',
+        'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css',
+        array(),
+        null
+    );
+    wp_enqueue_script(
+        'select2',
+        'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js',
+        array('jquery'),
+        null,
+        true
+    );
+}
+
+// Register hooks
+add_action('wp_enqueue_scripts', 'pmv_enqueue_frontend_assets');
+add_action('admin_enqueue_scripts', 'pmv_enqueue_admin_assets');
 
 /**
  * Add dynamic CSS based on plugin settings
@@ -154,9 +162,10 @@ function png_metadata_viewer_dynamic_styles() {
     $card_tags_bg_color = esc_attr(get_option('png_metadata_card_tags_bg_color', '#f8f9fa'));
     
     $buttonTextColor = esc_attr(get_option('png_metadata_button_text_color', '#ffffff'));
-    $buttonBgColor = esc_attr(get_option('png_metadata_button_bg_color', '#0073aa'));
-    $buttonHoverTextColor = esc_attr(get_option('png_metadata_button_hover_text_color', '#ffffff'));
-    $buttonHoverBgColor = esc_attr(get_option('png_metadata_button_hover_bg_color', '#005f8c'));
+    // Use CSS variables for unified dark-teal palette
+    $buttonBgColor = 'var(--button-bg)';
+    $buttonHoverTextColor = 'var(--text-main)';
+    $buttonHoverBgColor = 'var(--button-hover)';
     
     $button_border_width = intval(get_option('png_metadata_button_border_width', 1));
     $button_border_color = esc_attr(get_option('png_metadata_button_border_color', '#0073aa'));
@@ -166,18 +175,18 @@ function png_metadata_viewer_dynamic_styles() {
     
     // Chat button specific styling
     $chatButtonText = esc_attr(get_option('png_metadata_chat_button_text', 'Chat'));
-    $chatButtonTextColor = esc_attr(get_option('png_metadata_chat_button_text_color', '#ffffff'));
-    $chatButtonBgColor = esc_attr(get_option('png_metadata_chat_button_bg_color', '#28a745'));
-    $chatButtonHoverTextColor = esc_attr(get_option('png_metadata_chat_button_hover_text_color', '#ffffff'));
-    $chatButtonHoverBgColor = esc_attr(get_option('png_metadata_chat_button_hover_bg_color', '#218838'));
-    $chatButtonBorderWidth = intval(get_option('png_metadata_chat_button_border_width', $button_border_width));
-    $chatButtonBorderColor = esc_attr(get_option('png_metadata_chat_button_border_color', '#28a745'));
+    $chatButtonTextColor = 'var(--text-main)';
+    $chatButtonBgColor = 'var(--button-bg)';
+    $chatButtonHoverTextColor = 'var(--text-main)';
+    $chatButtonHoverBgColor = 'var(--button-hover)';
+    $chatButtonBorderWidth = 1;
+    $chatButtonBorderColor = 'var(--border-main)';
     $chatButtonBorderRadius = intval(get_option('png_metadata_chat_button_border_radius', $button_border_radius));
     
-    $pagination_button_text_color = esc_attr(get_option('png_metadata_pagination_button_text_color', '#007bff'));
-    $pagination_button_bg_color = esc_attr(get_option('png_metadata_pagination_button_bg_color', '#e9ecef'));
+    $pagination_button_text_color = esc_attr(get_option('png_metadata_pagination_button_text_color', '#e0e0e0'));
+    $pagination_button_bg_color = esc_attr(get_option('png_metadata_pagination_button_bg_color', '#23404e'));
     $pagination_button_active_text_color = esc_attr(get_option('png_metadata_pagination_button_active_text_color', '#ffffff'));
-    $pagination_button_active_bg_color = esc_attr(get_option('png_metadata_pagination_button_active_bg_color', '#007bff'));
+    $pagination_button_active_bg_color = esc_attr(get_option('png_metadata_pagination_button_active_bg_color', '#2d5363'));
     
     $chat_input_text_color = esc_attr(get_option('png_metadata_chat_input_text_color', '#000000'));
     $chat_input_bg_color = esc_attr(get_option('png_metadata_chat_input_bg_color', '#ffffff'));
