@@ -1409,40 +1409,41 @@
                                     <button class="close-image-panel">✕</button>
                                 </div>
                                 <div class="image-panel-content">
-                                    <div class="prompt-section">
-                                        <label>Custom Prompt (optional):</label>
-                                        <textarea id="custom-prompt" placeholder="Add additional context or modify the prompt..." rows="2"></textarea>
-                                    </div>
-                                    <div class="model-section">
-                                        <label>Model:</label>
-                                        <select id="swarmui-model">
-                                            <option value="">Loading models...</option>
+                                    <div class="preset-section">
+                                        <label>What do you want to create?</label>
+                                        <select id="image-preset">
+                                            <option value="">Select a type...</option>
+                                            <optgroup label="Character">
+                                                <option value="selfie">Selfie - Close-up portrait</option>
+                                                <option value="portrait">Portrait - Detailed character view</option>
+                                                <option value="full_body">Full Body - Complete character</option>
+                                            </optgroup>
+                                            <optgroup label="Environment">
+                                                <option value="surroundings">Surroundings - Current scene</option>
+                                                <option value="landscape">Landscape - Wide scenic view</option>
+                                                <option value="room">Room/Interior - Indoor space</option>
+                                            </optgroup>
+                                            <optgroup label="Action">
+                                                <option value="action">Action - Dynamic movement</option>
+                                                <option value="pose">Pose - Specific stance</option>
+                                            </optgroup>
+                                            <optgroup label="Style">
+                                                <option value="closeup">Close-up - Detailed focus</option>
+                                                <option value="cute">Cute - Adorable style</option>
+                                                <option value="serious">Serious - Dramatic tone</option>
+                                            </optgroup>
                                         </select>
+                                        <p class="preset-description" id="preset-description" style="margin-top: 8px; color: #999; font-size: 0.9em;"></p>
                                     </div>
-                                    <div class="parameters-section">
-                                        <div class="param-group">
-                                            <label>Steps:</label>
-                                            <input type="number" id="image-steps" value="20" min="1" max="100">
-                                        </div>
-                                        <div class="param-group">
-                                            <label>CFG Scale:</label>
-                                            <input type="number" id="image-cfg-scale" value="7.0" min="0.1" max="20" step="0.1">
-                                        </div>
-                                        <div class="param-group">
-                                            <label>Width:</label>
-                                            <input type="number" id="image-width" value="512" min="256" max="2048" step="64">
-                                        </div>
-                                        <div class="param-group">
-                                            <label>Height:</label>
-                                            <input type="number" id="image-height" value="512" min="256" max="2048" step="64">
-                                        </div>
+                                    <div class="user-prompt-section" style="margin-top: 15px;">
+                                        <label>Describe what you want to see:</label>
+                                        <textarea id="user-description" placeholder="E.g., 'showing the character smiling' or 'the character in a forest'..." rows="3"></textarea>
                                     </div>
-                                    <div class="generated-prompt-section">
-                                        <label>Generated Prompt:</label>
-                                        <textarea id="generated-prompt" placeholder="Click 'Generate Prompt' to create a prompt from chat history..." rows="4"></textarea>
+                                    <div class="generated-prompt-section" style="margin-top: 15px; display: none;" id="final-prompt-section">
+                                        <label>Ready to Generate:</label>
+                                        <textarea id="generated-prompt" placeholder="The AI will prepare the prompt..." rows="3" readonly></textarea>
                                         <div class="prompt-actions">
-                                            <button id="generate-prompt-btn" class="button-secondary">Generate Prompt</button>
-                                            <button id="create-image-btn" class="button-primary">Create Image</button>
+                                            <button id="create-image-btn" class="button-primary">🎨 Create Image</button>
                                         </div>
                                     </div>
                                     <div class="image-results" id="image-results"></div>
@@ -1518,27 +1519,12 @@
                                 </div>
                                 
                                 <div class="settings-section">
-                                    <h4>Parameters</h4>
+                                    <h4>Preset-Based System</h4>
                                     <div class="setting-group">
-                                        <label>Default Steps:</label>
-                                        <input type="number" id="default-steps" value="20" min="1" max="100">
-                                    </div>
-                                    <div class="setting-group">
-                                        <label>Default CFG Scale:</label>
-                                        <input type="number" id="default-cfg-scale" value="7.0" min="0.1" max="20" step="0.1">
-                                    </div>
-                                    <div class="setting-group">
-                                        <label>Default Width:</label>
-                                        <input type="number" id="default-width" value="512" min="256" max="2048" step="64">
-                                    </div>
-                                    <div class="setting-group">
-                                        <label>Default Height:</label>
-                                        <input type="number" id="default-height" value="512" min="256" max="2048" step="64">
-                                    </div>
-                                    <div class="setting-group">
-                                        <label>Negative Prompt:</label>
-                                        <textarea id="negative-prompt" placeholder="Things to avoid in generated images (e.g., blurry, low quality, distorted)" rows="3"></textarea>
-                                        <p class="setting-description">Specify what you don't want in the generated images.</p>
+                                        <p class="setting-description">Users can now select from predefined safe presets instead of technical parameters. This prevents jailbreaking and inappropriate content while maintaining creative flexibility.</p>
+                                        <p class="setting-description" style="margin-top: 10px; color: #4CAF50;">✓ All technical parameters (steps, CFG scale, dimensions) are now automatically configured based on presets</p>
+                                        <p class="setting-description" style="color: #4CAF50;">✓ Content filtering is automatically applied to all user inputs</p>
+                                        <p class="setting-description" style="color: #4CAF50;">✓ Users cannot bypass safety measures</p>
                                     </div>
                                 </div>
                                 
@@ -2783,20 +2769,8 @@
             $('#auto-trigger-keywords').val(settings.autoTriggerKeywords || 'send me a picture, take a picture, draw me');
             $('#allow-prompt-editing').prop('checked', settings.allowPromptEditing !== false);
             
-            // Load provider-specific defaults
-            if (provider === 'nanogpt') {
-                $('#default-steps').val(settings.defaultSteps || 10);
-                $('#default-cfg-scale').val(settings.defaultScale || 7.5);
-                $('#default-width').val(settings.defaultWidth || 1024);
-                $('#default-height').val(settings.defaultHeight || 1024);
-            } else {
-                $('#default-steps').val(settings.defaultSteps || 20);
-                $('#default-cfg-scale').val(settings.defaultCfgScale || 7.0);
-                $('#default-width').val(settings.defaultWidth || 512);
-                $('#default-height').val(settings.defaultHeight || 512);
-            }
-            
-            $('#negative-prompt').val(settings.negativePrompt || '');
+            // Note: Technical parameters (steps, cfg scale, width, height) are now handled
+            // by the preset system server-side, so they are not loaded here
             
             // Load slash command templates
             $('#slash-self-template').val(settings.slashSelfTemplate || 'Create a selfie prompt based on the character description and current chat context. Focus on the character\'s appearance, expression, and current situation.');
@@ -2824,18 +2798,7 @@
                 console.log('Provider changed to:', newProvider);
                 loadModelsForProvider(newProvider);
                 
-                // Update provider-specific defaults
-                if (newProvider === 'nanogpt') {
-                    $('#default-steps').val(10);
-                    $('#default-cfg-scale').val(7.5);
-                    $('#default-width').val(1024);
-                    $('#default-height').val(1024);
-                } else {
-                    $('#default-steps').val(20);
-                    $('#default-cfg-scale').val(7.0);
-                    $('#default-width').val(512);
-                    $('#default-height').val(512);
-                }
+                // Note: Technical parameters are now handled by the preset system
             });
         }
         
@@ -2905,28 +2868,23 @@
             
             const settings = {
                 provider: $('#image-provider').val(),
-                customPromptTemplate: $('#custom-prompt-template').val(),
+                customPromptTemplate: $('#custom-prompt-template').val() || '',
                 useFullHistory: $('#use-full-history').is(':checked'),
-                autoTriggerKeywords: $('#auto-trigger-keywords').val(),
+                autoTriggerKeywords: $('#auto-trigger-keywords').val() || '',
                 allowPromptEditing: $('#allow-prompt-editing').is(':checked'),
-                defaultSteps: parseInt($('#default-steps').val()),
-                defaultCfgScale: parseFloat($('#default-cfg-scale').val()),
-                defaultWidth: parseInt($('#default-width').val()),
-                defaultHeight: parseInt($('#default-height').val()),
-                defaultModel: $('#default-model').val(),
-                negativePrompt: $('#negative-prompt').val(),
-                slashSelfTemplate: $('#slash-self-template').val(),
-                slashGenerateTemplate: $('#slash-generate-template').val(),
-                slashLookTemplate: $('#slash-look-template').val(),
-                slashCustom1Template: $('#slash-custom1-template').val(),
-                slashCustom2Template: $('#slash-custom2-template').val(),
-                slashCustom3Template: $('#slash-custom3-template').val(),
-                customSelfCommand: $('#custom-self-command').val(),
-                customGenerateCommand: $('#custom-generate-command').val(),
-                customLookCommand: $('#custom-look-command').val(),
-                customCommand1: $('#custom-command1').val(),
-                customCommand2: $('#custom-command2').val(),
-                customCommand3: $('#custom-command3').val()
+                defaultModel: $('#default-model').val() || '',
+                slashSelfTemplate: $('#slash-self-template').val() || '',
+                slashGenerateTemplate: $('#slash-generate-template').val() || '',
+                slashLookTemplate: $('#slash-look-template').val() || '',
+                slashCustom1Template: $('#slash-custom1-template').val() || '',
+                slashCustom2Template: $('#slash-custom2-template').val() || '',
+                slashCustom3Template: $('#slash-custom3-template').val() || '',
+                customSelfCommand: $('#custom-self-command').val() || '/self',
+                customGenerateCommand: $('#custom-generate-command').val() || '/generate',
+                customLookCommand: $('#custom-look-command').val() || '/look',
+                customCommand1: $('#custom-command1').val() || '/custom1',
+                customCommand2: $('#custom-command2').val() || '/custom2',
+                customCommand3: $('#custom-command3').val() || '/custom3'
             };
             
             // Update slash commands with custom command names

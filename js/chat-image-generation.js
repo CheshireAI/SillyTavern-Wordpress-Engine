@@ -69,10 +69,18 @@
             importImageSettings(e);
         });
         
-        // Generate prompt
-        $(document).on('click.imageSettings', '#generate-prompt-btn', function(e) {
+        // Preset selection change
+        $(document).on('change.imageSettings', '#image-preset', function(e) {
             e.preventDefault();
-            generateImagePrompt();
+            updatePresetDescription();
+        });
+        
+        // User description input
+        $(document).on('input.imageSettings', '#user-description', function(e) {
+            e.preventDefault();
+            if ($('#image-preset').val()) {
+                generateImagePromptFromPreset();
+            }
         });
         
         // Create image
@@ -232,63 +240,125 @@
         });
     }
 
+    // Update preset description when selected
+    function updatePresetDescription() {
+        const presetId = $('#image-preset').val();
+        if (!presetId) {
+            $('#preset-description').text('');
+            $('#final-prompt-section').hide();
+            return;
+        }
+        
+        // Load presets from server
+        $.ajax({
+            url: pmv_ajax_object.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'pmv_get_image_presets',
+                nonce: pmv_ajax_object.nonce
+            },
+            success: function(response) {
+                if (response.success && response.data.presets) {
+                    const presets = response.data.presets;
+                    if (presets[presetId]) {
+                        const preset = presets[presetId];
+                        $('#preset-description').text(preset.description);
+                        // Store preset config in data attribute for later use
+                        $('#image-preset').data('preset-config', preset.config);
+                        
+                        // If user description exists, generate prompt
+                        if ($('#user-description').val()) {
+                            generateImagePromptFromPreset();
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Generate prompt from preset
+    function generateImagePromptFromPreset() {
+        const presetId = $('#image-preset').val();
+        const userDescription = $('#user-description').val();
+        
+        if (!presetId) {
+            $('#final-prompt-section').hide();
+            return;
+        }
+        
+        if (!userDescription || !userDescription.trim()) {
+            $('#final-prompt-section').hide();
+            return;
+        }
+        
+        // Send to server for prompt generation with content filtering
+        $.ajax({
+            url: pmv_ajax_object.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'pmv_generate_image_prompt',
+                nonce: pmv_ajax_object.nonce,
+                user_prompt: userDescription,
+                preset_id: presetId,
+                context: window.PMV_ChatCore ? JSON.stringify(window.PMV_ChatCore.collectConversationHistory().slice(-3)) : '{}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#generated-prompt').val(response.data.final_prompt);
+                    $('#final-prompt-section').show();
+                } else {
+                    alert('Error: ' + (response.data?.message || 'Failed to generate prompt'));
+                    $('#final-prompt-section').hide();
+                }
+            },
+            error: function() {
+                alert('Network error while generating prompt');
+                $('#final-prompt-section').hide();
+            }
+        });
+    }
+    
     // Create image with validation
     function createImage() {
-        const prompt = $('#generated-prompt').val() || $('#custom-prompt').val();
+        const prompt = $('#generated-prompt').val();
+        const presetId = $('#image-preset').val();
         const settings = JSON.parse(localStorage.getItem('pmv_image_settings') || '{}');
         const provider = settings.provider || 'swarmui';
         
+        // Validate preset
+        if (!presetId) {
+            alert('Please select a type of image to create.');
+            return;
+        }
+        
         // Validate prompt
         if (!prompt || !prompt.trim()) {
-            alert('Please generate or enter a prompt first.');
+            alert('Please describe what you want to see.');
             return;
         }
         
-        // Limit prompt length
-        if (prompt.length > 2000) {
-            alert('Prompt is too long (maximum 2000 characters)');
+        // Get preset config
+        const presetConfig = $('#image-preset').data('preset-config');
+        if (!presetConfig) {
+            alert('Invalid preset configuration. Please refresh and try again.');
             return;
         }
         
-        // Check for potentially harmful content
-        if (prompt.includes('<script') || prompt.includes('javascript:')) {
-            alert('Prompt contains invalid content');
-            return;
-        }
-        
-        // Get model based on provider
-        let model;
-        if (provider === 'nanogpt') {
-            model = $('#default-model').val();
-        } else {
-            model = $('#swarmui-model').val();
-        }
+        // Get default model - use hidden technical parameters from preset
+        let model = $('#default-model').val() || $('#swarmui-model').val();
         
         // Validate model
         if (!model || !model.trim()) {
-            alert('Please select a model.');
-            return;
+            // Fallback to default model
+            model = 'OfficialStableDiffusion/sd_xl_base_1.0';
         }
         
-        // Validate and sanitize parameters
-        let steps = parseInt($('#image-steps').val()) || 20;
-        let cfgScale = parseFloat($('#image-cfg-scale').val()) || 7.0;
-        let width = parseInt($('#image-width').val()) || 512;
-        let height = parseInt($('#image-height').val()) || 512;
-        
-        // Validate parameter ranges
-        if (steps < 1 || steps > 100) {
-            steps = 20;
-        }
-        if (cfgScale < 0.1 || cfgScale > 20.0) {
-            cfgScale = 7.0;
-        }
-        if (width < 256 || width > 2048 || width % 64 !== 0) {
-            width = 512;
-        }
-        if (height < 256 || height > 2048 || height % 64 !== 0) {
-            height = 512;
-        }
+        // Use preset configuration
+        const steps = presetConfig.steps || 20;
+        const cfgScale = presetConfig.cfg_scale || 7.0;
+        const width = presetConfig.width || 512;
+        const height = presetConfig.height || 512;
+        const negativePrompt = presetConfig.negative_prompt || 'blurry, low quality, distorted';
         
         $('#create-image-btn').prop('disabled', true).text('Creating...');
         
@@ -314,7 +384,7 @@
                 height: height,
                 steps: steps,
                 cfg_scale: cfgScale,
-                negative_prompt: $('#negative-prompt').val() || ''
+                negative_prompt: negativePrompt
             },
             success: function(response) {
                 if (response.success) {
@@ -335,7 +405,7 @@
                 `);
             },
             complete: function() {
-                $('#create-image-btn').prop('disabled', false).text('Create Image');
+                $('#create-image-btn').prop('disabled', false).text('🎨 Create Image');
             }
         });
     }
@@ -403,49 +473,48 @@
     function loadImageSettings() {
         const settings = JSON.parse(localStorage.getItem('pmv_image_settings') || '{}');
         
-        // Populate form fields
-        $('#custom-prompt-template').val(settings.custom_prompt_template || '');
-        $('#use-full-history').prop('checked', settings.use_full_history !== false);
-        $('#auto-trigger-keywords').val(settings.auto_trigger_keywords || '');
-        $('#allow-prompt-editing').prop('checked', settings.allow_prompt_editing !== false);
-        $('#image-provider').val(settings.provider || 'swarmui');
-        $('#default-steps').val(settings.default_steps || 20);
-        $('#default-cfg-scale').val(settings.default_cfg_scale || 7.0);
-        $('#default-width').val(settings.default_width || 512);
-        $('#default-height').val(settings.default_height || 512);
-        $('#negative-prompt').val(settings.negative_prompt || '');
+        // Populate form fields - only load settings that still exist
+        if ($('#custom-prompt-template').length) {
+            $('#custom-prompt-template').val(settings.custom_prompt_template || '');
+        }
+        if ($('#use-full-history').length) {
+            $('#use-full-history').prop('checked', settings.use_full_history !== false);
+        }
+        if ($('#auto-trigger-keywords').length) {
+            $('#auto-trigger-keywords').val(settings.auto_trigger_keywords || '');
+        }
+        if ($('#allow-prompt-editing').length) {
+            $('#allow-prompt-editing').prop('checked', settings.allow_prompt_editing !== false);
+        }
+        if ($('#image-provider').length) {
+            $('#image-provider').val(settings.provider || 'swarmui');
+        }
         
-        // Load slash command templates
-        $('#slash-self-template').val(settings.slash_self_template || '');
-        $('#slash-generate-template').val(settings.slash_generate_template || '');
-        $('#slash-look-template').val(settings.slash_look_template || '');
-        $('#slash-custom1-template').val(settings.slash_custom1_template || '');
-        $('#slash-custom2-template').val(settings.slash_custom2_template || '');
-        $('#slash-custom3-template').val(settings.slash_custom3_template || '');
-        
-        // Update image panel with settings
-        updateImagePanelWithSettings(settings);
+        // Load slash command templates if they exist
+        if ($('#slash-self-template').length) {
+            $('#slash-self-template').val(settings.slash_self_template || '');
+            $('#slash-generate-template').val(settings.slash_generate_template || '');
+            $('#slash-look-template').val(settings.slash_look_template || '');
+            $('#slash-custom1-template').val(settings.slash_custom1_template || '');
+            $('#slash-custom2-template').val(settings.slash_custom2_template || '');
+            $('#slash-custom3-template').val(settings.slash_custom3_template || '');
+        }
     }
 
     // Save image settings
     function saveImageSettings() {
         const settings = {
-            custom_prompt_template: $('#custom-prompt-template').val(),
+            custom_prompt_template: $('#custom-prompt-template').val() || '',
             use_full_history: $('#use-full-history').is(':checked'),
-            auto_trigger_keywords: $('#auto-trigger-keywords').val(),
+            auto_trigger_keywords: $('#auto-trigger-keywords').val() || '',
             allow_prompt_editing: $('#allow-prompt-editing').is(':checked'),
-            provider: $('#image-provider').val(),
-            default_steps: parseInt($('#default-steps').val()) || 20,
-            default_cfg_scale: parseFloat($('#default-cfg-scale').val()) || 7.0,
-            default_width: parseInt($('#default-width').val()) || 512,
-            default_height: parseInt($('#default-height').val()) || 512,
-            negative_prompt: $('#negative-prompt').val(),
-            slash_self_template: $('#slash-self-template').val(),
-            slash_generate_template: $('#slash-generate-template').val(),
-            slash_look_template: $('#slash-look-template').val(),
-            slash_custom1_template: $('#slash-custom1-template').val(),
-            slash_custom2_template: $('#slash-custom2-template').val(),
-            slash_custom3_template: $('#slash-custom3-template').val()
+            provider: $('#image-provider').val() || 'swarmui',
+            slash_self_template: $('#slash-self-template').val() || '',
+            slash_generate_template: $('#slash-generate-template').val() || '',
+            slash_look_template: $('#slash-look-template').val() || '',
+            slash_custom1_template: $('#slash-custom1-template').val() || '',
+            slash_custom2_template: $('#slash-custom2-template').val() || '',
+            slash_custom3_template: $('#slash-custom3-template').val() || ''
         };
         
         localStorage.setItem('pmv_image_settings', JSON.stringify(settings));
@@ -457,12 +526,10 @@
         alert('Settings saved successfully!');
     }
 
-    // Update image panel with settings
+    // Update image panel with settings (no longer needed, but kept for compatibility)
     function updateImagePanelWithSettings(settings) {
-        $('#image-steps').val(settings.default_steps || 20);
-        $('#image-cfg-scale').val(settings.default_cfg_scale || 7.0);
-        $('#image-width').val(settings.default_width || 512);
-        $('#image-height').val(settings.default_height || 512);
+        // Preset system uses server-side configuration
+        // No client-side technical parameters to set
     }
 
     // Setup auto-trigger for image generation
@@ -559,7 +626,9 @@
         setupAutoTrigger,
         generateImagePrompt,
         exportImageSettings,
-        importImageSettings
+        importImageSettings,
+        updatePresetDescription,
+        generateImagePromptFromPreset
     };
 
     // Initialize when document is ready

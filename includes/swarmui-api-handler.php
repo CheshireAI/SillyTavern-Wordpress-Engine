@@ -51,8 +51,9 @@ class PMV_SwarmUI_API_Handler extends PMV_API_Handler_Base {
         }
 
         // SwarmUI expects an (empty) JSON body, so pass an empty object
+        // Increased timeout to handle slow SwarmUI server responses
         $response = wp_remote_post($url, array(
-            'timeout'   => 15,
+            'timeout'   => 30,
             'sslverify' => false,
             'headers'   => $headers,
             'body'      => '{}'
@@ -406,7 +407,7 @@ class PMV_SwarmUI_API_Handler extends PMV_API_Handler_Base {
 
         $response = wp_remote_post($url, array(
             'body' => json_encode($request_data),
-            'timeout' => 15,
+            'timeout' => 30,
             'sslverify' => false,
             'headers' => $headers
         ));
