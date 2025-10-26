@@ -103,6 +103,25 @@ if (file_exists(PMV_PLUGIN_DIR . 'includes/image-presets.php')) {
     require_once PMV_PLUGIN_DIR . 'includes/image-presets.php';
 }
 
+// Increase timeout limits for image generation to prevent 504 Gateway Timeout
+add_filter('wp_doing_ajax', function($doing_ajax) {
+    if ($doing_ajax && isset($_POST['action']) && strpos($_POST['action'], 'pmv_generate_image') !== false) {
+        // For image generation AJAX requests, extend execution time
+        @ini_set('max_execution_time', 360); // 6 minutes
+        @ini_set('max_input_time', 360);
+        @ini_set('memory_limit', '512M');
+        @set_time_limit(360);
+    }
+    return $doing_ajax;
+});
+
+// Also set limits early for all requests that might be doing image generation
+if (wp_doing_ajax() && isset($_POST['action']) && strpos($_POST['action'], 'pmv_generate_image') !== false) {
+    @ini_set('max_execution_time', 360);
+    @set_time_limit(360);
+    @ini_set('memory_limit', '512M');
+}
+
 // Add hook to backup settings before plugin updates
 add_action('upgrader_process_complete', 'pmv_backup_settings_before_update', 10, 2);
 

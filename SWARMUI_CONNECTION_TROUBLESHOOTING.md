@@ -118,7 +118,12 @@ If SwarmUI continues to have connection issues, you can switch to Nano-GPT:
 
 I've made the following improvements to handle connection issues better:
 
-1. **Increased Timeout**: Changed from 10 seconds to 30 seconds for API calls
+1. **Increased Timeout**: All timeouts now set to 5 minutes (300 seconds)
+   - Session creation: 60 seconds
+   - Model loading: 60 seconds  
+   - Image generation: 300 seconds (5 minutes)
+   - Image fetching: 300 seconds (5 minutes)
+   - JavaScript AJAX: 5 minutes
 2. **Better Error Handling**: More descriptive error messages
 3. **Diagnostic Script**: Created `test-swarmui-connection.php` to help debug
 
@@ -138,6 +143,21 @@ If you continue to have connection problems:
 3. Verify SwarmUI is running on the server
 4. Check firewall rules
 5. Try the connection from a different network (to rule out network issues)
+
+## PHP Configuration
+
+Make sure your PHP settings allow long-running scripts:
+
+```php
+// In php.ini or wp-config.php
+set_time_limit(360); // 6 minutes (longer than our 5 min timeout)
+ini_set('max_execution_time', 360);
+```
+
+Or add to your `.htaccess`:
+```apache
+php_value max_execution_time 360
+```
 
 ## Need More Help?
 

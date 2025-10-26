@@ -53,7 +53,7 @@ class PMV_SwarmUI_API_Handler extends PMV_API_Handler_Base {
         // SwarmUI expects an (empty) JSON body, so pass an empty object
         // Increased timeout to handle slow SwarmUI server responses
         $response = wp_remote_post($url, array(
-            'timeout'   => 30,
+            'timeout'   => 60,
             'sslverify' => false,
             'headers'   => $headers,
             'body'      => '{}'
@@ -332,13 +332,13 @@ class PMV_SwarmUI_API_Handler extends PMV_API_Handler_Base {
                 }
 
                 // Remote URL – fetch binary (first attempt)
-                $remote_resp = wp_remote_get($absolute_url, array('timeout' => 120, 'sslverify' => false));
+                $remote_resp = wp_remote_get($absolute_url, array('timeout' => 300, 'sslverify' => false));
 
                 // If failure and we used HTTPS, retry with HTTP
                 if (is_wp_error($remote_resp) || wp_remote_retrieve_response_code($remote_resp) !== 200) {
                     if (stripos($absolute_url, 'https://') === 0) {
                         $absolute_url_http = 'http://' . substr($absolute_url, 8);
-                        $remote_resp       = wp_remote_get($absolute_url_http, array('timeout' => 120, 'sslverify' => false));
+                        $remote_resp       = wp_remote_get($absolute_url_http, array('timeout' => 300, 'sslverify' => false));
                     }
                 }
 
@@ -407,7 +407,7 @@ class PMV_SwarmUI_API_Handler extends PMV_API_Handler_Base {
 
         $response = wp_remote_post($url, array(
             'body' => json_encode($request_data),
-            'timeout' => 30,
+            'timeout' => 60,
             'sslverify' => false,
             'headers' => $headers
         ));

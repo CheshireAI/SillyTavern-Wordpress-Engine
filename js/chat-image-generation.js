@@ -371,9 +371,11 @@
         `);
         
         // Make AJAX request
+        // 5 minute timeout to allow for slow image generation
         $.ajax({
             url: pmv_ajax_object.ajax_url,
             type: 'POST',
+            timeout: 300000, // 5 minutes in milliseconds
             data: {
                 action: 'pmv_generate_image_websocket',
                 nonce: pmv_ajax_object.nonce,
