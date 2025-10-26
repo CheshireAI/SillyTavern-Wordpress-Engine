@@ -1,0 +1,138 @@
+/* CRITICAL: Force dark theme for filter container */
+.png-filters-container {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+    backdrop-filter: blur(10px) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    margin-bottom: 40px !important;
+    animation: filterFadeIn 0.6s ease-out !important;
+}
+
+/* Force dark theme for all filter elements */
+.pmv-filters-wrapper {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+    gap: 20px !important;
+    padding: 25px !important;
+    width: 100% !important;
+    max-width: 1400px !important;
+    margin: 0 auto !important;
+    align-items: end !important;
+}
+
+.pmv-filter-group label {
+    color: #888 !important;
+    font-size: 12px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    font-weight: 600 !important;
+}
+
+#pmv-search,
+.pmv-filter-select {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+    padding: 12px 16px !important;
+    border-radius: 8px !important;
+    font-size: 15px !important;
+}
+
+/* Chat styling - FIXED: Use dark theme colors for better contrast on mobile */
+.chat-message {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    max-width: 80%;
+    word-wrap: break-word;
+}
+
+.chat-message.user {
+    background-color: #23404e !important;
+    color: #e0e0e0 !important;
+    margin-left: auto;
+    border-bottom-right-radius: 2px;
+}
+
+.chat-message.bot {
+    background-color: #232323 !important;
+    color: #e0e0e0 !important;
+    margin-right: auto;
+    border-bottom-left-radius: 2px;
+}
+
+.chat-message.error {
+    background-color: #5a2626 !important;
+    color: #ffcccc !important;
+}
+
+.typing-indicator {
+    padding: 8px;
+    background-color: #333 !important;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    display: inline-block;
+    margin-right: auto;
+    color: #999 !important;
+}
+
+/* Mobile-specific fixes moved to chat.js for better organization and to prevent conflicts */
+
+/* Set custom background for filters container - DARK THEME */
+.png-filters-container {
+    padding: 15px !important;
+    border-radius: 8px !important;
+}
+
+/* Set gallery background - DARK THEME */
+.png-cards-loading-wrapper {
+    background-color: #222 !important;
+    padding: 0px !important;
+    border-radius: 0px !important;
+    border: 0px solid #444 !important;
+    box-shadow: none !important;
+}
+
+/* Conversation Manager Styles */
+.conversation-sidebar {
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+}
+
+.conversation-item {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.conversation-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.conversation-item.active {
+    background: rgba(59, 130, 246, 0.3);
+    border-color: #3b82f6;
+}
+
+.delete-conversation {
+    color: #ef4444;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+/* Save button indicator */
+#save-conversation.has-changes {
+    background-color: #23404e !important;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+} 

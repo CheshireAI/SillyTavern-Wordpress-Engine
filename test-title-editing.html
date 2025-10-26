@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversation Title Editing Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .conversation-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            position: relative;
+        }
+        .conversation-title {
+            font-weight: 500;
+            margin-bottom: 5px;
+            cursor: pointer;
+            color: #007bff;
+        }
+        .conversation-title:hover {
+            text-decoration: underline;
+        }
+        .conversation-actions {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: flex;
+            gap: 4px;
+        }
+        .edit-btn, .delete-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 3px;
+            opacity: 0.7;
+            transition: all 0.2s ease;
+        }
+        .edit-btn:hover, .delete-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        .edit-btn { color: #007bff; }
+        .delete-btn { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Conversation Title Editing Test</h1>
+        <p>This page demonstrates the conversation title editing functionality that has been added to the conversation manager.</p>
+        
+        <h2>Features Added:</h2>
+        <ul>
+            <li><strong>Title Input Dialog:</strong> When saving a conversation, users can now edit the title before saving</li>
+            <li><strong>Clickable Titles:</strong> Click on any conversation title to edit it</li>
+            <li><strong>Edit Button:</strong> Use the ✏️ button to edit conversation titles</li>
+            <li><strong>Real-time Updates:</strong> Titles are updated immediately in the database</li>
+        </ul>
+        
+        <h2>Test the Dialog:</h2>
+        <button class="test-button" onclick="showTitleDialog()">Show Save Dialog</button>
+        <button class="test-button" onclick="showEditDialog()">Show Edit Dialog</button>
+        
+        <h2>Sample Conversation Items:</h2>
+        <div class="conversation-item">
+            <div class="conversation-title" onclick="editTitle(this, 'Sample conversation about AI characters')">
+                Sample conversation about AI characters
+            </div>
+            <div class="conversation-date">2024-01-15 • 12 messages</div>
+            <div class="conversation-actions">
+                <button class="edit-btn" onclick="editTitle(this.parentElement.previousElementSibling.previousElementSibling, 'Sample conversation about AI characters')" title="Edit title">✏️</button>
+                <button class="delete-btn" title="Delete conversation">✕</button>
+            </div>
+        </div>
+        
+        <div class="conversation-item">
+            <div class="conversation-title" onclick="editTitle(this, 'Another chat session')">
+                Another chat session
+            </div>
+            <div class="conversation-date">2024-01-14 • 8 messages</div>
+            <div class="conversation-actions">
+                <button class="edit-btn" onclick="editTitle(this.parentElement.previousElementSibling.previousElementSibling, 'Another chat session')" title="Edit title">✏️</button>
+                <button class="delete-btn" title="Delete conversation">✕</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTitleDialog() {
+            showDialog('💾 Save Conversation', 'Enter a title for this conversation...', 'Save Conversation', (title) => {
+                if (title) {
+                    alert('Would save conversation with title: ' + title);
+                }
+            });
+        }
+        
+        function showEditDialog() {
+            showDialog('✏️ Edit Conversation Title', 'Enter a new title for this conversation...', 'Update Title', (title) => {
+                if (title) {
+                    alert('Would update title to: ' + title);
+                }
+            });
+        }
+        
+        function editTitle(element, currentTitle) {
+            showDialog('✏️ Edit Conversation Title', 'Enter a new title for this conversation...', 'Update Title', (title) => {
+                if (title && title !== currentTitle) {
+                    element.textContent = title;
+                    alert('Title updated to: ' + title);
+                }
+            }, currentTitle);
+        }
+        
+        function showDialog(title, placeholder, buttonText, callback, defaultValue = '') {
+            // Remove existing dialog
+            const existing = document.querySelector('.pmv-title-dialog');
+            if (existing) existing.remove();
+            
+            const dialog = document.createElement('div');
+            dialog.className = 'pmv-title-dialog';
+            dialog.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+                background: rgba(0, 0, 0, 0.8); z-index: 999999; 
+                display: flex; align-items: center; justify-content: center;
+                backdrop-filter: blur(5px);
+            `;
+            
+            dialog.innerHTML = `
+                <div class="dialog-content" style="
+                    background: #2d2d2d; border: 1px solid #444; border-radius: 12px;
+                    padding: 30px; max-width: 500px; width: 90%; 
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+                ">
+                    <h3 style="margin: 0 0 20px 0; color: #ffffff; font-size: 20px; text-align: center; font-weight: 600;">
+                        ${title}
+                    </h3>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label for="conversation-title" style="
+                            display: block; margin-bottom: 8px; color: #e0e0e0;
+                            font-weight: 500; font-size: 14px;
+                        ">Conversation Title:</label>
+                        <input type="text" id="conversation-title" 
+                               value="${defaultValue}"
+                               placeholder="${placeholder}"
+                               style="
+                                   width: 100%; padding: 12px 16px; 
+                                   background: #1a1a1a; border: 2px solid #444;
+                                   border-radius: 8px; color: #ffffff; font-size: 16px;
+                                   box-sizing: border-box;
+                               "
+                               maxlength="200"
+                        >
+                    </div>
+                    
+                    <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 25px;">
+                        <button class="cancel-btn" style="
+                            background: #555; color: #ffffff; border: none;
+                            padding: 12px 24px; border-radius: 8px; cursor: pointer;
+                            font-size: 14px; font-weight: 500;
+                        ">Cancel</button>
+                        <button class="confirm-btn" style="
+                            background: #007bff; color: #ffffff; border: none;
+                            padding: 12px 24px; border-radius: 8px; cursor: pointer;
+                            font-size: 14px; font-weight: 600;
+                        ">${buttonText}</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(dialog);
+            
+            const input = dialog.querySelector('#conversation-title');
+            const cancelBtn = dialog.querySelector('.cancel-btn');
+            const confirmBtn = dialog.querySelector('.confirm-btn');
+            
+            // Focus and select input
+            setTimeout(() => {
+                input.focus();
+                input.select();
+            }, 100);
+            
+            // Event handlers
+            cancelBtn.onclick = () => {
+                dialog.remove();
+                callback(null);
+            };
+            
+            confirmBtn.onclick = () => {
+                const title = input.value.trim();
+                if (!title) {
+                    alert('Please enter a title for the conversation');
+                    return;
+                }
+                dialog.remove();
+                callback(title);
+            };
+            
+            input.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    confirmBtn.click();
+                } else if (e.key === 'Escape') {
+                    cancelBtn.click();
+                }
+            };
+            
+            dialog.onclick = (e) => {
+                if (e.target === dialog) {
+                    cancelBtn.click();
+                }
+            };
+        }
+    </script>
+</body>
+</html>

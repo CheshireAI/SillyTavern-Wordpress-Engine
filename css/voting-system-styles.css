@@ -1,0 +1,344 @@
+/* Voting System Styles - Streamlined Design */
+
+.pmv-vote-container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    margin: 8px auto !important;
+    padding: 6px 12px !important;
+    background: rgba(0, 0, 0, 0.3) !important;
+    border-radius: 6px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(2px) !important;
+    width: fit-content !important;
+    min-width: 160px !important;
+    max-width: 200px !important;
+}
+
+.pmv-vote-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    min-width: 32px;
+    justify-content: center;
+}
+
+.pmv-vote-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-1px);
+}
+
+.pmv-vote-btn:active {
+    transform: translateY(0);
+}
+
+.pmv-vote-btn.pmv-voted-up {
+    background: rgba(76, 175, 80, 0.2);
+    border-color: rgba(76, 175, 80, 0.6);
+    color: #4CAF50;
+}
+
+.pmv-vote-btn.pmv-voted-down {
+    background: rgba(244, 67, 54, 0.2);
+    border-color: rgba(244, 67, 54, 0.6);
+    color: #F44336;
+}
+
+.pmv-vote-icon {
+    font-size: 14px;
+    line-height: 1;
+}
+
+.pmv-vote-count {
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+    min-width: 16px;
+    text-align: center;
+}
+
+.pmv-vote-score {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    padding: 2px 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    min-width: 24px;
+    text-align: center;
+}
+
+.pmv-score-positive {
+    color: #4CAF50 !important;
+    background: rgba(76, 175, 80, 0.1) !important;
+    border-color: rgba(76, 175, 80, 0.3) !important;
+}
+
+.pmv-score-negative {
+    color: #F44336 !important;
+    background: rgba(244, 67, 54, 0.1) !important;
+    border-color: rgba(244, 67, 54, 0.3) !important;
+}
+
+.pmv-score-neutral {
+    color: rgba(255, 255, 255, 0.7) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Removed total votes display - now using centered layout */
+
+/* Compact layout for smaller cards */
+.png-card .pmv-vote-container {
+    margin: 6px auto;
+    padding: 4px 8px;
+    gap: 6px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Ensure proper card layout */
+.png-card {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    position: relative !important;
+    align-items: stretch !important;
+}
+
+.png-card .png-image-container {
+    flex-shrink: 0 !important;
+    position: relative !important;
+    width: 100% !important;
+}
+
+.png-card .png-card-info {
+    flex: 1 !important;
+    overflow: hidden !important;
+    min-height: 0 !important;
+    padding: 8px !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+}
+
+/* Ensure voting container is properly centered */
+.png-card .pmv-vote-container {
+    align-self: center !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* Debug borders removed for cleaner appearance */
+
+.png-card .png-card-name {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    margin-bottom: 8px !important;
+    font-weight: bold !important;
+    color: #f0f0f0 !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    word-break: break-all !important;
+    hyphens: auto !important;
+}
+
+/* Force text truncation for all character names */
+.png-card .png-card-name,
+.png-card-info .png-card-name,
+.png-card .png-card-name {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    display: block !important;
+    box-sizing: border-box !important;
+}
+
+.png-card .png-card-description {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    text-overflow: clip !important;
+    display: block !important;
+    line-height: 1.4 !important;
+    margin-bottom: 8px !important;
+    max-height: 200px !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+}
+
+.png-card:hover .pmv-vote-container {
+    background: rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.png-card .pmv-vote-btn {
+    padding: 3px 6px;
+    font-size: 11px;
+    min-width: 28px;
+}
+
+.png-card .pmv-vote-count {
+    font-size: 10px;
+    min-width: 14px;
+}
+
+.png-card .pmv-vote-score {
+    font-size: 11px;
+    padding: 1px 4px;
+    min-width: 20px;
+}
+
+/* Removed pmv-vote-total completely */
+
+/* Hover effects for better interactivity */
+.pmv-vote-btn:hover .pmv-vote-icon {
+    transform: scale(1.1);
+}
+
+.pmv-vote-btn:hover .pmv-vote-count {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Disabled state for non-logged-in users */
+.pmv-vote-btn.pmv-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.pmv-vote-btn.pmv-disabled:hover {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: none;
+}
+
+/* Notifications */
+.pmv-vote-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    z-index: 10000;
+    font-size: 14px;
+    max-width: 300px;
+    backdrop-filter: blur(4px);
+    animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Login prompt */
+.pmv-login-prompt {
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    color: #FFC107;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    text-align: center;
+    margin-top: 8px;
+}
+
+.pmv-login-prompt a {
+    color: #FFC107;
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.pmv-login-prompt a:hover {
+    color: #FFD54F;
+}
+
+.pmv-login-prompt a:visited {
+    color: #FFEB3B;
+}
+
+/* Tooltips */
+.pmv-vote-tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    backdrop-filter: blur(2px);
+}
+
+.pmv-vote-tooltip.show {
+    opacity: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .pmv-vote-container {
+        flex-wrap: wrap;
+        gap: 4px;
+        padding: 4px 8px;
+        max-width: 180px;
+    }
+    
+    .pmv-vote-btn {
+        padding: 3px 6px;
+        font-size: 11px;
+    }
+    
+    .pmv-vote-score {
+        font-size: 11px;
+        padding: 1px 4px;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+    .pmv-vote-container {
+        max-width: 160px;
+        gap: 3px;
+        padding: 3px 6px;
+    }
+    
+    .pmv-vote-btn {
+        padding: 2px 4px;
+        font-size: 10px;
+        min-width: 24px;
+    }
+    
+    .pmv-vote-score {
+        font-size: 10px;
+        padding: 1px 3px;
+    }
+} 

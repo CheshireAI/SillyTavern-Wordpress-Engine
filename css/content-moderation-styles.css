@@ -1,0 +1,1356 @@
+/* Content Moderation Admin Styles */
+/* Dark theme styling as per user preference */
+
+.wrap .card {
+    background: #2d3748;
+    border: 1px solid #4a5568;
+    color: #e2e8f0;
+    margin-bottom: 20px;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.wrap .card h2 {
+    color: #f7fafc;
+    margin-top: 0;
+    border-bottom: 2px solid #4a5568;
+    padding-bottom: 10px;
+}
+
+.wrap .card p {
+    color: #e2e8f0;
+    margin: 10px 0;
+}
+
+.wrap .card strong {
+    color: #f7fafc;
+}
+
+/* Risk level badges */
+.risk-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+/* Button improvements */
+.button {
+    margin: 2px;
+    white-space: nowrap;
+}
+
+/* Button group improvements */
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 15px 0;
+    align-items: center;
+}
+
+.button-group .button {
+    margin: 0;
+}
+
+/* Primary action buttons */
+.button-primary {
+    background: #3182ce;
+    border-color: #3182ce;
+    color: white;
+}
+
+.button-primary:hover {
+    background: #2c5aa0;
+    border-color: #2c5aa0;
+}
+
+/* Secondary action buttons */
+.button-secondary {
+    background: #4a5568;
+    border-color: #4a5568;
+    color: #e2e8f0;
+}
+
+.button-secondary:hover {
+    background: #2d3748;
+    border-color: #2d3748;
+}
+
+/* Status section improvements */
+.status-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.status-item {
+    background: #374151;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #4a5568;
+}
+
+.status-item strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #f7fafc;
+}
+
+.status-item span {
+    color: #a0aec0;
+    font-size: 14px;
+}
+
+/* Compact status layout for better space usage */
+.status-compact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.status-compact .status-item {
+    flex: 1;
+    min-width: 180px;
+    max-width: 250px;
+}
+
+/* Database status improvements */
+.database-status {
+    display: inline-block;
+    background: #2d3748;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid #4a5568;
+    margin: 5px;
+}
+
+.database-status strong {
+    color: #f7fafc;
+    margin-right: 8px;
+}
+
+.database-status span {
+    color: #38a169;
+    font-weight: bold;
+}
+
+.risk-low {
+    background: #38a169;
+    color: white;
+}
+
+.risk-medium {
+    background: #d69e2e;
+    color: white;
+}
+
+.risk-high {
+    background: #e53e3e;
+    color: white;
+}
+
+.risk-critical {
+    background: #9b2c2c;
+    color: white;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+/* Table styling */
+.wp-list-table {
+    background: #2d3748;
+    border: 1px solid #4a5568;
+    color: #e2e8f0;
+    table-layout: fixed;
+    width: 100%;
+}
+
+.wp-list-table thead th {
+    background: #4a5568;
+    color: #f7fafc;
+    border-bottom: 2px solid #718096;
+    padding: 12px 8px;
+    text-align: left;
+    vertical-align: top;
+}
+
+.wp-list-table tbody tr {
+    border-bottom: 1px solid #4a5568;
+}
+
+.wp-list-table tbody tr:hover {
+    background: #374151;
+}
+
+.wp-list-table tbody td {
+    padding: 12px 8px;
+    border-right: 1px solid #4a5568;
+    vertical-align: top;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Specific column widths for moderation log table */
+.wp-list-table th:nth-child(1), /* Date */
+.wp-list-table td:nth-child(1) {
+    width: 140px;
+    min-width: 140px;
+}
+
+.wp-list-table th:nth-child(2), /* User */
+.wp-list-table td:nth-child(2) {
+    width: 100px;
+    min-width: 100px;
+}
+
+.wp-list-table th:nth-child(3), /* Character */
+.wp-list-table td:nth-child(3) {
+    width: 200px;
+    min-width: 200px;
+    max-width: 200px;
+}
+
+/* Character name cell improvements */
+.wp-list-table td:nth-child(3) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.wp-list-table td:nth-child(3):hover {
+    white-space: normal;
+    overflow: visible;
+    position: relative;
+    z-index: 10;
+    background: #2d3748;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.wp-list-table th:nth-child(4), /* Risk Level */
+.wp-list-table td:nth-child(4) {
+    width: 100px;
+    min-width: 100px;
+}
+
+.wp-list-table th:nth-child(5), /* Category */
+.wp-list-table td:nth-child(5) {
+    width: 180px;
+    min-width: 180px;
+}
+
+.wp-list-table th:nth-child(6), /* Details */
+.wp-list-table td:nth-child(6) {
+    width: 120px;
+    min-width: 120px;
+}
+
+.wp-list-table th:nth-child(7), /* Action */
+.wp-list-table td:nth-child(7) {
+    width: 100px;
+    min-width: 100px;
+}
+
+/* Risk level row styling */
+.risk-low {
+    background: rgba(56, 161, 105, 0.1);
+}
+
+.risk-medium {
+    background: rgba(214, 158, 46, 0.1);
+}
+
+.risk-high {
+    background: rgba(229, 62, 62, 0.1);
+}
+
+.risk-critical {
+    background: rgba(155, 44, 44, 0.2);
+}
+
+/* Button styling */
+.button {
+    background: #4a5568;
+    border: 1px solid #718096;
+    color: #e2e8f0;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.button:hover {
+    background: #718096;
+    border-color: #a0aec0;
+    color: #f7fafc;
+}
+
+.button:disabled {
+    background: #2d3748;
+    border-color: #4a5568;
+    color: #718096;
+    cursor: not-allowed;
+}
+
+.button-primary {
+    background: #3182ce;
+    border-color: #4299e1;
+    color: white;
+}
+
+.button-primary:hover {
+    background: #4299e1;
+    border-color: #63b3ed;
+}
+
+/* Form styling */
+.form-table th {
+    color: #f7fafc;
+    padding: 15px 10px 15px 0;
+}
+
+.form-table td {
+    padding: 15px 10px;
+}
+
+.form-table input[type="checkbox"] {
+    background: #4a5568;
+    border: 1px solid #718096;
+    color: #e2e8f0;
+}
+
+.form-table input[type="email"] {
+    background: #4a5568;
+    border: 1px solid #718096;
+    color: #e2e8f0;
+    padding: 8px 12px;
+    border-radius: 4px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.form-table input[type="email"]:focus {
+    outline: none;
+    border-color: #3182ce;
+    box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+}
+
+.form-table .description {
+    color: #a0aec0;
+    font-style: italic;
+    margin-top: 5px;
+}
+
+/* Status messages */
+#scan-status {
+    margin-left: 10px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+#scan-status:empty {
+    display: none;
+}
+
+/* Loading state */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+    .wp-list-table {
+        table-layout: auto;
+    }
+    
+    .wp-list-table th,
+    .wp-list-table td {
+        width: auto !important;
+        min-width: auto !important;
+    }
+    
+    /* Adjust status layout for medium screens */
+    .status-compact {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .wrap .card {
+        padding: 15px;
+    }
+    
+    .wp-list-table {
+        font-size: 14px;
+        table-layout: auto;
+    }
+    
+    .wp-list-table thead th,
+    .wp-list-table tbody td {
+        padding: 8px 4px;
+        width: auto !important;
+        min-width: auto !important;
+    }
+    
+    .wp-list-table th:nth-child(3), /* Character */
+    .wp-list-table td:nth-child(3) {
+        max-width: 150px;
+    }
+    
+    .wp-list-table th:nth-child(5), /* Category */
+    .wp-list-table td:nth-child(5) {
+        max-width: 120px;
+    }
+    
+    .risk-badge {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+    
+    /* Stack buttons vertically on small screens */
+    .button-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .button-group .button {
+        width: 100%;
+        text-align: center;
+    }
+    
+    /* Adjust status layout for small screens */
+    .status-compact {
+        flex-direction: column;
+    }
+    
+    .status-compact .status-item {
+        max-width: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .wp-list-table {
+        font-size: 12px;
+    }
+    
+    .wp-list-table thead th,
+    .wp-list-table tbody td {
+        padding: 6px 2px;
+    }
+    
+    .wp-list-table th:nth-child(1), /* Date */
+    .wp-list-table td:nth-child(1) {
+        max-width: 80px;
+    }
+    
+    .wp-list-table th:nth-child(2), /* User */
+    .wp-list-table td:nth-child(2) {
+        max-width: 60px;
+    }
+    
+    .wp-list-table th:nth-child(3), /* Character */
+    .wp-list-table td:nth-child(3) {
+        max-width: 100px;
+    }
+    
+    /* Hide less important columns on very small screens */
+    .wp-list-table th:nth-child(6), /* Details */
+    .wp-list-table td:nth-child(6) {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .wrap .card {
+        padding: 15px;
+    }
+    
+    .wp-list-table {
+        font-size: 14px;
+        table-layout: auto;
+    }
+    
+    .wp-list-table thead th,
+    .wp-list-table tbody td {
+        padding: 8px 4px;
+        width: auto !important;
+        min-width: auto !important;
+    }
+    
+    .wp-list-table th:nth-child(3), /* Character */
+    .wp-list-table td:nth-child(3) {
+        max-width: 150px;
+    }
+    
+    .wp-list-table th:nth-child(5), /* Category */
+    .wp-list-table td:nth-child(5) {
+        max-width: 120px;
+    }
+    
+    .risk-badge {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+}
+
+@media (max-width: 480px) {
+    .wp-list-table {
+        font-size: 12px;
+    }
+    
+    .wp-list-table thead th,
+    .wp-list-table tbody td {
+        padding: 6px 2px;
+    }
+    
+    .wp-list-table th:nth-child(1), /* Date */
+    .wp-list-table td:nth-child(1) {
+        max-width: 80px;
+    }
+    
+    .wp-list-table th:nth-child(2), /* User */
+    .wp-list-table td:nth-child(2) {
+        max-width: 60px;
+    }
+    
+    .wp-list-table th:nth-child(3), /* Character */
+    .wp-list-table td:nth-child(3) {
+        max-width: 100px;
+    }
+}
+
+/* Dark theme overrides for WordPress admin */
+.wrap {
+    background: #1a202c;
+    color: #e2e8f0;
+    max-width: none;
+    padding: 20px;
+}
+
+/* Content moderation specific layout improvements */
+.wrap .card {
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+/* Override WordPress admin container constraints */
+.wp-admin .wrap {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 20px !important;
+}
+
+.wp-admin .wrap .card {
+    max-width: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* Ensure the table container uses full width */
+#moderation-log {
+    width: 100%;
+    overflow-x: auto;
+    margin: 0;
+    padding: 0;
+    border-radius: 6px;
+    border: 1px solid #4a5568;
+    background: #1a202c;
+}
+
+#moderation-log .wp-list-table {
+    min-width: 940px; /* Ensure minimum width for all columns */
+    margin: 0;
+    border: none;
+    border-radius: 0;
+}
+
+/* Table header improvements */
+#moderation-log .wp-list-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #4a5568;
+    border-bottom: 2px solid #718096;
+}
+
+/* Table row improvements */
+#moderation-log .wp-list-table tbody tr:nth-child(even) {
+    background: #2d3748;
+}
+
+#moderation-log .wp-list-table tbody tr:nth-child(odd) {
+    background: #374151;
+}
+
+#moderation-log .wp-list-table tbody tr:hover {
+    background: #4a5568;
+    transition: background-color 0.2s ease;
+}
+
+/* Scrollbar styling for the table container */
+#moderation-log::-webkit-scrollbar {
+    height: 8px;
+}
+
+#moderation-log::-webkit-scrollbar-track {
+    background: #2d3748;
+    border-radius: 4px;
+}
+
+#moderation-log::-webkit-scrollbar-thumb {
+    background: #4a5568;
+    border-radius: 4px;
+}
+
+#moderation-log::-webkit-scrollbar-thumb:hover {
+    background: #718096;
+}
+
+/* Generated Image Styling */
+.generated-image-container {
+    margin: 15px 0;
+    text-align: center;
+    background: #1a202c;
+    border: 1px solid #4a5568;
+    border-radius: 8px;
+    padding: 15px;
+    position: relative;
+}
+
+.generated-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.generated-image:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.image-info {
+    margin-top: 10px;
+    color: #a0aec0;
+    font-size: 12px;
+    font-style: italic;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Image loading states */
+.generated-image-container.loading {
+    background: #2d3748;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.generated-image-container.loading::before {
+    content: "Loading image...";
+    color: #a0aec0;
+    font-size: 14px;
+}
+
+.generated-image-container.error {
+    background: #2d3748;
+    border-color: #e53e3e;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.generated-image-container.error::before {
+    content: "Image failed to load";
+    color: #e53e3e;
+    font-size: 14px;
+}
+
+/* Message text styling */
+.message-text {
+    margin: 10px 0;
+    line-height: 1.6;
+    color: #e2e8f0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.message-text:first-child {
+    margin-top: 0;
+}
+
+.message-text:last-child {
+    margin-bottom: 0;
+}
+
+/* Mixed content layout */
+.message-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.message-content .generated-image-container {
+    align-self: center;
+}
+
+/* Responsive image handling */
+@media (max-width: 768px) {
+    .generated-image-container {
+        margin: 10px 0;
+        padding: 10px;
+    }
+    
+    .generated-image {
+        max-width: 100%;
+    }
+    
+    .message-text {
+        margin: 8px 0;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .generated-image-container {
+        margin: 8px 0;
+        padding: 8px;
+    }
+    
+    .image-info {
+        font-size: 11px;
+    }
+    
+    .message-text {
+        margin: 6px 0;
+        font-size: 13px;
+    }
+}
+
+/* Enlarged Image Modal */
+.image-enlarged-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.image-enlarged-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+    text-align: center;
+}
+
+.image-enlarged-content img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.image-enlarged-close {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    color: white;
+    font-size: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+}
+
+.image-enlarged-close:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+/* Improve the overall page layout */
+.content-moderation-page {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+}
+
+.content-moderation-page .card {
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.wrap h1 {
+    color: #f7fafc;
+}
+
+/* Settings page specific styling */
+.png_metadata_viewer_settings {
+    background: #2d3748;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.png_metadata_viewer_settings h2 {
+    color: #f7fafc;
+    margin-top: 0;
+}
+
+/* Notification styling */
+.notice {
+    background: #2d3748;
+    border-left: 4px solid #3182ce;
+    color: #e2e8f0;
+    padding: 12px 20px;
+    margin: 20px 0;
+    border-radius: 4px;
+}
+
+.notice.notice-success {
+    border-left-color: #38a169;
+}
+
+.notice.notice-error {
+    border-left-color: #e53e3e;
+}
+
+.notice.notice-warning {
+    border-left-color: #d69e2e;
+}
+
+.notice.notice-info {
+    border-left-color: #3182ce;
+}
+
+/* Conversation Modal Styles */
+.conversation-modal-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+    z-index: 999999 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+}
+
+.conversation-modal {
+    position: relative !important;
+    width: 90% !important;
+    max-width: 800px !important;
+    max-height: 90vh !important;
+    height: auto !important;
+    background: #2d3748 !important;
+    border: 1px solid #4a5568 !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+    margin: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.conversation-modal-header {
+    background: #4a5568 !important;
+    padding: 15px 20px !important;
+    border-bottom: 1px solid #718096 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
+}
+
+.conversation-modal-header h3 {
+    margin: 0 !important;
+    color: #f7fafc !important;
+}
+
+.close-modal {
+    background: none !important;
+    border: none !important;
+    color: #e2e8f0 !important;
+    font-size: 24px !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    width: 30px !important;
+    height: 30px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 4px !important;
+    transition: background-color 0.2s !important;
+}
+
+.close-modal:hover {
+    background: #718096 !important;
+}
+
+.conversation-modal-content {
+    padding: 20px !important;
+    max-height: calc(90vh - 80px) !important;
+    overflow-y: auto !important;
+    color: #e2e8f0 !important;
+    background: #2d3748 !important;
+}
+
+/* Conversation Details Styles */
+.conversation-details h3 {
+    color: #f7fafc !important;
+    margin-top: 0 !important;
+    border-bottom: 2px solid #4a5568 !important;
+    padding-bottom: 10px !important;
+}
+
+.conversation-details h4 {
+    color: #f7fafc !important;
+    margin-top: 25px !important;
+    margin-bottom: 15px !important;
+}
+
+.risk-summary table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-bottom: 20px !important;
+}
+
+.risk-summary th,
+.risk-summary td {
+    padding: 8px 12px !important;
+    text-align: left !important;
+    border-bottom: 1px solid #4a5568 !important;
+}
+
+.risk-summary th {
+    background: #4a5568 !important;
+    color: #f7fafc !important;
+    font-weight: bold !important;
+    width: 30% !important;
+}
+
+.conversation-context p {
+    margin: 8px 0 !important;
+    padding: 8px 0 !important;
+    border-bottom: 1px solid #4a5568 !important;
+}
+
+.conversation-context strong {
+    color: #f7fafc !important;
+    display: inline-block !important;
+    width: 100px !important;
+}
+
+/* Message Styles */
+.conversation-messages {
+    max-height: 400px !important;
+    overflow-y: auto !important;
+    border: 1px solid #4a5568 !important;
+    border-radius: 4px !important;
+    padding: 15px !important;
+    background: #1a202c !important;
+}
+
+.message {
+    margin-bottom: 20px !important;
+    padding: 15px !important;
+    border-radius: 8px !important;
+    border: 1px solid #4a5568 !important;
+}
+
+.user-message {
+    background: #2d3748 !important;
+    border-left: 4px solid #3182ce !important;
+}
+
+.assistant-message {
+    background: #2d3748 !important;
+    border-left: 4px solid #38a169 !important;
+}
+
+.message-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 10px !important;
+    padding-bottom: 8px !important;
+    border-bottom: 1px solid #4a5568 !important;
+}
+
+.message-header strong {
+    color: #f7fafc !important;
+    text-transform: capitalize !important;
+}
+
+.message-time {
+    color: #a0aec0 !important;
+    font-size: 12px !important;
+}
+
+.message-content {
+    line-height: 1.6 !important;
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    max-width: 100% !important;
+    overflow-wrap: break-word !important;
+}
+
+/* Ensure modal content doesn't overflow */
+.conversation-modal-content * {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+}
+
+/* Force text wrapping for all content */
+.conversation-modal-content * {
+    max-width: 100% !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+    overflow-x: hidden !important;
+}
+
+/* Force conversation details to stay within bounds */
+.conversation-details h3 {
+    color: #f7fafc !important;
+    margin-top: 0 !important;
+    border-bottom: 2px solid #4a5568 !important;
+    padding-bottom: 10px !important;
+}
+
+.conversation-details h4 {
+    color: #f7fafc !important;
+    margin-top: 25px !important;
+    margin-bottom: 15px !important;
+}
+
+.risk-summary table {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-collapse: collapse !important;
+    margin-bottom: 20px !important;
+    table-layout: fixed !important;
+}
+
+.risk-summary th,
+.risk-summary td {
+    padding: 8px 12px !important;
+    text-align: left !important;
+    border-bottom: 1px solid #4a5568 !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    max-width: 0 !important;
+}
+
+.risk-summary th {
+    background: #4a5568 !important;
+    color: #f7fafc !important;
+    font-weight: bold !important;
+    width: 30% !important;
+}
+
+.conversation-context p {
+    margin: 8px 0 !important;
+    padding: 8px 0 !important;
+    border-bottom: 1px solid #4a5568 !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+}
+
+.conversation-context strong {
+    color: #f7fafc !important;
+    display: inline-block !important;
+    width: 100px !important;
+}
+
+/* Message Styles */
+.message {
+    margin-bottom: 20px !important;
+    padding: 15px !important;
+    border-radius: 8px !important;
+    border: 1px solid #4a5568 !important;
+}
+
+.user-message {
+    background: #2d3748 !important;
+    border-left: 4px solid #3182ce !important;
+}
+
+.assistant-message {
+    background: #2d3748 !important;
+    border-left: 4px solid #38a169 !important;
+}
+
+.message-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 10px !important;
+    padding-bottom: 8px !important;
+    border-bottom: 1px solid #4a5568 !important;
+}
+
+.message-header strong {
+    color: #f7fafc !important;
+    text-transform: capitalize !important;
+}
+
+.message-time {
+    color: #a0aec0 !important;
+    font-size: 12px !important;
+}
+
+.message-content {
+    line-height: 1.6 !important;
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+}
+
+/* Force conversation messages container to stay within bounds */
+.conversation-messages {
+    max-height: 300px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    border: 1px solid #4a5568 !important;
+    border-radius: 4px !important;
+    padding: 15px !important;
+    background: #1a202c !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Ensure conversation sections don't exceed available height */
+.conversation-details {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    height: auto !important;
+    max-height: none !important;
+}
+
+.risk-summary {
+    margin-bottom: 20px !important;
+    flex-shrink: 0 !important;
+}
+
+.conversation-context {
+    margin-bottom: 20px !important;
+    flex-shrink: 0 !important;
+}
+
+.full-conversation {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+}
+
+/* Ensure the modal content area scrolls properly */
+.conversation-modal-content {
+    padding: 20px !important;
+    max-height: calc(90vh - 120px) !important;
+    height: auto !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    color: #e2e8f0 !important;
+    background: #2d3748 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Force table layout to be responsive */
+.risk-summary table {
+    table-layout: fixed !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.risk-summary th,
+.risk-summary td {
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+    max-width: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Button Styles */
+.button-small {
+    padding: 4px 8px;
+    font-size: 12px;
+    height: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .conversation-modal {
+        width: 95% !important;
+        max-height: 95vh !important;
+        margin: 10px !important;
+    }
+    
+    .conversation-modal-content {
+        padding: 15px !important;
+        max-height: calc(95vh - 100px) !important;
+    }
+    
+    .risk-summary th,
+    .risk-summary td {
+        padding: 6px 8px !important;
+        font-size: 14px !important;
+    }
+    
+    .message {
+        padding: 10px !important;
+        margin-bottom: 15px !important;
+    }
+    
+    .conversation-messages {
+        max-height: 300px !important;
+    }
+}
+
+/* AI Response Display */
+.ai-response-container {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.ai-response {
+    background: #1a202c !important;
+    border: 1px solid #4a5568 !important;
+    border-radius: 4px !important;
+    padding: 15px !important;
+    margin: 10px 0 !important;
+    font-family: 'Courier New', monospace !important;
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    max-height: 300px !important;
+    overflow-y: auto !important;
+    color: #e2e8f0 !important;
+}
+
+/* Debug Information */
+.debug-info {
+    margin: 10px 0;
+}
+
+.debug-info p {
+    margin: 5px 0;
+    color: #f7fafc;
+}
+
+.debug-data {
+    background: #1a202c !important;
+    border: 1px solid #4a5568 !important;
+    border-radius: 4px !important;
+    padding: 15px !important;
+    margin: 10px 0 !important;
+    font-family: 'Courier New', monospace !important;
+    font-size: 11px !important;
+    line-height: 1.3 !important;
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    max-height: 200px !important;
+    overflow-y: auto !important;
+    color: #a0aec0 !important;
+}
+
+/* Ensure the AI response and debug sections are properly contained */
+.risk-summary td {
+    vertical-align: top !important;
+    padding: 12px !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+}
+
+.risk-summary th {
+    vertical-align: top !important;
+    padding: 12px !important;
+    width: 120px !important;
+    white-space: nowrap !important;
+    text-align: left !important;
+    font-weight: bold !important;
+    background: #4a5568 !important;
+    color: #f7fafc !important;
+}
+
+/* Force table layout to be responsive */
+.risk-summary table {
+    table-layout: fixed !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-collapse: collapse !important;
+    margin-bottom: 20px !important;
+}
+
+.risk-summary th,
+.risk-summary td {
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+    max-width: 0 !important;
+    overflow: hidden !important;
+    border-bottom: 1px solid #4a5568 !important;
+}
+
+/* Ensure labels don't wrap vertically */
+.risk-summary th {
+    writing-mode: horizontal-tb !important;
+    text-orientation: mixed !important;
+    transform: none !important;
+    white-space: nowrap !important;
+}

@@ -1,0 +1,2468 @@
+/* Enhanced PNG Metadata Viewer Styles - MASONRY COMPATIBLE - FIXED CONFLICTS */
+/* ===== ADMIN INTEGRATION & DEBUG STYLES ===== */
+/* Admin JS Integration Support */
+.pmv-admin-loading {
+  position: relative;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.pmv-admin-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid #ddd;
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  z-index: 1000;
+}
+
+/* File Upload Preview Styles */
+.file-preview {
+  margin: 8px 0 0 0;
+  padding: 0;
+  list-style: none;
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.file-preview li {
+  padding: 6px 12px;
+  border-bottom: 1px solid #eee;
+  font-size: 13px;
+  color: #666;
+}
+
+.file-preview li:last-child {
+  border-bottom: none;
+}
+
+/* Toast Notification Styles - Enhanced */
+.pmv-toast {
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  z-index: 999999 !important;
+  padding: 12px 20px !important;
+  border-radius: 6px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  max-width: 350px !important;
+  word-wrap: break-word !important;
+}
+
+.pmv-toast.success {
+  background: #27ae60 !important;
+  color: white !important;
+}
+
+.pmv-toast.error {
+  background: #e74c3c !important;
+  color: white !important;
+}
+
+.pmv-toast.warning {
+  background: #f39c12 !important;
+  color: white !important;
+}
+
+.pmv-toast.info {
+  background: #3498db !important;
+  color: white !important;
+}
+
+.pmv-toast:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.4) !important;
+}
+
+/* Conversation Manager Error Display */
+.pmv-conversation-error {
+  position: fixed !important;
+  top: 20px !important;
+  right: 20px !important;
+  z-index: 999999 !important;
+  background: #ffebee !important;
+  border: 2px solid #f44336 !important;
+  border-radius: 8px !important;
+  padding: 20px !important;
+  max-width: 400px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+}
+
+.pmv-conversation-error h4 {
+  margin: 0 0 10px 0 !important;
+  color: #d32f2f !important;
+  font-size: 16px !important;
+}
+
+.pmv-conversation-error p {
+  margin: 0 0 10px 0 !important;
+  color: #666 !important;
+  font-size: 14px !important;
+}
+
+.pmv-conversation-error ul {
+  margin: 0 0 15px 20px !important;
+  color: #666 !important;
+  font-size: 14px !important;
+}
+
+.pmv-conversation-error button {
+  background: var(--button-bg) !important;
+  color: white !important;
+  border: none !important;
+  padding: 8px 16px !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  margin-right: 8px !important;
+  font-size: 13px !important;
+}
+
+.pmv-conversation-error button:hover {
+  background: var(--button-hover) !important;
+}
+
+/* Debug Console Styles */
+.pmv-debug-console {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.9);
+  color: #00ff00;
+  padding: 10px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  max-width: 300px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 999998;
+  border: 1px solid #333;
+  display: none; /* Hidden by default */
+}
+
+.pmv-debug-console.active {
+  display: block;
+}
+
+.pmv-debug-console .debug-line {
+  margin-bottom: 2px;
+  word-wrap: break-word;
+}
+
+.pmv-debug-console .debug-error {
+  color: #d32f2f;
+}
+
+.pmv-debug-console .debug-warning {
+  color: #ffaa00;
+}
+
+.pmv-debug-console .debug-info {
+  color: #3b6cd4;
+}
+
+/* Admin Upload Success/Feedback Styles */
+.pmv-upload-feedback {
+  background: #d4edda;
+  color: #155724;
+  padding: 15px;
+  border-radius: 5px;
+  margin: 15px 0;
+  border: 1px solid #c3e6cb;
+  font-weight: 500;
+}
+
+.pmv-upload-feedback.error {
+  background: #f8d7da;
+  color: #721c24;
+  border-color: #f5c6cb;
+}
+
+.pmv-upload-feedback.warning {
+  background: #fff3cd;
+  color: #856404;
+  border-color: #ffeaa7;
+}
+
+/* Enhanced File Input Styling */
+input[type="file"][name*="pmv_png_upload"] {
+  width: 100%;
+  padding: 10px;
+  border: 2px dashed #ddd;
+  border-radius: 6px;
+  background: #fafafa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+input[type="file"][name*="pmv_png_upload"]:hover {
+  border-color: var(--primary-color);
+  background: #f0f8ff;
+}
+
+input[type="file"][name*="pmv_png_upload"]:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 5px rgba(0, 115, 170, 0.3);
+}
+
+/* Responsive adjustments for admin elements */
+@media (max-width: 768px) {
+  .pmv-toast {
+    bottom: 10px !important;
+    right: 10px !important;
+    left: 10px !important;
+    max-width: none !important;
+  }
+  
+  .pmv-conversation-error {
+    top: 10px !important;
+    right: 10px !important;
+    left: 10px !important;
+    max-width: none !important;
+  }
+  
+  .pmv-debug-console {
+    bottom: 5px !important;
+    left: 5px !important;
+    right: 5px !important;
+    max-width: none !important;
+  }
+}
+
+/* Admin Integration Debug Mode */
+body.pmv-debug-mode .pmv-debug-console {
+  display: block !important;
+}
+
+body.pmv-debug-mode::before {
+  content: "PMV DEBUG MODE ACTIVE";
+  position: fixed;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #d32f2f;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: bold;
+  z-index: 1000000;
+}
+/* ===== CSS VARIABLES ===== */
+:root {
+  --dark-bg: #222;
+  --darker-bg: #1a1a1a;
+  --light-text: #e0e0e0;
+  --gray-text: #aaa;
+  --bright-text: #fff;
+  --border-dark: #444;
+  --border-darker: #333;
+  --primary-color: var(--button-bg);
+  --primary-hover: var(--button-hover);
+  --primary-light: #0088cc;
+  --error-color: #aa1616;
+  --card-bg: #333;
+  --shadow-light: 0 2px 5px rgba(0,0,0,0.2);
+  --shadow-medium: 0 4px 8px rgba(0,0,0,0.3);
+  --shadow-heavy: 0 5px 15px rgba(0,0,0,0.4);
+  --input-area-height: 68px;
+  --card-h: clamp(680px, 80vh, 1000px);
+}
+
+/* --- Modern Consistent Color Scheme --- */
+:root {
+  --card-bg: #23293a;
+  --card-info-bg: #2d3548;
+  --image-bg: #181e2a;
+  --card-name-accent: #43e97b;
+  --tag-bg: #283046;
+  --tag-text: #a3bffa;
+  --download-gradient: linear-gradient(90deg, #27ae60 0%, #43e97b 100%);
+  --chat-gradient: linear-gradient(90deg, var(--button-bg) 0%, var(--button-hover) 100%);
+  --text-main: #e0e6ed;
+  --border-main: #3a4256;
+}
+
+/* --- Refined Dark Grey & Subtle Accent Color Scheme --- */
+:root {
+  --bg-main: #181a1b;
+  --card-bg: #232323;
+  --card-info-bg: #232629;
+  --image-bg: #181a1b;
+  --button-bg: #23404e;
+  --button-hover: #2d5363;
+  --accent-purple: #6c4f8c;
+  --text-main: #e0e0e0;
+  --border-main: #232629;
+  --tag-bg: #232629;
+  --tag-text: #bba6e8;
+  --pagination-bg: #232323;
+  --pagination-active: #2d5363;
+}
+
+/* ===== BASE STYLES ===== */
+.spinner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(34, 34, 34, 0.8);
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 6px solid #333;
+  border-top: 6px solid #2c8232;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===== LOADING ANIMATION SYSTEM ===== */
+/* Loading overlay for masonry layout - REMOVED: No longer needed */
+.masonry-loading-overlay {
+  display: none !important; /* FIXED: Remove grey loading box */
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+.masonry-loading-overlay.hidden {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+.masonry-loading-spinner {
+  display: none !important; /* FIXED: Remove spinner */
+}
+
+.masonry-loading-text {
+  display: none !important; /* FIXED: Remove loading text */
+}
+
+/* Card loading states - SIMPLIFIED */
+.png-cards.loading .png-card {
+  opacity: 0 !important;
+  transform: translateY(20px) !important;
+  transition: opacity 0.6s ease, transform 0.6s ease !important;
+  display: none !important;
+}
+
+.png-cards.loaded .png-card {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  display: block !important;
+}
+
+/* FIXED: Ensure cards are visible when loaded state is applied */
+.png-cards.loaded .png-card.show {
+  display: block !important;
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+/* FIXED: Override any conflicting display rules when cards are shown */
+.png-card.show {
+  display: block !important;
+}
+
+/* FIXED: Force visibility when both loaded and show classes are present */
+.png-cards.loaded .png-card.show {
+  display: block !important;
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  visibility: visible !important;
+}
+
+/* Staggered card appearance */
+/* Removed staggered animation delays for cleaner appearance */
+
+/* Container loading state */
+.png-cards-loading {
+  position: relative;
+  min-height: 400px;
+  transition: opacity 0.3s ease;
+}
+
+.png-cards-loading.loading {
+  opacity: 0.8;
+}
+
+.png-cards-loading.loaded {
+  opacity: 1;
+}
+
+/* Ensure loading overlay works with dark theme */
+.masonry-loading-overlay {
+  background: rgba(26, 26, 26, 0.95) !important;
+  backdrop-filter: blur(2px);
+}
+
+/* Smooth transitions for all loading states */
+.png-cards,
+.png-cards-loading,
+.masonry-loading-overlay {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* ===== MASONRY CONTAINER SYSTEM - FIXED FOR COMPATIBILITY ===== */
+.png-cards-loading-wrapper,
+.png-cards-loading {
+  position: relative;
+  width: 100%;
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 0 clamp(10px, 2vw, 30px);
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.png-cards-loading {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.png-cards-loading.loaded {
+  opacity: 1;
+}
+
+/* FIXED: MASONRY CONTAINER - PROPER HEIGHT CALCULATION */
+.png-cards {
+  margin: 0 auto !important;
+  padding: 0 0 80px 0 !important; /* FIXED: Increased bottom padding */
+  background-color: var(--dark-bg);
+  position: relative;
+  text-align: left;
+  min-height: 400px !important; /* FIXED: Ensure minimum height */
+  overflow: visible !important; /* FIXED: Allow content to extend */
+}
+
+/* CSS Grid is now the primary layout system - UPDATED FOR MORE CARDS PER ROW */
+.png-cards {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important; /* REDUCED from 240px to allow more cards */
+  grid-auto-rows: var(--card-height) !important; /* Use new card height variable */
+  gap: 15px !important; /* REDUCED gap to fit more cards */
+  padding: 0 20px 80px 20px !important;
+  margin: 0 auto !important;
+  max-width: 2000px !important; /* INCREASED max-width for wider displays */
+  min-height: 400px !important;
+}
+
+/* Individual Card - RESPONSIVE HEIGHT CALCULATION */
+.png-card {
+  background: #2a2a2a !important;
+  border: 1px solid #404040 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: var(--card-height) !important; /* Use responsive variable instead of fixed 640px */
+  min-height: var(--card-height) !important;
+  max-height: var(--card-height) !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  color: #f0f0f0 !important;
+  width: 100% !important;
+}
+
+.png-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Image Container */
+.png-image-container {
+  height: var(--image-height) !important; /* Use percentage variable instead of fixed 250px */
+  overflow: hidden !important;
+  background: #1a1a1a !important;
+  border-radius: 12px 12px 0 0 !important;
+  position: relative !important;
+  display: flex !important; /* ADDED: Use flexbox for perfect centering */
+  align-items: center !important; /* ADDED: Center vertically */
+  justify-content: center !important; /* ADDED: Center horizontally */
+}
+
+.png-image-container img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important; /* CHANGED: Show full image without cropping */
+  object-position: center !important; /* Center the image */
+  transition: transform 0.3s ease !important;
+  background: transparent !important; /* ADDED: Remove any background */
+}
+
+.png-card:hover .png-image-container img {
+  transform: scale(1.05) !important;
+}
+
+/* Character Modal Image Styles - ADDED */
+.character-image {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  background: #1a1a1a !important;
+  border-radius: 8px !important;
+  padding: 10px !important;
+  margin: 20px 0 !important;
+  max-height: 60vh !important;
+  overflow: hidden !important;
+}
+
+.character-image img {
+  width: auto !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important; /* Show full image without cropping */
+  object-position: center !important;
+  border-radius: 4px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important; /* ADDED: Subtle shadow for better appearance */
+}
+
+/* Chat Message Images - ADDED */
+.chat-message-content-wrapper img {
+  max-width: 100% !important;
+  height: auto !important;
+  object-fit: contain !important; /* Show full image without cropping */
+  border-radius: 4px !important;
+  margin-top: 5px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important; /* ADDED: Subtle shadow */
+}
+
+/* Image Generation Results - ADDED: Ensure generated images also display without cropping */
+#image-results img {
+  max-width: 100% !important;
+  height: auto !important;
+  object-fit: contain !important;
+  border-radius: 4px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  background: #1a1a1a !important;
+}
+
+/* Card Info Container */
+.png-card-info {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 16px !important;
+  gap: 12px !important;
+  height: calc(640px - 250px) !important; /* FIXED: Exact height calculation (total - image height) */
+  max-height: calc(640px - 250px) !important;
+  overflow: hidden !important;
+}
+
+/* Character Name */
+.png-card-name {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  margin: 0 !important;
+  line-height: 1.3 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  text-align: center !important;
+  justify-content: center !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Description - FIXED TEXT WRAPPING */
+.png-card-description {
+  font-size: 14px !important;
+  color: #b0b0b0 !important;
+  line-height: 1.5 !important;
+  margin: 0 !important;
+  flex-grow: 0 !important; /* do not consume extra space pushing other elements */
+  height: 200px !important; /* explicit fixed height */
+  max-height: 200px !important; /* reinforce height cap */
+  overflow-y: auto !important; /* enable internal scroll for long text */
+  overflow-x: hidden !important; /* avoid horizontal scroll */
+  white-space: normal !important;
+  text-align: left !important;
+  padding: 12px !important;
+  background: #1a1a1a !important;
+  border-radius: 8px !important;
+  border: 1px solid #404040 !important;
+  height: 200px !important; /* FIXED: Consistent height for descriptions */
+  hyphens: auto !important;
+  overflow-wrap: break-word !important;
+  -webkit-line-clamp: unset !important;
+}
+
+/* Tags - Fixed height with internal scrolling */
+.png-card-tags {
+  font-size: 12px !important;
+  color: #888 !important;
+  margin: 0 !important;
+  padding: 12px !important;
+  background: #1a1a1a !important;
+  border-radius: 8px !important;
+  border: 1px solid #404040 !important;
+  overflow-y: auto !important; /* Allow scrolling within tags area */
+  overflow-x: hidden !important;
+  word-wrap: break-word !important;
+  white-space: normal !important;
+  line-height: 1.5 !important;
+  height: var(--tags-height) !important; /* Fixed height for consistency - now 100px */
+  min-height: var(--tags-height) !important;
+  max-height: var(--tags-height) !important;
+  display: block !important;
+  hyphens: auto !important;
+  overflow-wrap: break-word !important;
+  text-align: left !important;
+  flex-shrink: 0 !important; /* Don't compress tags section */
+}
+
+.png-card-tags::before {
+  content: "Tags: " !important;
+  font-weight: 600 !important;
+  color: #f0f0f0 !important;
+  display: inline !important; /* CRITICAL: Inline for text flow */
+}
+
+/* BUTTON CONTAINER - GUARANTEED VISIBILITY */
+.png-card-buttons {
+  display: flex !important;
+  gap: 12px !important;
+  padding: 20px !important;
+  background: #2a2a2a !important;
+  border-top: 1px solid #404040 !important;
+  margin-top: auto !important;
+  flex-shrink: 0 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 10 !important;
+  flex-direction: column !important;
+}
+
+/* BUTTONS - GUARANTEED VISIBILITY AND FUNCTIONALITY */
+.png-download-button,
+.png-chat-button {
+  flex: 1 !important;
+  padding: 12px 16px !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  text-align: center !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  color: white !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  min-height: 44px !important;
+  line-height: 1.2 !important;
+}
+
+.png-download-button {
+  background: #006064 !important;
+  color: white !important;
+  border: 1px solid #006064 !important;
+}
+
+.png-chat-button {
+  background: var(--button-bg) !important;
+}
+
+.png-download-button:hover {
+  background: var(--button-hover) !important;
+  transform: translateY(-1px) !important;
+}
+
+.png-chat-button:hover {
+  background: var(--button-hover) !important;
+  transform: translateY(-1px) !important;
+}
+
+.png-download-button:active,
+.png-chat-button:active {
+  transform: translateY(0) !important;
+}
+
+/* OLD RESPONSIVE DESIGN RULES REMOVED - CONFLICTS WITH NEW RESPONSIVE SYSTEM */
+
+@media (max-width: 768px) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)) !important;
+    gap: 12px !important;
+  }
+  
+  .png-card-name {
+    font-size: 16px !important;
+    text-align: center !important;
+  }
+  
+  .png-card-description {
+    font-size: 13px !important;
+  }
+  
+  .png-card-buttons {
+    padding: 16px !important;
+  }
+  
+  .png-download-button,
+  .png-chat-button {
+    font-size: 13px !important;
+    padding: 10px 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .png-cards {
+    grid-template-columns: 1fr !important;
+    grid-auto-rows: 550px !important; /* FIXED: Consistent larger height for small screens */
+    gap: 15px !important;
+    padding: 0 10px 40px 10px !important;
+  }
+  .png-card {
+    height: 550px !important; /* FIXED: Consistent larger height for small screens */
+    min-height: 550px !important;
+    max-height: 550px !important;
+  }
+  .png-card-info {
+    height: calc(550px - 250px) !important;
+    max-height: calc(550px - 250px) !important;
+  }
+}
+
+/* Force show buttons for debugging */
+body .png-card .png-card-buttons {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+body .png-card .png-download-button,
+body .png-card .png-chat-button {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* CRITICAL OVERRIDES - ENSURE PROPER CARD SIZING */
+.png-cards {
+  grid-auto-rows: 620px !important;
+  align-items: start !important;
+}
+
+.png-card {
+  height: 620px !important;
+  min-height: 620px !important;
+  max-height: 620px !important;
+}
+
+.png-card-info {
+  height: calc(620px - 250px) !important;
+  max-height: calc(620px - 250px) !important;
+  overflow: hidden !important;
+}
+
+.png-card-description {
+  height: 200px !important;
+  max-height: 200px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+.png-card-tags {
+  height: 80px !important;
+  max-height: 80px !important;
+  overflow: hidden !important;
+  overflow-y: auto !important;
+}
+
+/* FIX: Let flexbox allocate leftover height so buttons remain visible */
+.png-card-info {
+  height: auto !important;
+  max-height: none !important;
+  flex: 1 1 auto !important;
+}
+
+body .png-card .png-card-buttons,
+.png-card-buttons {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 16px !important;
+    margin-top: auto !important;
+    background: #2a2a2a !important;
+    border-top: 1px solid #404040 !important;
+    flex-shrink: 0 !important;
+}
+
+/* === PMV OVERRIDE: Increase card height for buttons visibility === */
+:root {
+  --card-h: clamp(680px, 80vh, 1000px);
+}
+
+.png-cards {
+  grid-auto-rows: var(--card-h) !important;
+}
+
+.png-card {
+  height: var(--card-h) !important;
+  min-height: var(--card-h) !important;
+  max-height: var(--card-h) !important;
+}
+
+/* Ensure info section can grow */
+.png-card-info {
+  height: auto !important;
+  max-height: none !important;
+  flex: 1 1 auto !important;
+}
+
+/* ===== OVERRIDE: Hide grey loading overlay during character gallery load ===== */
+.pmv-loading-overlay {
+  display: none !important; /* Remove overlay */
+  background: transparent !important; /* Ensure no background shows */
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* ===== HOTFIX: Prevent description overflow into button area ===== */
+.png-card-description {
+    flex-grow: 0 !important; /* do not consume extra space pushing other elements */
+    height: 200px !important; /* explicit fixed height */
+    max-height: 200px !important; /* reinforce height cap */
+    overflow-y: auto !important; /* enable internal scroll for long text */
+    overflow-x: hidden !important; /* avoid horizontal scroll */
+}
+
+/* Ensure card info container doesn\'t expand beyond card height */
+.png-card-info {
+    overflow: hidden !important; /* clip child overflow */
+}
+
+.png-download-button::before,
+.png-chat-button::before {
+    content: none !important;
+    display: none !important;
+}
+
+.png-download-button,
+.png-chat-button {
+    display: block !important;
+ }
+
+/* Override background colors */
+.png-download-button,
+.png-chat-button {
+    background: var(--button-bg) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-main) !important;
+}
+
+.png-download-button:hover,
+.png-chat-button:hover {
+    background: var(--button-hover) !important;
+}
+
+/* === FINAL OVERRIDE FOR BUTTON PALETTE === */
+.png-download-button, .png-chat-button {
+    background: var(--button-bg) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-main) !important;
+}
+
+.png-download-button:hover, .png-chat-button:hover {
+    background: var(--button-hover) !important;
+}
+
+/* ===== IMPROVED RESPONSIVE CARD LAYOUT SYSTEM ===== */
+
+/* Dynamic card height based on viewport height for true responsiveness */
+:root {
+  --card-height: clamp(600px, 80vh, 1000px); /* Responsive height between 600px and 80% viewport height */
+  --card-max-height: 80vh;
+  --image-height: 30%; /* 30% of card height for image */
+  --card-padding: 2%;
+  --button-height: 15%; /* 15% of card height for buttons */
+  --tags-height: 20%; /* 20% of card info area for tags */
+  --description-height: 60%; /* 60% of card info area for description */
+}
+
+/* Responsive adjustments for different viewport sizes */
+@media (max-width: 480px) {
+  :root {
+    --card-height: clamp(500px, 75vh, 800px); /* Smaller range for mobile */
+    --image-height: 25%; /* Less space for image on mobile */
+    --card-padding: 1.5%;
+    --tags-height: 25%; /* More space for tags on mobile */
+    --description-height: 55%; /* Less for description on mobile */
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  :root {
+    --card-height: clamp(550px, 78vh, 900px);
+    --image-height: 28%;
+    --tags-height: 22%;
+    --description-height: 58%;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  :root {
+    --card-height: clamp(600px, 79vh, 950px);
+    --image-height: 29%;
+    --tags-height: 21%;
+    --description-height: 59%;
+  }
+}
+
+@media (min-width: 1025px) {
+  :root {
+    --card-height: clamp(650px, 80vh, 1000px);
+    --image-height: 30%;
+    --tags-height: 20%;
+    --description-height: 60%;
+  }
+}
+
+/* Grid Container - Consistent card sizing */
+.png-cards {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important; /* Reduced from 240px to allow more cards */
+  grid-auto-rows: var(--card-height) !important; /* Fixed height for all cards */
+  gap: 15px !important;
+  padding: 20px !important;
+  margin: 0 auto !important;
+  max-width: 2000px !important;
+  background-color: #1a1a1a !important;
+  min-height: 400px !important;
+  align-items: start !important;
+}
+
+/* Individual Card - Fixed Height for Consistency */
+.png-card {
+  background: #2a2a2a !important;
+  border: 1px solid #404040 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important; /* Hide overflow to maintain card shape */
+  display: flex !important;
+  flex-direction: column !important;
+  height: var(--card-height) !important; /* Fixed height for all cards */
+  min-height: var(--card-height) !important;
+  max-height: var(--card-height) !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  color: #f0f0f0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.png-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
+  z-index: 2 !important;
+}
+
+/* Image Container - Percentage-based height */
+.png-image-container {
+  height: var(--image-height) !important;
+  min-height: var(--image-height) !important;
+  max-height: var(--image-height) !important;
+  overflow: hidden !important;
+  background: #1a1a1a !important;
+  border-radius: 12px 12px 0 0 !important;
+  position: relative !important;
+  flex: 0 0 var(--image-height) !important;
+  display: flex !important; /* ADDED: Use flexbox for perfect centering */
+  align-items: center !important; /* ADDED: Center vertically */
+  justify-content: center !important; /* ADDED: Center horizontally */
+}
+
+.png-image-container img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important; /* Show full image without cropping */
+  object-position: center !important; /* Center the image */
+  transition: transform 0.3s ease !important;
+  background: transparent !important; /* ADDED: Remove any background */
+}
+
+.png-card:hover .png-image-container img {
+  transform: scale(1.05) !important;
+}
+
+/* Card Info Container - Flexible height using remaining space */
+.png-card-info {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: var(--card-padding) !important;
+  gap: 1% !important;
+  overflow: hidden !important; /* Prevent overflow from affecting card size */
+  height: auto !important; /* Let flexbox handle the height */
+  max-height: none !important; /* Remove fixed max-height */
+}
+
+/* Character Name - Always visible */
+.png-card-name {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  margin: 0 !important;
+  line-height: 1.3 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  height: 24px !important; /* Fixed height for consistency */
+  text-align: center !important;
+}
+
+/* Description - Flexible with scrolling */
+.png-card-description {
+  font-size: 14px !important;
+  color: #b0b0b0 !important;
+  line-height: 1.5 !important;
+  margin: 0 !important;
+  flex: 1 1 var(--description-height) !important; /* Use percentage variable for description space */
+  min-height: var(--description-height) !important; /* Use percentage instead of fixed 400px */
+  max-height: var(--description-height) !important; /* Set max height for consistency */
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  white-space: normal !important;
+  text-align: left !important;
+  padding: 2% !important; /* Use percentage padding */
+  background: #1a1a1a !important;
+  border-radius: 8px !important;
+  border: 1px solid #404040 !important;
+  hyphens: auto !important;
+  overflow-wrap: break-word !important;
+  word-break: break-word !important;
+}
+
+/* Tags - Percentage-based height with internal scrolling */
+.png-card-tags {
+  font-size: 12px !important;
+  color: #888 !important;
+  margin: 0 !important;
+  padding: 2% !important; /* Use percentage padding */
+  background: #1a1a1a !important;
+  border-radius: 8px !important;
+  border: 1px solid #404040 !important;
+  overflow-y: auto !important; /* Allow scrolling within tags area */
+  overflow-x: hidden !important;
+  word-wrap: break-word !important;
+  white-space: normal !important;
+  line-height: 1.5 !important;
+  height: var(--tags-height) !important; /* Use percentage variable */
+  min-height: var(--tags-height) !important;
+  max-height: var(--tags-height) !important;
+  display: block !important;
+  hyphens: auto !important;
+  overflow-wrap: break-word !important;
+  text-align: left !important;
+  flex: 0 0 var(--tags-height) !important; /* Fixed percentage space for tags */
+}
+
+.png-card-tags::before {
+  content: "Tags: " !important;
+  font-weight: 600 !important;
+  color: #f0f0f0 !important;
+  display: inline !important;
+}
+
+/* Button Container - Always visible at bottom */
+.png-card-buttons {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1% !important; /* Use percentage gap */
+  padding: var(--card-padding) !important;
+  background: #2a2a2a !important;
+  border-top: 1px solid #404040 !important;
+  flex: 0 0 var(--button-height) !important; /* Use percentage-based height */
+  min-height: var(--button-height) !important;
+  max-height: var(--button-height) !important;
+  box-sizing: border-box !important;
+}
+
+/* Buttons - Guaranteed visibility with responsive sizing */
+.png-download-button,
+.png-chat-button {
+  flex: 1 !important;
+  padding: 2% 4% !important; /* Use percentage padding */
+  border: none !important;
+  border-radius: 8px !important;
+  font-size: clamp(12px, 1.5vw, 16px) !important; /* Responsive font size */
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  text-align: center !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  color: white !important;
+  display: block !important;
+  min-height: 25% !important; /* Percentage-based minimum height */
+  line-height: 1.2 !important;
+  box-sizing: border-box !important;
+}
+
+.png-download-button {
+  background: #006064 !important;
+  color: white !important;
+  border: 1px solid #006064 !important;
+}
+
+.png-chat-button {
+  background: var(--button-bg) !important;
+}
+
+.png-download-button:hover {
+  background: var(--button-hover) !important;
+  transform: translateY(-1px) !important;
+}
+
+.png-chat-button:hover {
+  background: var(--button-hover) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Responsive Grid Adjustments */
+@media (max-width: 480px) {
+  .png-cards {
+    grid-template-columns: 1fr !important;
+    grid-auto-rows: var(--card-height) !important;
+    gap: 15px !important;
+    padding: 15px !important;
+  }
+  
+  .png-card-name {
+    font-size: 16px !important;
+  }
+  
+  .png-card-description {
+    font-size: 13px !important;
+  }
+  
+  .png-card-tags {
+    font-size: 11px !important;
+  }
+  
+  .png-download-button,
+  .png-chat-button {
+    font-size: 13px !important;
+    padding: 8px 12px !important;
+  }
+}
+
+/* OLD RESPONSIVE RULES REMOVED - CONFLICTS WITH NEW RESPONSIVE DESIGN */
+
+@media (min-width: 1801px) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important; /* Allow natural fitting instead of forcing 4 cards */
+    grid-auto-rows: var(--card-height) !important;
+    gap: 15px !important;
+  }
+}
+
+/* OLD ZOOM RULES REMOVED - REPLACED WITH BETTER RESPONSIVE DESIGN */
+
+/* Override any conflicting rules for consistent sizing */
+.png-card {
+  height: var(--card-height) !important;
+  min-height: var(--card-height) !important;
+  max-height: var(--card-height) !important;
+}
+
+.png-card-info {
+  height: calc(var(--card-height) - var(--image-height) - var(--button-height)) !important;
+  max-height: calc(var(--card-height) - var(--image-height) - var(--button-height)) !important;
+  overflow: hidden !important;
+}
+
+.png-card-tags {
+  height: var(--tags-height) !important;
+  max-height: var(--tags-height) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+/* Responsive Grid Adjustments - Updated to allow more cards per row */
+@media (max-width: 480px) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important; /* Reduced for more cards */
+    grid-auto-rows: var(--card-height) !important;
+    gap: 15px !important;
+    padding: 15px !important;
+  }
+  
+  .png-card-name {
+    font-size: 16px !important;
+    text-align: center !important;
+  }
+  
+  .png-card-description {
+    font-size: 13px !important;
+  }
+  
+  .png-card-tags {
+    font-size: 11px !important;
+  }
+  
+  .png-download-button,
+  .png-chat-button {
+    font-size: 13px !important;
+    padding: 8px 12px !important;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important; /* Reduced for more cards */
+    grid-auto-rows: var(--card-height) !important;
+    gap: 16px !important;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important; /* Reduced for more cards */
+    grid-auto-rows: var(--card-height) !important;
+    gap: 18px !important;
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1400px) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important; /* Reduced for more cards */
+    grid-auto-rows: var(--card-height) !important;
+    gap: 20px !important;
+  }
+}
+
+@media (min-width: 1401px) and (max-width: 1800px) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)) !important; /* FURTHER REDUCED for more cards */
+    grid-auto-rows: var(--card-height) !important;
+    gap: 22px !important;
+  }
+}
+
+@media (min-width: 1801px) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important; /* REDUCED to allow more cards per row */
+    grid-auto-rows: var(--card-height) !important;
+    gap: 24px !important;
+  }
+}
+
+/* Zoom-specific responsive adjustments - Updated for more cards */
+@media (min-resolution: 1.25dppx) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important; /* Much smaller for zoom */
+    grid-auto-rows: var(--card-height) !important;
+  }
+}
+
+@media (min-resolution: 1.5dppx) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important; /* Even smaller for higher zoom */
+    grid-auto-rows: var(--card-height) !important;
+  }
+}
+
+@media (min-resolution: 2dppx) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important; /* Smallest for highest zoom */
+    grid-auto-rows: var(--card-height) !important;
+  }
+}
+
+/* ===== FINAL COMPREHENSIVE RESPONSIVE LAYOUT SYSTEM ===== */
+/* This section overrides all previous fixed heights with percentage-based responsive design */
+
+/* Responsive CSS Variables */
+:root {
+  --card-height: clamp(600px, 80vh, 1000px); /* Responsive card height */
+  --image-height: 30%; /* 30% of card for image */
+  --info-height: 60%; /* 60% of card for info area */
+  --button-height: 10%; /* 10% of card for buttons */
+  --card-padding: 2%;
+  --tags-height: 25%; /* 25% of info area for tags */
+  --description-height: 65%; /* 65% of info area for description */
+  --name-height: 10%; /* 10% of info area for name */
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 480px) {
+  :root {
+    --card-height: clamp(500px, 70vh, 700px);
+    --image-height: 35%; /* INCREASED from 25% to 35% to give more space for images on mobile */
+    --info-height: 55%; /* DECREASED to accommodate larger image area */
+    --button-height: 10%;
+    --tags-height: 30%; /* More space for tags on mobile */
+    --description-height: 60%; /* Less for description on mobile */
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  :root {
+    --card-height: clamp(550px, 75vh, 800px);
+    --tags-height: 28%;
+    --description-height: 62%;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  :root {
+    --card-height: clamp(600px, 78vh, 900px);
+    --tags-height: 26%;
+    --description-height: 64%;
+  }
+}
+
+/* OVERRIDE ALL PREVIOUS CARD DEFINITIONS */
+.png-cards {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important; /* REDUCED from 240px to allow more cards per row */
+  grid-auto-rows: var(--card-height) !important;
+  gap: 15px !important; /* REDUCED gap to fit more cards */
+  padding: 20px !important;
+  margin: 0 auto !important;
+  max-width: 2000px !important; /* INCREASED max-width for wider displays */
+  background-color: #1a1a1a !important;
+  min-height: 400px !important;
+  align-items: start !important;
+}
+
+/* OVERRIDE ALL PREVIOUS CARD STYLES */
+.png-card {
+  background: #2a2a2a !important;
+  border: 1px solid #404040 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: var(--card-height) !important;
+  min-height: var(--card-height) !important;
+  max-height: var(--card-height) !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  color: #f0f0f0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.png-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
+  z-index: 2 !important;
+}
+
+/* OVERRIDE ALL PREVIOUS IMAGE CONTAINER STYLES */
+.png-image-container {
+  height: var(--image-height) !important;
+  min-height: var(--image-height) !important;
+  max-height: var(--image-height) !important;
+  overflow: hidden !important;
+  background: #1a1a1a !important;
+  border-radius: 12px 12px 0 0 !important;
+  position: relative !important;
+  flex: 0 0 var(--image-height) !important;
+  display: flex !important; /* ADDED: Use flexbox for perfect centering */
+  align-items: center !important; /* ADDED: Center vertically */
+  justify-content: center !important; /* ADDED: Center horizontally */
+}
+
+.png-image-container img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important; /* Show full image without cropping */
+  object-position: center !important; /* Center the image */
+  transition: transform 0.3s ease !important;
+  background: transparent !important; /* ADDED: Remove any background */
+}
+
+.png-card:hover .png-image-container img {
+  transform: scale(1.05) !important;
+}
+
+/* OVERRIDE ALL PREVIOUS CARD INFO STYLES */
+.png-card-info {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: var(--card-padding) !important;
+  gap: 1% !important;
+  overflow: hidden !important;
+  height: auto !important;
+  max-height: none !important;
+  box-sizing: border-box !important;
+}
+
+/* OVERRIDE ALL PREVIOUS NAME STYLES */
+.png-card-name {
+  font-size: clamp(16px, 2vw, 18px) !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  margin: 0 !important;
+  line-height: 1.3 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  flex: 0 0 var(--name-height) !important;
+  min-height: var(--name-height) !important;
+  max-height: var(--name-height) !important;
+  display: flex !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+/* OVERRIDE ALL PREVIOUS DESCRIPTION STYLES */
+.png-card-description {
+  font-size: clamp(12px, 1.5vw, 14px) !important;
+  color: #b0b0b0 !important;
+  line-height: 1.5 !important;
+  margin: 0 !important;
+  flex: 1 1 var(--description-height) !important;
+  min-height: var(--description-height) !important;
+  max-height: var(--description-height) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  white-space: normal !important;
+  text-align: left !important;
+  padding: var(--card-padding) !important;
+  background: #1a1a1a !important;
+  border-radius: 8px !important;
+  border: 1px solid #404040 !important;
+  hyphens: auto !important;
+  overflow-wrap: break-word !important;
+  word-break: break-word !important;
+  box-sizing: border-box !important;
+}
+
+/* OVERRIDE ALL PREVIOUS TAG STYLES */
+.png-card-tags {
+  font-size: clamp(10px, 1.2vw, 12px) !important;
+  color: #888 !important;
+  margin: 0 !important;
+  padding: var(--card-padding) !important;
+  background: #1a1a1a !important;
+  border-radius: 8px !important;
+  border: 1px solid #404040 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  word-wrap: break-word !important;
+  white-space: normal !important;
+  line-height: 1.5 !important;
+  height: var(--tags-height) !important;
+  min-height: var(--tags-height) !important;
+  max-height: var(--tags-height) !important;
+  display: block !important;
+  hyphens: auto !important;
+  overflow-wrap: break-word !important;
+  text-align: left !important;
+  flex: 0 0 var(--tags-height) !important;
+  box-sizing: border-box !important;
+}
+
+.png-card-tags::before {
+  content: "Tags: " !important;
+  font-weight: 600 !important;
+  color: #f0f0f0 !important;
+  display: inline !important;
+}
+
+/* OVERRIDE ALL PREVIOUS BUTTON CONTAINER STYLES */
+.png-card-buttons {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1% !important;
+  padding: var(--card-padding) !important;
+  background: #2a2a2a !important;
+  border-top: 1px solid #404040 !important;
+  flex: 0 0 var(--button-height) !important;
+  min-height: var(--button-height) !important;
+  max-height: var(--button-height) !important;
+  box-sizing: border-box !important;
+  margin-top: auto !important;
+}
+
+/* OVERRIDE ALL PREVIOUS BUTTON STYLES */
+.png-download-button,
+.png-chat-button {
+  flex: 1 !important;
+  padding: 1% 2% !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-size: clamp(11px, 1.3vw, 14px) !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  text-align: center !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  color: white !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 40% !important;
+  line-height: 1.2 !important;
+  box-sizing: border-box !important;
+}
+
+.png-download-button {
+  background: #006064 !important;
+  color: white !important;
+  border: 1px solid #006064 !important;
+}
+
+.png-chat-button {
+  background: var(--button-bg) !important;
+}
+
+.png-download-button:hover {
+  background: var(--button-hover) !important;
+  transform: translateY(-1px) !important;
+}
+
+.png-chat-button:hover {
+  background: var(--button-hover) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* MOBILE RESPONSIVE OVERRIDES */
+@media (max-width: 480px) {
+  .png-cards {
+    grid-template-columns: 1fr !important;
+    gap: 15px !important;
+    padding: 15px !important;
+  }
+  
+  /* Fix image cropping on mobile - Higher specificity to override main rules */
+  .png-cards .png-card .png-image-container {
+    height: var(--image-height) !important;
+    min-height: 180px !important; /* Increased minimum height for better mobile display */
+    max-height: 250px !important; /* Cap maximum height */
+    overflow: visible !important; /* Allow image to show fully */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: #1a1a1a !important;
+    border-radius: 12px 12px 0 0 !important;
+    flex: none !important; /* Don't let flexbox shrink this */
+  }
+  
+  .png-cards .png-card .png-image-container img {
+    width: auto !important; /* Let width adjust naturally */
+    height: auto !important; /* Let height adjust naturally */
+    max-width: 100% !important; /* Don't exceed container width */
+    max-height: 100% !important; /* Don't exceed container height */
+    object-fit: contain !important; /* Ensure full image is visible */
+    object-position: center !important;
+    background: transparent !important;
+    border-radius: 8px !important;
+    transform: none !important; /* Disable any transforms that might affect sizing */
+  }
+  
+  /* Ensure card height accommodates larger image area */
+  .png-cards .png-card {
+    height: auto !important;
+    min-height: 500px !important;
+    max-height: none !important;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+    gap: 16px !important;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
+    gap: 18px !important;
+  }
+}
+
+@media (min-width: 1025px) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
+    gap: 20px !important;
+  }
+}
+
+/* REMOVE ALL CONFLICTING FIXED HEIGHT OVERRIDES */
+/* This ensures percentage-based system takes precedence */
+
+/* ===== FINAL MOBILE IMAGE FIX - MAXIMUM SPECIFICITY ===== */
+/* This section must be at the very end to override all other rules */
+
+@media screen and (max-width: 480px) {
+  /* Force proper card layout on mobile with contained images */
+  body .png-cards .png-card {
+    height: 500px !important;
+    min-height: 500px !important;
+    max-height: 500px !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: #2a2a2a !important;
+    border: 1px solid #404040 !important;
+    border-radius: 12px !important;
+  }
+  
+  body .png-cards .png-card .png-image-container {
+    height: 180px !important;
+    min-height: 180px !important;
+    max-height: 180px !important;
+    overflow: hidden !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+    background: #1a1a1a !important;
+    border-radius: 12px 12px 0 0 !important;
+  }
+  
+  body .png-cards .png-card .png-image-container img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    object-position: center !important;
+    background: transparent !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  
+  /* Adjust info area to fit remaining space */
+  body .png-cards .png-card .png-card-info {
+    flex: 1 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: hidden !important;
+    padding: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  /* Ensure buttons stay at bottom */
+  body .png-cards .png-card .png-card-buttons {
+    flex-shrink: 0 !important;
+    margin-top: auto !important;
+    padding: 12px !important;
+  }
+}
+
+/* ===== CONVERSATION MODAL RESPONSIVE FIXES ===== */
+
+/* Ensure conversation modal is properly responsive */
+.png-modal-content.chat-mode {
+  position: relative !important;
+  z-index: 10000 !important;
+  background: #fff !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Mobile responsive fixes for conversation modal */
+@media (max-width: 768px) {
+  .png-modal-content.chat-mode {
+    width: 95% !important;
+    height: 90vh !important;
+    max-height: none !important;
+    margin: 2.5vh auto !important;
+    border-radius: 8px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+  }
+  
+  /* Ensure conversation items are visible */
+  .conversation-item {
+    background: #232323 !important;
+    color: #333 !important;
+    border: 1px solid #ddd !important;
+    margin-bottom: 8px !important;
+    padding: 12px !important;
+    border-radius: 6px !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  .conversation-title {
+    color: #333 !important;
+    font-weight: bold !important;
+    font-size: 14px !important;
+    line-height: 1.3 !important;
+  }
+  
+  .conversation-date {
+    color: #666 !important;
+    font-size: 12px !important;
+    margin-top: 5px !important;
+  }
+  
+  /* Ensure conversation sidebar is properly positioned */
+  .conversation-sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 10001 !important;
+    background: rgba(0, 0, 0, 0.9) !important;
+    transform: translateX(-100%) !important;
+    transition: transform 0.3s ease !important;
+  }
+  
+  .conversation-sidebar.open {
+    transform: translateX(0) !important;
+  }
+  
+  /* Improve sidebar content visibility */
+  .conversation-sidebar .sidebar-header h3 {
+    color: #fff !important;
+    font-size: 18px !important;
+    margin-bottom: 15px !important;
+  }
+  
+  .conversation-sidebar .sidebar-actions button {
+    background: #23404e !important;
+    color: #fff !important;
+    border: none !important;
+    padding: 10px 15px !important;
+    border-radius: 6px !important;
+    font-size: 14px !important;
+    margin: 5px !important;
+  }
+  
+  .conversation-sidebar .sidebar-actions button:hover {
+    background: #0056b3 !important;
+  }
+  
+  /* Ensure chat messages are visible */
+  .chat-message {
+    max-width: 85% !important;
+    margin-bottom: 12px !important;
+    padding: 12px !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+  }
+  
+  .chat-message.user {
+    background: linear-gradient(135deg, #23404e 0%, #2d5363 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-bottom-right-radius: 6px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.chat-message.bot {
+    background: linear-gradient(135deg, #2a2a2a 0%, #333333 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-bottom-left-radius: 6px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+}
+
+/* Small mobile responsive fixes */
+@media (max-width: 480px) {
+  .png-modal-content.chat-mode {
+    width: 98% !important;
+    height: 95vh !important;
+    margin: 2.5vh auto !important;
+  }
+  
+  /* Further improve text visibility on very small screens */
+  .conversation-item {
+    padding: 15px !important;
+    margin-bottom: 10px !important;
+  }
+  
+  .conversation-title {
+    font-size: 16px !important;
+    line-height: 1.3 !important;
+  }
+  
+  .conversation-date {
+    font-size: 13px !important;
+    margin-top: 5px !important;
+  }
+  
+  /* Ensure chat messages are visible */
+  .chat-message {
+    max-width: 90% !important;
+    margin-bottom: 15px !important;
+    padding: 12px !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+  }
+  
+  .chat-message.user {
+    background: #2d4a7d !important;
+    color: #fff !important;
+    margin-left: auto !important;
+  }
+  
+  .chat-message.bot {
+    background: #444 !important;
+    color: #fff !important;
+    margin-right: auto !important;
+  }
+}
+
+/* Ensure proper z-index layering */
+.fullscreen-chat {
+  z-index: 9998 !important;
+}
+
+.png-modal {
+  z-index: 9999 !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+  backdrop-filter: blur(2px) !important;
+}
+
+.conversation-sidebar {
+  z-index: 10001 !important;
+}
+
+/* Improve text contrast in conversation items */
+.conversation-item {
+      background: #232323 !important;
+  color: #333 !important;
+  border: 1px solid #ddd !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.conversation-item:hover {
+  background: #2a2a2a !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+.conversation-item.active {
+  background: #23404e !important;
+  border-color: #2d5363 !important;
+}
+
+.conversation-title {
+  color: #e0e0e0 !important;
+  font-weight: 600 !important;
+}
+
+.conversation-date {
+  color: #888 !important;
+}
+
+/* ===== FINAL OVERRIDE: FORCE CHARACTER NAME CENTERING ===== */
+body .png-card .png-card-name,
+.png-card .png-card-name,
+.png-card-name {
+  text-align: center !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  margin: 0 auto !important;
+  min-height: 24px !important;
+  height: 100% !important;
+}
+
+/* Ensure parent containers don't interfere with centering */
+body .png-card .png-card-info,
+.png-card .png-card-info,
+.png-card-info {
+  text-align: center !important;
+}
+
+/* ===== SUBSCRIPTION SYSTEM STYLES ===== */
+.pmv-subscription-status,
+.pmv-access-plan-details {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.pmv-subscription-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #333;
+}
+
+.pmv-subscription-icon {
+  font-size: 24px;
+  margin-right: 15px;
+}
+
+.pmv-subscription-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.pmv-subscription-limits {
+  margin-bottom: 20px;
+}
+
+.pmv-limit-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.pmv-limit-item:last-child {
+  border-bottom: none;
+}
+
+.pmv-limit-label {
+  font-weight: 500;
+  color: #ccc;
+}
+
+.pmv-limit-value {
+  font-weight: 600;
+  color: #4CAF50;
+}
+
+.pmv-limit-value.unlimited {
+  color: #FFD700;
+  font-weight: 700;
+}
+
+/* Usage display styles */
+.pmv-limit-value {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pmv-usage-info {
+  color: #FF9800;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.pmv-remaining-info {
+  color: #4CAF50;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pmv-usage-progress {
+  margin: 8px 0 15px 0;
+}
+
+.pmv-progress-bar {
+  background: #444;
+  border-radius: 10px;
+  height: 6px;
+  margin-bottom: 5px;
+  overflow: hidden;
+  position: relative;
+}
+
+.pmv-progress-fill {
+  background: linear-gradient(90deg, #4CAF50, #45a049);
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+.pmv-progress-fill.warning {
+  background: linear-gradient(90deg, #FF9800, #F57C00);
+}
+
+.pmv-progress-fill.danger {
+  background: linear-gradient(90deg, #F44336, #D32F2F);
+}
+
+.pmv-progress-text {
+  font-size: 11px;
+  color: #999;
+  text-align: right;
+  display: block;
+}
+
+/* Access plan usage styles */
+.pmv-plan-usage {
+  background: #2a2a2a;
+  border-radius: 6px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.pmv-plan-usage h4 {
+  margin: 0 0 15px 0;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.pmv-usage-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #3a3a3a;
+}
+
+.pmv-usage-item:last-child {
+  border-bottom: none;
+}
+
+.pmv-usage-label {
+  font-weight: 500;
+  color: #ccc;
+}
+
+.pmv-usage-value {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: right;
+}
+
+.pmv-usage-value.unlimited {
+  color: #FFD700;
+  font-weight: 700;
+}
+
+.pmv-subscription-upgrade {
+  background: #2a2a2a;
+  border-radius: 6px;
+  padding: 15px;
+  text-align: center;
+}
+
+.pmv-subscription-upgrade p {
+  margin: 0 0 15px 0;
+  color: #ccc;
+}
+
+.pmv-upgrade-button {
+  display: inline-block;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  text-decoration: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.pmv-upgrade-button:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  color: #fff;
+}
+
+/* Subscription tier specific styles */
+.pmv-subscription-ultimate {
+  border-color: #FFD700;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+}
+
+.pmv-subscription-ultimate .pmv-subscription-title {
+  color: #FFD700;
+}
+
+.pmv-subscription-premium {
+  border-color: #9C27B0;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+}
+
+.pmv-subscription-premium .pmv-subscription-title {
+  color: #9C27B0;
+}
+
+.pmv-subscription-basic {
+  border-color: #2196F3;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+}
+
+.pmv-subscription-basic .pmv-subscription-title {
+  color: #2196F3;
+}
+
+.pmv-subscription-guest,
+.pmv-subscription-none {
+  border-color: #666;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+}
+
+.pmv-subscription-guest .pmv-subscription-title,
+.pmv-subscription-none .pmv-subscription-title {
+  color: #999;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .pmv-subscription-status {
+    padding: 15px;
+    margin: 15px 0;
+  }
+  
+  .pmv-subscription-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .pmv-subscription-icon {
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+  
+  .pmv-limit-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  
+  .pmv-upgrade-button {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* ===== ACCESS PLAN DETAILS STYLES ===== */
+.pmv-access-plan-info {
+  margin-bottom: 20px;
+}
+
+.pmv-plan-dates {
+  margin-bottom: 20px;
+}
+
+.pmv-plan-date-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.pmv-plan-date-item:last-child {
+  border-bottom: none;
+}
+
+.pmv-plan-date-label {
+  font-weight: 500;
+  color: #ccc;
+}
+
+.pmv-plan-date-value {
+  font-weight: 600;
+  color: #4CAF50;
+}
+
+.pmv-plan-progress {
+  background: #2a2a2a;
+  border-radius: 6px;
+  padding: 15px;
+}
+
+.pmv-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.pmv-progress-label {
+  font-weight: 600;
+  color: #fff;
+}
+
+.pmv-progress-text {
+  font-weight: 500;
+  color: #4CAF50;
+}
+
+.pmv-progress-bar {
+  background: #444;
+  border-radius: 10px;
+  height: 8px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.pmv-progress-fill {
+  background: linear-gradient(90deg, #4CAF50, #45a049);
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+.pmv-progress-details {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #999;
+}
+
+/* Access plan specific status styles */
+.pmv-access-plan-ultimate {
+  border-color: #FFD700;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+}
+
+.pmv-access-plan-ultimate .pmv-access-plan-title {
+  color: #FFD700;
+}
+
+.pmv-access-plan-premium {
+  border-color: #9C27B0;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+}
+
+.pmv-access-plan-premium .pmv-access-plan-title {
+  color: #9C27B0;
+}
+
+.pmv-access-plan-basic {
+  border-color: #2196F3;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+}
+
+.pmv-access-plan-basic .pmv-access-plan-title {
+  color: #2196F3;
+}
+
+.pmv-access-plan-unavailable,
+.pmv-access-plan-no-plan,
+.pmv-access-plan-guest-user {
+  border-color: #666;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  text-align: center;
+}
+
+.pmv-access-plan-unavailable .pmv-access-plan-title,
+.pmv-access-plan-no-plan .pmv-access-plan-title,
+.pmv-access-plan-guest-user .pmv-access-plan-title {
+  color: #999;
+}
+
+/* Credit system specific styles */
+.pmv-subscription-credits,
+.pmv-access-plan-credits {
+  border-color: #4CAF50;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+}
+
+.pmv-subscription-credits .pmv-subscription-title,
+.pmv-access-plan-credits .pmv-access-plan-title {
+  color: #4CAF50;
+}
+
+/* Daily Reward System Styles */
+.pmv-daily-reward-info {
+    background: linear-gradient(135deg, #2d5a27 0%, #1e3a1a 100%);
+    border: 1px solid #4CAF50;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.pmv-daily-reward-info h4 {
+    margin: 0 0 10px 0;
+    color: #4CAF50;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.pmv-daily-reward-info p {
+    margin: 0 0 15px 0;
+    color: #ccc;
+    font-size: 14px;
+}
+
+.pmv-reward-available,
+.pmv-reward-claimed {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.pmv-reward-text {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.pmv-reward-available .pmv-reward-text {
+    color: #4CAF50;
+}
+
+.pmv-reward-claimed .pmv-reward-text {
+    color: #FF9800;
+}
+
+.pmv-reward-amount {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4CAF50;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.pmv-reward-next {
+    color: #999;
+    font-size: 12px;
+    font-style: italic;
+}
+
+/* ===== CRITICAL FIX: Ensure character description scrolling works ===== */
+.png-card-description {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    max-height: 200px !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    text-overflow: clip !important;
+    display: block !important;
+    -webkit-line-clamp: unset !important;
+    -webkit-box-orient: unset !important;
+}
+
+/* Override any conflicting rules */
+.png-card .png-card-description {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    max-height: 200px !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    text-overflow: clip !important;
+    display: block !important;
+    -webkit-line-clamp: unset !important;
+    -webkit-box-orient: unset !important;
+}
+
+/* Additional browser-specific fixes */
+.png-card-description::-webkit-scrollbar {
+    width: 8px !important;
+}
+
+.png-card-description::-webkit-scrollbar-track {
+    background: #1a1a1a !important;
+    border-radius: 4px !important;
+}
+
+.png-card-description::-webkit-scrollbar-thumb {
+    background: #404040 !important;
+    border-radius: 4px !important;
+}
+
+.png-card-description::-webkit-scrollbar-thumb:hover {
+    background: #555 !important;
+}
+
+/* Force scrollbar to always show on description */
+.png-card-description {
+    scrollbar-width: thin !important;
+    scrollbar-color: #404040 #1a1a1a !important;
+}
+
+/* Highest priority fix for description scrolling */
+body .png-card .png-card-description,
+.png-cards .png-card .png-card-description,
+.png-card-info .png-card-description {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    max-height: 200px !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    text-overflow: clip !important;
+    display: block !important;
+    -webkit-line-clamp: unset !important;
+    -webkit-box-orient: unset !important;
+    height: 200px !important;
+    min-height: 200px !important;
+}
+
+/* ULTIMATE OVERRIDE: Maximum specificity to ensure scrolling works */
+html body .png-cards .png-card .png-card-info .png-card-description,
+html body .png-card .png-card-info .png-card-description,
+html body .png-cards .png-card .png-card-description {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    max-height: 200px !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    text-overflow: clip !important;
+    display: block !important;
+    -webkit-line-clamp: unset !important;
+    -webkit-box-orient: unset !important;
+    height: 200px !important;
+    min-height: 200px !important;
+}
+
+/* FINAL OVERRIDE: Target the exact HTML structure from grid-helper.php */
+.png-card-info .png-card-description {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    max-height: 200px !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    text-overflow: clip !important;
+    display: block !important;
+    -webkit-line-clamp: unset !important;
+    -webkit-box-orient: unset !important;
+    height: 200px !important;
+    min-height: 200px !important;
+}
+
+/* NUCLEAR OPTION: Maximum possible specificity with !important */
+html body div.png-cards div.png-card div.png-card-info div.png-card-description,
+html body div.png-card div.png-card-info div.png-card-description,
+html body div.png-cards div.png-card div.png-card-description {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    max-height: 200px !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    text-overflow: clip !important;
+    display: block !important;
+    -webkit-line-clamp: unset !important;
+    -webkit-box-orient: unset !important;
+    height: 200px !important;
+    min-height: 200px !important;
+}
+
+
