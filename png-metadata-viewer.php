@@ -103,6 +103,11 @@ if (file_exists(PMV_PLUGIN_DIR . 'includes/image-presets.php')) {
     require_once PMV_PLUGIN_DIR . 'includes/image-presets.php';
 }
 
+// Load user profile manager
+if (file_exists(PMV_PLUGIN_DIR . 'includes/user-profile-manager.php')) {
+    require_once PMV_PLUGIN_DIR . 'includes/user-profile-manager.php';
+}
+
 // Add hook to backup settings before plugin updates
 add_action('upgrader_process_complete', 'pmv_backup_settings_before_update', 10, 2);
 

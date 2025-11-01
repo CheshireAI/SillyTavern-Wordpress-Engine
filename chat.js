@@ -1874,6 +1874,19 @@
                 const metadata = $(this).attr('data-metadata') || $(this).closest('[data-metadata]').attr('data-metadata');
                 if (metadata) startFullScreenChat(metadata);
             })
+            .on('pmv_start_chat', function(e, metadata) {
+                if (metadata) {
+                    // Decode if URL encoded
+                    try {
+                        if (typeof metadata === 'string' && metadata.indexOf('%') !== -1) {
+                            metadata = decodeURIComponent(metadata);
+                        }
+                    } catch (err) {
+                        console.warn('Failed to decode metadata:', err);
+                    }
+                    startFullScreenChat(metadata);
+                }
+            })
             .on('click', '.close-modal, #png-modal', function(e) {
                 if (e.target === this || $(e.target).hasClass('close-modal')) {
                     $('#png-modal').hide();
