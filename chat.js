@@ -4533,18 +4533,32 @@
             const presetId = selectedPreset.data('preset-id');
             const userPrompt = $('#chat-input').val().trim() || '';
             
-            // Get conversation context
+            // Get conversation context (optional)
             let context = '';
-            const messages = collectConversationHistory();
-            if (messages.length > 0) {
-                const lastMessages = messages.slice(-5);
-                context = lastMessages.map(msg => 
-                    `${msg.role === 'user' ? 'You' : chatState.characterData?.name || 'Character'}: ${msg.content}`
-                ).join('\n');
+            
+            // Add character description if available
+            if (chatState.characterData?.description) {
+                context = `Character Description: ${chatState.characterData.description}`;
             }
             
-            if (chatState.characterData?.description) {
-                context += `\n\nCharacter Description: ${chatState.characterData.description}`;
+            // Optionally add recent chat messages for context
+            try {
+                const messages = collectConversationHistory();
+                if (messages && messages.length > 0) {
+                    const lastMessages = messages.slice(-3); // Last 3 messages for context
+                    const chatContext = lastMessages.map(msg => 
+                        `${msg.role === 'user' ? 'You' : chatState.characterData?.name || 'Character'}: ${msg.content}`
+                    ).join('\n');
+                    
+                    if (context) {
+                        context = chatContext + '\n\n' + context;
+                    } else {
+                        context = chatContext;
+                    }
+                }
+            } catch (err) {
+                console.warn('Could not collect conversation history:', err);
+                // Continue without chat history - it's optional
             }
             
             closeImageGenModal();

@@ -337,24 +337,7 @@ class PMV_Image_Presets {
         $preset_id = sanitize_text_field($_POST['preset_id'] ?? '');
         $context_json = sanitize_text_field($_POST['context'] ?? '{}');
         
-        // Sanitize user prompt with content filtering
-        $sanitized = self::sanitize_user_prompt($user_prompt);
-        
-        if (is_wp_error($sanitized)) {
-            wp_send_json_error(array(
-                'message' => $sanitized->get_error_message()
-            ));
-            return;
-        }
-        
-        if (empty($sanitized)) {
-            wp_send_json_error(array(
-                'message' => 'Please describe what you want to see.'
-            ));
-            return;
-        }
-        
-        // Get preset
+        // Get preset first to validate
         $preset = self::get_preset($preset_id);
         
         if (!$preset) {
@@ -364,12 +347,47 @@ class PMV_Image_Presets {
             return;
         }
         
-        // Build final prompt
-        $final_prompt = $sanitized;
+        // Build final prompt - user prompt is optional
+        $final_prompt = '';
+        
+        // Sanitize user prompt with content filtering (if provided)
+        if (!empty($user_prompt)) {
+            $sanitized = self::sanitize_user_prompt($user_prompt);
+            
+            if (is_wp_error($sanitized)) {
+                wp_send_json_error(array(
+                    'message' => $sanitized->get_error_message()
+                ));
+                return;
+            }
+            
+            $final_prompt = $sanitized;
+        }
+        
+        // Add character description from context if available
+        $context_data = array();
+        if (!empty($context)) {
+            // Parse context string (format: "You: message\nCharacter: message\n\nCharacter Description: ...")
+            if (strpos($context, 'Character Description:') !== false) {
+                $parts = explode('Character Description:', $context);
+                if (count($parts) > 1) {
+                    $final_prompt .= (!empty($final_prompt) ? ', ' : '') . trim($parts[1]);
+                }
+            }
+        }
         
         // Add preset enhancer if available
         if (!empty($preset['config']['prompt_enhancer'])) {
-            $final_prompt .= ', ' . $preset['config']['prompt_enhancer'];
+            if (!empty($final_prompt)) {
+                $final_prompt .= ', ' . $preset['config']['prompt_enhancer'];
+            } else {
+                $final_prompt = $preset['config']['prompt_enhancer'];
+            }
+        }
+        
+        // If still empty, use preset name as fallback
+        if (empty($final_prompt)) {
+            $final_prompt = $preset['name'];
         }
         
         wp_send_json_success(array(
