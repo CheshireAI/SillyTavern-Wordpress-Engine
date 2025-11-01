@@ -319,7 +319,7 @@ class PMV_Image_Presets {
      * AJAX handler to get available presets
      */
     public static function ajax_get_presets() {
-        check_ajax_referer('pmv_nonce', 'nonce');
+        check_ajax_referer('pmv_ajax_nonce', 'nonce');
         
         wp_send_json_success(array(
             'presets' => self::get_presets()
@@ -330,7 +330,7 @@ class PMV_Image_Presets {
      * AJAX handler to generate image prompt from user input and preset
      */
     public static function ajax_generate_image_prompt() {
-        check_ajax_referer('pmv_nonce', 'nonce');
+        check_ajax_referer('pmv_ajax_nonce', 'nonce');
         
         // Get parameters
         $user_prompt = sanitize_text_field($_POST['user_prompt'] ?? '');
