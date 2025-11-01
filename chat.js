@@ -2016,6 +2016,31 @@
                     $('#png-modal').hide();
                 }
             })
+            .on('click', '#image-gen-btn', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Image gen button clicked');
+                openImageGenModal();
+            })
+            .on('click', '.image-gen-modal-close, .image-gen-modal', function(e) {
+                if (e.target === this || $(e.target).hasClass('image-gen-modal-close')) {
+                    e.stopPropagation();
+                    closeImageGenModal();
+                }
+            })
+            .on('click', '.preset-card', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $('.preset-card').removeClass('selected');
+                $(this).addClass('selected');
+                console.log('Preset selected:', $(this).data('preset-id'));
+            })
+            .on('click', '#generate-image-btn', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Generate image button clicked');
+                generateImageFromPreset();
+            })
             
             // Chat interface handlers (UPDATED to delegate to PMV_ConversationManager)
             .on('click', '.close-chat-btn, .close-fullscreen-btn', function(e) {
@@ -4351,10 +4376,12 @@
         // Make consumeImageCredits available globally
         window.consumeImageCredits = consumeImageCredits;
         
-        // Image Generation Modal Functions
-        function openImageGenModal() {
+        // Image Generation Modal Functions - exposed in scope
+        var openImageGenModal = function() {
+            console.log('openImageGenModal called');
             // Create modal if it doesn't exist
             if ($('#image-gen-modal').length === 0) {
+                console.log('Creating image gen modal');
                 $('body').append(`
                     <div id="image-gen-modal" class="image-gen-modal">
                         <div class="image-gen-modal-content">
@@ -4374,13 +4401,14 @@
                 loadPresetsIntoModal();
             }
             $('#image-gen-modal').addClass('active');
-        }
+            console.log('Modal should be visible now');
+        };
         
-        function closeImageGenModal() {
+        var closeImageGenModal = function() {
             $('#image-gen-modal').removeClass('active');
-        }
+        };
         
-        function loadPresetsIntoModal() {
+        var loadPresetsIntoModal = function() {
             $.ajax({
                 url: pmv_ajax_object.ajax_url,
                 type: 'POST',
@@ -4409,9 +4437,9 @@
                     alert('Failed to load presets');
                 }
             });
-        }
+        };
         
-        function generateImageFromPreset() {
+        var generateImageFromPreset = function() {
             const selectedPreset = $('.preset-card.selected');
             if (selectedPreset.length === 0) {
                 alert('Please select a preset first');
@@ -4468,7 +4496,11 @@
                     alert('Failed to generate image prompt');
                 }
             });
-        }
+        };
+        
+        // Expose functions globally for event handlers
+        window.openImageGenModal = openImageGenModal;
+        window.closeImageGenModal = closeImageGenModal;
     });
     
 })(jQuery); // Pass jQuery to the function
