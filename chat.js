@@ -284,6 +284,126 @@
                     transform: translateY(-2px) scale(1.05);
                 }
                 
+                .image-gen-btn {
+                    background: linear-gradient(135deg, #ff8c00 0%, #ffa500 100%);
+                    color: #ffffff;
+                    border: none;
+                    border-radius: 12px;
+                    font-size: 18px;
+                    width: 44px;
+                    height: 44px;
+                    margin-right: 8px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 2px 8px rgba(255, 140, 0, 0.3);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .image-gen-btn:hover {
+                    background: linear-gradient(135deg, #ffa500 0%, #ffb84d 100%);
+                    transform: translateY(-2px) scale(1.05);
+                    box-shadow: 0 4px 16px rgba(255, 140, 0, 0.4);
+                }
+                
+                .image-gen-modal {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100vw;
+                    height: 100vh;
+                    background: rgba(0, 0, 0, 0.85);
+                    z-index: 10003;
+                    display: none;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .image-gen-modal.active {
+                    display: flex;
+                }
+                .image-gen-modal-content {
+                    background: #2d2d2d;
+                    border-radius: 16px;
+                    max-width: 600px;
+                    width: 90%;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                    border: 1px solid #444;
+                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+                }
+                .image-gen-modal-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 20px;
+                    border-bottom: 1px solid #444;
+                    background: #1a1a1a;
+                    border-radius: 16px 16px 0 0;
+                }
+                .image-gen-modal-header h3 {
+                    margin: 0;
+                    color: #e0e0e0;
+                    font-size: 20px;
+                }
+                .image-gen-modal-close {
+                    background: #2d5363;
+                    color: #fff;
+                    border: none;
+                    border-radius: 8px;
+                    width: 32px;
+                    height: 32px;
+                    cursor: pointer;
+                    font-size: 18px;
+                    transition: all 0.2s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .image-gen-modal-close:hover {
+                    background: #23404e;
+                    transform: scale(1.1);
+                }
+                .image-gen-modal-body {
+                    padding: 20px;
+                }
+                .preset-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                    gap: 12px;
+                    margin-bottom: 20px;
+                }
+                .preset-card {
+                    background: #1a1a1a;
+                    border: 2px solid #444;
+                    border-radius: 12px;
+                    padding: 15px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    text-align: center;
+                }
+                .preset-card:hover {
+                    border-color: #ffa500;
+                    background: #252525;
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(255, 140, 0, 0.2);
+                }
+                .preset-card.selected {
+                    border-color: #ffa500;
+                    background: #2a2520;
+                    box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.3);
+                }
+                .preset-card-name {
+                    font-weight: bold;
+                    color: #e0e0e0;
+                    margin-bottom: 5px;
+                    font-size: 16px;
+                }
+                .preset-card-desc {
+                    font-size: 12px;
+                    color: #aaa;
+                    line-height: 1.4;
+                }
+                
                 @keyframes pulse {
                     0%, 100% { opacity: 1; }
                     50% { opacity: 0.7; }
@@ -1353,6 +1473,9 @@
                 const inputMobileStyles = isMobile ? `
                     style="flex: 1; padding: 16px 20px; border: 2px solid #333333; border-radius: 25px; background: #1a1a1a; color: #ffffff; font-size: 16px; resize: none; min-height: 60px; max-height: 120px; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);"
                 ` : '';
+                const imageGenButtonMobileStyles = isMobile ? `
+                    style="background: linear-gradient(135deg, #ff8c00 0%, #ffa500 100%); color: #ffffff; border: none; padding: 16px; border-radius: 25px; cursor: pointer; font-size: 20px; flex-shrink: 0; min-height: 60px; min-width: 60px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3); display: flex; align-items: center; justify-content: center;"
+                ` : '';
                 const sendButtonMobileStyles = isMobile ? `
                     style="background: linear-gradient(135deg, #23404e 0%, #2d5363 100%); color: #ffffff; border: none; padding: 16px 24px; border-radius: 25px; cursor: pointer; font-size: 15px; font-weight: 600; flex-shrink: 0; min-height: 60px; box-shadow: 0 4px 12px rgba(35, 64, 78, 0.3);"
                 ` : '';
@@ -1400,6 +1523,7 @@
                         <div class="fullscreen-chat-input-container" ${inputContainerMobileStyles}>
                             <div class="input-wrapper input-flex-row" ${inputRowMobileStyles}>
                                 <textarea id="chat-input" placeholder="Type your message..." rows="1" ${inputMobileStyles}></textarea>
+                                <button id="image-gen-btn" class="image-gen-btn" title="Generate Image" ${imageGenButtonMobileStyles}>🎨</button>
                                 <button id="send-chat" class="fullscreen-chat-send-btn" ${sendButtonMobileStyles}>Send</button>
                             </div>
                             <!-- Image Generation Panel -->
@@ -1960,11 +2084,11 @@
                     return;
                 }
 
-                // Check for slash commands
-                if (message.startsWith('/')) {
-                    handleSlashCommand(message);
-                    return;
-                }
+                // Check for slash commands (disabled for image generation - use preset button instead)
+                // if (message.startsWith('/')) {
+                //     handleSlashCommand(message);
+                //     return;
+                // }
 
                 // Add user message
                 $('#chat-history').append(`<div class="chat-message user"><span class="speaker-name">You:</span><span class="chat-message-content-wrapper">${escapeHtml(message)}</span></div>`);
@@ -4226,6 +4350,125 @@
         
         // Make consumeImageCredits available globally
         window.consumeImageCredits = consumeImageCredits;
+        
+        // Image Generation Modal Functions
+        function openImageGenModal() {
+            // Create modal if it doesn't exist
+            if ($('#image-gen-modal').length === 0) {
+                $('body').append(`
+                    <div id="image-gen-modal" class="image-gen-modal">
+                        <div class="image-gen-modal-content">
+                            <div class="image-gen-modal-header">
+                                <h3>🎨 Generate Image</h3>
+                                <button class="image-gen-modal-close">✕</button>
+                            </div>
+                            <div class="image-gen-modal-body">
+                                <div class="preset-grid" id="preset-grid"></div>
+                                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #444;">
+                                    <button id="generate-image-btn" class="button-primary" style="width: 100%; padding: 12px; font-size: 16px;">Generate Image</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `);
+                loadPresetsIntoModal();
+            }
+            $('#image-gen-modal').addClass('active');
+        }
+        
+        function closeImageGenModal() {
+            $('#image-gen-modal').removeClass('active');
+        }
+        
+        function loadPresetsIntoModal() {
+            $.ajax({
+                url: pmv_ajax_object.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'pmv_get_image_presets',
+                    nonce: pmv_ajax_object.nonce
+                },
+                success: function(response) {
+                    if (response.success && response.data.presets) {
+                        const presets = response.data.presets;
+                        const $grid = $('#preset-grid');
+                        $grid.empty();
+                        
+                        // Render presets
+                        $.each(presets, function(id, preset) {
+                            $grid.append(`
+                                <div class="preset-card" data-preset-id="${id}">
+                                    <div class="preset-card-name">${preset.name}</div>
+                                    <div class="preset-card-desc">${preset.description}</div>
+                                </div>
+                            `);
+                        });
+                    }
+                },
+                error: function() {
+                    alert('Failed to load presets');
+                }
+            });
+        }
+        
+        function generateImageFromPreset() {
+            const selectedPreset = $('.preset-card.selected');
+            if (selectedPreset.length === 0) {
+                alert('Please select a preset first');
+                return;
+            }
+            
+            const presetId = selectedPreset.data('preset-id');
+            const userPrompt = $('#chat-input').val().trim() || '';
+            
+            // Get conversation context
+            let context = '';
+            const messages = collectConversationHistory();
+            if (messages.length > 0) {
+                const lastMessages = messages.slice(-5);
+                context = lastMessages.map(msg => 
+                    `${msg.role === 'user' ? 'You' : chatState.characterData?.name || 'Character'}: ${msg.content}`
+                ).join('\n');
+            }
+            
+            if (chatState.characterData?.description) {
+                context += `\n\nCharacter Description: ${chatState.characterData.description}`;
+            }
+            
+            closeImageGenModal();
+            
+            $.ajax({
+                url: pmv_ajax_object.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'pmv_generate_image_prompt',
+                    nonce: pmv_ajax_object.nonce,
+                    preset_id: presetId,
+                    user_prompt: userPrompt,
+                    context: context
+                },
+                success: function(response) {
+                    if (response.success) {
+                        const finalPrompt = response.data.final_prompt;
+                        const presetConfig = response.data.preset_config;
+                        
+                        $('#chat-input').val('');
+                        
+                        if (userPrompt) {
+                            $('#chat-history').append(`<div class="chat-message user"><span class="speaker-name">You:</span><span class="chat-message-content-wrapper">Generate image: ${escapeHtml(userPrompt)}</span></div>`);
+                            pushContentUp();
+                        }
+                        
+                        createImageFromPrompt(finalPrompt, presetConfig);
+                    } else {
+                        alert('Error: ' + (response.data?.message || 'Failed to generate prompt'));
+                    }
+                },
+                error: function() {
+                    alert('Failed to generate image prompt');
+                }
+            });
+        }
     });
     
 })(jQuery); // Pass jQuery to the function
