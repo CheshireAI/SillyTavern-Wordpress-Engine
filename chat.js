@@ -1772,6 +1772,50 @@
                 // Initialize image generation functionality
                 initializeImageGeneration();
                 
+                // Add direct click handler for image button after chat is created
+                setTimeout(function() {
+                    const $imgBtn = $('#image-gen-btn');
+                    console.log('After chat init - Image button exists?', $imgBtn.length);
+                    if ($imgBtn.length > 0) {
+                        console.log('Binding direct click handler to image button');
+                        $imgBtn.off('click.directImageGen').on('click.directImageGen', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            e.stopImmediatePropagation();
+                            console.log('=== DIRECT IMAGE BUTTON CLICK FIRED ===');
+                            
+                            if (typeof window.openImageGenModal === 'function') {
+                                console.log('Calling window.openImageGenModal');
+                                window.openImageGenModal();
+                            } else {
+                                console.error('window.openImageGenModal not found');
+                                // Fallback: create modal directly
+                                if ($('#image-gen-modal').length === 0) {
+                                    console.log('Creating modal directly as fallback');
+                                    $('body').append(`
+                                        <div id="image-gen-modal" class="image-gen-modal">
+                                            <div class="image-gen-modal-content">
+                                                <div class="image-gen-modal-header">
+                                                    <h3>🎨 Generate Image</h3>
+                                                    <button class="image-gen-modal-close">✕</button>
+                                                </div>
+                                                <div class="image-gen-modal-body">
+                                                    <div class="preset-grid" id="preset-grid"></div>
+                                                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #444;">
+                                                        <button id="generate-image-btn" class="button-primary" style="width: 100%; padding: 12px; font-size: 16px;">Generate Image</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `);
+                                }
+                                $('#image-gen-modal').addClass('active');
+                            }
+                            return false;
+                        });
+                    }
+                }, 300);
+                
                 // Scroll to bottom for initial message
                 setTimeout(() => {
                     scrollToBottom();
@@ -2016,11 +2060,51 @@
                     $('#png-modal').hide();
                 }
             })
-            .on('click', '#image-gen-btn', function(e) {
+            .on('click', '#image-gen-btn, .image-gen-btn', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Image gen button clicked');
-                openImageGenModal();
+                e.stopImmediatePropagation();
+                console.log('Image gen button clicked - handler fired');
+                console.log('Button element:', this);
+                console.log('Button ID:', $(this).attr('id'));
+                
+                // Try calling the function directly
+                try {
+                    if (typeof openImageGenModal === 'function') {
+                        console.log('Calling openImageGenModal directly');
+                        openImageGenModal();
+                    } else if (typeof window.openImageGenModal === 'function') {
+                        console.log('Calling window.openImageGenModal');
+                        window.openImageGenModal();
+                    } else {
+                        console.error('openImageGenModal not found anywhere');
+                        // Create modal directly as fallback
+                        console.log('Creating modal directly');
+                        if ($('#image-gen-modal').length === 0) {
+                            $('body').append(`
+                                <div id="image-gen-modal" class="image-gen-modal">
+                                    <div class="image-gen-modal-content">
+                                        <div class="image-gen-modal-header">
+                                            <h3>🎨 Generate Image</h3>
+                                            <button class="image-gen-modal-close">✕</button>
+                                        </div>
+                                        <div class="image-gen-modal-body">
+                                            <div class="preset-grid" id="preset-grid"></div>
+                                            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #444;">
+                                                <button id="generate-image-btn" class="button-primary" style="width: 100%; padding: 12px; font-size: 16px;">Generate Image</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `);
+                        }
+                        $('#image-gen-modal').addClass('active');
+                        console.log('Modal created and should be visible');
+                    }
+                } catch (err) {
+                    console.error('Error in image gen handler:', err);
+                    alert('Error opening image modal: ' + err.message);
+                }
             })
             .on('click', '.image-gen-modal-close, .image-gen-modal', function(e) {
                 if (e.target === this || $(e.target).hasClass('image-gen-modal-close')) {
