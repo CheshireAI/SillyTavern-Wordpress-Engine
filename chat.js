@@ -1672,69 +1672,6 @@
                                 </div>
                                 
                                 <div class="settings-section">
-                                    <h4>Slash Commands</h4>
-                                    <div class="setting-group">
-                                        <label>/self Command Template:</label>
-                                        <textarea id="slash-self-template" placeholder="Create a selfie prompt based on the character description and current chat context..." rows="3"></textarea>
-                                    </div>
-                                    <div class="setting-group">
-                                        <label>/generate Command Template:</label>
-                                        <textarea id="slash-generate-template" placeholder="Generate an image based on the following prompt: {prompt}" rows="2"></textarea>
-                                    </div>
-                                    <div class="setting-group">
-                                        <label>/look Command Template:</label>
-                                        <textarea id="slash-look-template" placeholder="Create a prompt for an image showing the current surroundings..." rows="3"></textarea>
-                                    </div>
-                                    <div class="setting-group">
-                                        <label>/custom1 Command Template:</label>
-                                        <textarea id="slash-custom1-template" placeholder="Custom prompt template 1: {prompt}" rows="2"></textarea>
-                                    </div>
-                                    <div class="setting-group">
-                                        <label>/custom2 Command Template:</label>
-                                        <textarea id="slash-custom2-template" placeholder="Custom prompt template 2: {prompt}" rows="2"></textarea>
-                                    </div>
-                                    <div class="setting-group">
-                                        <label>/custom3 Command Template:</label>
-                                        <textarea id="slash-custom3-template" placeholder="Custom prompt template 3: {prompt}" rows="2"></textarea>
-                                    </div>
-                                </div>
-                                
-                                <div class="settings-section">
-                                    <h4>Custom Command Names</h4>
-                                    <p class="setting-description">Customize the command names for quick access. Use forward slash prefix (e.g., /mycommand).</p>
-                                    <div class="setting-group">
-                                        <label>Selfie Command:</label>
-                                        <input type="text" id="custom-self-command" placeholder="/self" value="/self">
-                                        <p class="setting-description">Command to generate a selfie of the character</p>
-                                    </div>
-                                    <div class="setting-group">
-                                        <label>Generate Command:</label>
-                                        <input type="text" id="custom-generate-command" placeholder="/generate" value="/generate">
-                                        <p class="setting-description">Command for direct image generation with custom prompt</p>
-                                    </div>
-                                    <div class="setting-group">
-                                        <label>Look Command:</label>
-                                        <input type="text" id="custom-look-command" placeholder="/look" value="/look">
-                                        <p class="setting-description">Command to generate an image of current surroundings</p>
-                                    </div>
-                                    <div class="setting-group">
-                                        <label>Custom Command 1:</label>
-                                        <input type="text" id="custom-command1" placeholder="/custom1" value="/custom1">
-                                        <p class="setting-description">First custom command for specialized image generation</p>
-                                    </div>
-                                    <div class="setting-group">
-                                        <label>Custom Command 2:</label>
-                                        <input type="text" id="custom-command2" placeholder="/custom2" value="/custom2">
-                                        <p class="setting-description">Second custom command for specialized image generation</p>
-                                    </div>
-                                    <div class="setting-group">
-                                        <label>Custom Command 3:</label>
-                                        <input type="text" id="custom-command3" placeholder="/custom3" value="/custom3">
-                                        <p class="setting-description">Third custom command for specialized image generation</p>
-                                    </div>
-                                </div>
-                                
-                                <div class="settings-section">
                                     <h4>Import/Export Settings</h4>
                                     <div class="setting-group">
                                         <button id="export-settings" class="button-secondary">Export Settings</button>
@@ -3037,22 +2974,6 @@
             // Note: Technical parameters (steps, cfg scale, width, height) are now handled
             // by the preset system server-side, so they are not loaded here
             
-            // Load slash command templates
-            $('#slash-self-template').val(settings.slashSelfTemplate || 'Create a selfie prompt based on the character description and current chat context. Focus on the character\'s appearance, expression, and current situation.');
-            $('#slash-generate-template').val(settings.slashGenerateTemplate || 'Generate an image based on the following prompt: {prompt}');
-            $('#slash-look-template').val(settings.slashLookTemplate || 'Create a prompt for an image showing the current surroundings and environment based on the chat context. Focus on the setting, atmosphere, and what the character would see around them.');
-            $('#slash-custom1-template').val(settings.slashCustom1Template || 'Custom prompt template 1: {prompt}');
-            $('#slash-custom2-template').val(settings.slashCustom2Template || 'Custom prompt template 2: {prompt}');
-            $('#slash-custom3-template').val(settings.slashCustom3Template || 'Custom prompt template 3: {prompt}');
-            
-            // Load custom command names
-            $('#custom-self-command').val(settings.customSelfCommand || '/self');
-            $('#custom-generate-command').val(settings.customGenerateCommand || '/generate');
-            $('#custom-look-command').val(settings.customLookCommand || '/look');
-            $('#custom-command1').val(settings.customCommand1 || '/custom1');
-            $('#custom-command2').val(settings.customCommand2 || '/custom2');
-            $('#custom-command3').val(settings.customCommand3 || '/custom3');
-            
             // Load models for the selected provider
             console.log('About to load models for provider:', provider);
             loadModelsForProvider(provider);
@@ -3105,85 +3026,13 @@
         }
         
         function saveImageSettings() {
-            // Validate custom command names
-            const customCommands = [
-                $('#custom-self-command').val(),
-                $('#custom-generate-command').val(),
-                $('#custom-look-command').val(),
-                $('#custom-command1').val(),
-                $('#custom-command2').val(),
-                $('#custom-command3').val()
-            ];
-            
-            // Check if all commands start with /
-            for (let i = 0; i < customCommands.length; i++) {
-                const command = customCommands[i];
-                if (command && !command.startsWith('/')) {
-                    alert('All custom command names must start with a forward slash (/)');
-                    return;
-                }
-            }
-            
-            // Check for duplicate commands
-            const uniqueCommands = [...new Set(customCommands.filter(cmd => cmd))];
-            if (uniqueCommands.length !== customCommands.filter(cmd => cmd).length) {
-                alert('Custom command names must be unique');
-                return;
-            }
-            
             const settings = {
                 provider: $('#image-provider').val(),
                 customPromptTemplate: $('#custom-prompt-template').val() || '',
                 useFullHistory: $('#use-full-history').is(':checked'),
                 autoTriggerKeywords: $('#auto-trigger-keywords').val() || '',
                 allowPromptEditing: $('#allow-prompt-editing').is(':checked'),
-                defaultModel: $('#default-model').val() || '',
-                slashSelfTemplate: $('#slash-self-template').val() || '',
-                slashGenerateTemplate: $('#slash-generate-template').val() || '',
-                slashLookTemplate: $('#slash-look-template').val() || '',
-                slashCustom1Template: $('#slash-custom1-template').val() || '',
-                slashCustom2Template: $('#slash-custom2-template').val() || '',
-                slashCustom3Template: $('#slash-custom3-template').val() || '',
-                customSelfCommand: $('#custom-self-command').val() || '/self',
-                customGenerateCommand: $('#custom-generate-command').val() || '/generate',
-                customLookCommand: $('#custom-look-command').val() || '/look',
-                customCommand1: $('#custom-command1').val() || '/custom1',
-                customCommand2: $('#custom-command2').val() || '/custom2',
-                customCommand3: $('#custom-command3').val() || '/custom3'
-            };
-            
-            // Update slash commands with custom command names
-            settings.slashCommands = {
-                [settings.customSelfCommand]: {
-                    type: 'selfie',
-                    description: 'Generate a selfie based on character description and current situation',
-                    template: settings.slashSelfTemplate
-                },
-                [settings.customGenerateCommand]: {
-                    type: 'freestyle',
-                    description: 'Free-form image generation with custom prompt',
-                    template: settings.slashGenerateTemplate
-                },
-                [settings.customLookCommand]: {
-                    type: 'surroundings',
-                    description: 'Generate an image of the current surroundings',
-                    template: settings.slashLookTemplate
-                },
-                [settings.customCommand1]: {
-                    type: 'custom',
-                    description: 'Custom command 1',
-                    template: settings.slashCustom1Template
-                },
-                [settings.customCommand2]: {
-                    type: 'custom',
-                    description: 'Custom command 2',
-                    template: settings.slashCustom2Template
-                },
-                [settings.customCommand3]: {
-                    type: 'custom',
-                    description: 'Custom command 3',
-                    template: settings.slashCustom3Template
-                }
+                defaultModel: $('#default-model').val() || ''
             };
             
             localStorage.setItem('pmv_image_settings', JSON.stringify(settings));
@@ -3338,56 +3187,6 @@
         //     // DISABLED: Slash commands are no longer supported
         //     alert('Slash commands are disabled. Please use the 🎨 button for image generation.');
         // }
-        
-        function getDefaultSlashCommands() {
-            // Get custom command names from settings if available
-            const settings = JSON.parse(localStorage.getItem('pmv_image_settings') || '{}');
-            
-            const commands = {
-                [settings.customSelfCommand || '/self']: {
-                    type: 'selfie',
-                    description: 'Generate a selfie based on character description and current situation',
-                    template: settings.slashSelfTemplate || 'Create a selfie prompt based on the character description and current chat context. Focus on the character\'s appearance, expression, and current situation.'
-                },
-                [settings.customGenerateCommand || '/generate']: {
-                    type: 'freestyle',
-                    description: 'Direct image generation with custom prompt (no OpenAI processing)',
-                    template: settings.slashGenerateTemplate || 'Generate an image based on the following prompt: {prompt}'
-                },
-                [settings.customLookCommand || '/look']: {
-                    type: 'surroundings',
-                    description: 'Generate an image of the current surroundings',
-                    template: settings.slashLookTemplate || 'Create a prompt for an image showing the current surroundings and environment based on the chat context. Focus on the setting, atmosphere, and what the character would see around them.'
-                },
-                [settings.customCommand1 || '/custom1']: {
-                    type: 'custom',
-                    description: 'Custom command 1',
-                    template: settings.slashCustom1Template || 'Custom prompt template 1: {prompt}'
-                },
-                [settings.customCommand2 || '/custom2']: {
-                    type: 'custom',
-                    description: 'Custom command 2',
-                    template: settings.slashCustom2Template || 'Custom prompt template 2: {prompt}'
-                },
-                [settings.customCommand3 || '/custom3']: {
-                    type: 'custom',
-                    description: 'Custom command 3',
-                    template: settings.slashCustom3Template || 'Custom prompt template 3: {prompt}'
-                }
-            };
-            
-            console.log('getDefaultSlashCommands generated:', commands);
-            console.log('Settings used:', {
-                customSelfCommand: settings.customSelfCommand,
-                customGenerateCommand: settings.customGenerateCommand,
-                customLookCommand: settings.customLookCommand,
-                customCommand1: settings.customCommand1,
-                customCommand2: settings.customCommand2,
-                customCommand3: settings.customCommand3
-            });
-            
-            return commands;
-        }
         
         // Slash commands completely disabled - only preset-based image generation is used
         /*
