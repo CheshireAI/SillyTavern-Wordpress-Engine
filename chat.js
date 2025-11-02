@@ -3480,8 +3480,14 @@
             });
         }
         
-        function createImageFromPrompt(prompt) {
+        function createImageFromPrompt(prompt, presetConfig = null) {
             const settings = JSON.parse(localStorage.getItem('pmv_image_settings') || '{}');
+            
+            // Store the prompt for later use (to display as caption)
+            if (!window.pmvGeneratedImagePrompts) {
+                window.pmvGeneratedImagePrompts = {};
+            }
+            const promptKey = 'pending_' + Date.now();
             
             // Get provider-specific parameters
             const provider = settings.provider || 'swarmui';
@@ -3519,24 +3525,77 @@
                     if (response.success) {
                         displayImageResults(response.data);
                         
-                        // Add image to chat
+                        // Add image to chat with prompt as caption
                         if (response.data.images && response.data.images.length > 0) {
+                            const imageUrl = response.data.images[0];
+                            // Escape HTML in prompt for safe display
+                            const escapedPrompt = $('<div>').text(prompt).html();
+                            
+                            // Store prompt with image URL for later reference
+                            if (!window.pmvGeneratedImagePrompts) {
+                                window.pmvGeneratedImagePrompts = {};
+                            }
+                            window.pmvGeneratedImagePrompts[imageUrl] = prompt;
+                            
                             $('#chat-history').append(`
                                 <div class="chat-message bot">
                                     <span class="speaker-name">Image Generated (${provider.toUpperCase()}):</span>
                                     <div class="chat-message-content-wrapper">
-                                        <img src="${response.data.images[0]}" style="max-width: 100%; border-radius: 4px;" loading="lazy" />
+                                        <div class="generated-image-container" style="position: relative; display: inline-block;">
+                                            <img src="${imageUrl}" 
+                                                 style="max-width: 100%; border-radius: 4px; cursor: help;" 
+                                                 loading="lazy"
+                                                 title="${escapedPrompt}"
+                                                 data-prompt="${escapedPrompt}"
+                                                 class="pmv-generated-image" />
+                                            <div class="pmv-image-prompt-caption" style="
+                                                display: none;
+                                                position: absolute;
+                                                bottom: 0;
+                                                left: 0;
+                                                right: 0;
+                                                background: rgba(0, 0, 0, 0.85);
+                                                color: #fff;
+                                                padding: 10px;
+                                                font-size: 12px;
+                                                line-height: 1.4;
+                                                border-radius: 0 0 4px 4px;
+                                                max-height: 200px;
+                                                overflow-y: auto;
+                                                word-wrap: break-word;
+                                                z-index: 1000;
+                                            ">${escapedPrompt}</div>
+                                        </div>
                                     </div>
                                 </div>
                             `);
+                            
+                            // Add hover event handlers for the prompt caption
+                            const $img = $('#chat-history .pmv-generated-image').last();
+                            const $caption = $img.siblings('.pmv-image-prompt-caption');
+                            
+                            if ($img.length && $caption.length) {
+                                $img.on('mouseenter', function() {
+                                    $caption.fadeIn(200);
+                                });
+                                
+                                $img.on('mouseleave', function() {
+                                    $caption.fadeOut(200);
+                                });
+                            }
+                            
                             pushContentUp();
                             
                             // Consume image credits after successful generation
                             consumeImageCredits(response.data.images.length);
                             
-                            // Notify PMV_ConversationManager of new image message
+                            // Notify PMV_ConversationManager of new image message with prompt
                             if (window.PMV_ConversationManager) {
-                                $(document).trigger('pmv:message:added', [{type: 'assistant', content: '[Generated Image: ' + response.data.images[0] + ']'}]);
+                                $(document).trigger('pmv:message:added', [{
+                                    type: 'assistant', 
+                                    content: '[Generated Image: ' + imageUrl + ']',
+                                    prompt: prompt
+                                }]);
                             }
                         }
                     } else {
@@ -4570,6 +4629,24 @@
                 }
             });
         };
+        
+        // Global hover handler for all generated images (using event delegation)
+        // This works for both new images and images loaded from saved conversations
+        $(document).on('mouseenter', '.pmv-generated-image', function() {
+            const $img = $(this);
+            const $caption = $img.siblings('.pmv-image-prompt-caption');
+            if ($caption.length) {
+                $caption.fadeIn(200);
+            }
+        });
+        
+        $(document).on('mouseleave', '.pmv-generated-image', function() {
+            const $img = $(this);
+            const $caption = $img.siblings('.pmv-image-prompt-caption');
+            if ($caption.length) {
+                $caption.fadeOut(200);
+            }
+        });
         
         // Expose functions globally for event handlers
         window.openImageGenModal = openImageGenModal;

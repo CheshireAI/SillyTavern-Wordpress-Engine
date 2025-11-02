@@ -875,15 +875,25 @@
                             
                             // Get content
                             const $wrapper = $msg.find('.chat-message-content-wrapper');
+                            let metadata = {};
+                            
                             if ($wrapper.length) {
                                 // Check if this message contains an image
                                 const $img = $wrapper.find('img');
                                 if ($img.length > 0) {
-                                    // This is an image message - extract the image URL
+                                    // This is an image message - extract the image URL and prompt
                                     const imgSrc = $img.attr('src');
                                     if (imgSrc) {
                                         content = `[Generated Image: ${imgSrc}]`;
                                         hasImages = true;
+                                        
+                                        // Extract prompt from data attribute or global store
+                                        const prompt = $img.attr('data-prompt') || 
+                                                     (window.pmvGeneratedImagePrompts && window.pmvGeneratedImagePrompts[imgSrc]) || 
+                                                     '';
+                                        if (prompt) {
+                                            metadata.prompt = prompt;
+                                        }
                                     } else {
                                         content = $wrapper.text().trim();
                                     }
@@ -904,12 +914,23 @@
                             }
                             
                             if (content) {
-                                messages.push({
+                                const messageData = {
                                     role: role,
                                     content: content,
                                     timestamp: new Date().toISOString(),
                                     hasImages: hasImages
-                                });
+                                };
+                                
+                                // Add metadata if available (e.g., prompt for images)
+                                if (Object.keys(metadata).length > 0) {
+                                    messageData.metadata = metadata;
+                                    // Also add prompt at top level for easier access
+                                    if (metadata.prompt) {
+                                        messageData.prompt = metadata.prompt;
+                                    }
+                                }
+                                
+                                messages.push(messageData);
                             }
                         });
                         
@@ -1105,7 +1126,45 @@
                                 // Check if this is an image message
                                 if (msg.content && msg.content.startsWith('[Generated Image: ') && msg.content.endsWith(']')) {
                                     const imgUrl = msg.content.replace('[Generated Image: ', '').replace(']', '');
-                                    contentHtml = `<img src="${this.escapeHtml(imgUrl)}" style="max-width: 100%; border-radius: 4px;" loading="lazy" />`;
+                                    const prompt = msg.prompt || msg.metadata?.prompt || '';
+                                    const escapedPrompt = prompt ? this.escapeHtml(prompt) : '';
+                                    
+                                    // Store prompt for hover display
+                                    if (!window.pmvGeneratedImagePrompts) {
+                                        window.pmvGeneratedImagePrompts = {};
+                                    }
+                                    if (prompt) {
+                                        window.pmvGeneratedImagePrompts[imgUrl] = prompt;
+                                    }
+                                    
+                                    contentHtml = `
+                                        <div class="generated-image-container" style="position: relative; display: inline-block;">
+                                            <img src="${this.escapeHtml(imgUrl)}" 
+                                                 style="max-width: 100%; border-radius: 4px; cursor: help;" 
+                                                 loading="lazy"
+                                                 ${escapedPrompt ? `title="${escapedPrompt}" data-prompt="${escapedPrompt}"` : ''}
+                                                 class="pmv-generated-image" />
+                                            ${escapedPrompt ? `
+                                            <div class="pmv-image-prompt-caption" style="
+                                                display: none;
+                                                position: absolute;
+                                                bottom: 0;
+                                                left: 0;
+                                                right: 0;
+                                                background: rgba(0, 0, 0, 0.85);
+                                                color: #fff;
+                                                padding: 10px;
+                                                font-size: 12px;
+                                                line-height: 1.4;
+                                                border-radius: 0 0 4px 4px;
+                                                max-height: 200px;
+                                                overflow-y: auto;
+                                                word-wrap: break-word;
+                                                z-index: 1000;
+                                            ">${escapedPrompt}</div>
+                                            ` : ''}
+                                        </div>
+                                    `;
                                 } else {
                                     contentHtml = this.escapeHtml(msg.content);
                                 }
