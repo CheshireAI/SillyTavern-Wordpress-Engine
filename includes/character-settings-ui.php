@@ -805,26 +805,169 @@ function pmv_character_settings_tab_content() {
         }
         
         // LoRA Management Functions
+        // Cache LoRAs to avoid multiple AJAX calls
+        var lorasCache = null;
+        var lorasLoading = false;
+        
+        function loadAvailableLoras(callback) {
+            // Use cached LoRAs if available
+            if (lorasCache && lorasCache.length > 0) {
+                if (callback) callback(lorasCache);
+                return;
+            }
+            
+            // Don't make multiple simultaneous requests
+            if (lorasLoading) {
+                setTimeout(function() {
+                    loadAvailableLoras(callback);
+                }, 500);
+                return;
+            }
+            
+            lorasLoading = true;
+            
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'pmv_get_available_loras',
+                    nonce: '<?= wp_create_nonce('pmv_ajax_nonce') ?>'
+                },
+                success: function(response) {
+                    if (response.success && response.data) {
+                        var loras = [];
+                        // Parse LoRAs from response - structure may vary
+                        if (response.data.files && Array.isArray(response.data.files)) {
+                            response.data.files.forEach(function(file) {
+                                var loraName = file.name || file.title || file.path || '';
+                                if (loraName) {
+                                    loras.push({
+                                        name: loraName,
+                                        title: file.title || file.name || loraName
+                                    });
+                                }
+                            });
+                        } else if (response.data.list && Array.isArray(response.data.list)) {
+                            response.data.list.forEach(function(item) {
+                                var loraName = item.name || item.path || item.title || '';
+                                if (loraName) {
+                                    loras.push({
+                                        name: loraName,
+                                        title: item.title || item.name || loraName
+                                    });
+                                }
+                            });
+                        }
+                        
+                        // Cache the LoRAs
+                        lorasCache = loras;
+                        
+                        if (callback) callback(loras);
+                    } else {
+                        if (callback) callback([]);
+                    }
+                    lorasLoading = false;
+                },
+                error: function() {
+                    if (callback) callback([]);
+                    lorasLoading = false;
+                }
+            });
+        }
+        
         function addLoraEntry(containerId, loraName = '', loraWeight = '1', loraTencWeight = '') {
             var $container = $(containerId);
             var index = $container.find('.lora-entry').length;
-            var loraHtml = `
-                <div class="lora-entry" style="margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9;">
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <input type="text" class="lora-name" placeholder="LoRA name (e.g., Pony/zy_AmateurStyle_v2)" value="${loraName.replace(/"/g, '&quot;')}" style="flex: 1; color: #000; padding: 5px;">
-                        <input type="number" class="lora-weight" placeholder="Weight" value="${loraWeight}" min="0" max="2" step="0.1" style="width: 100px; color: #000; padding: 5px;">
-                        <input type="number" class="lora-tenc-weight" placeholder="TenC Weight" value="${loraTencWeight}" min="0" max="2" step="0.1" style="width: 120px; color: #000; padding: 5px;">
-                        <button type="button" class="button button-small remove-lora-btn" style="color: #000;">Remove</button>
-                    </div>
-                </div>
-            `;
-            $container.append(loraHtml);
+            
+            // Create the entry with a select dropdown for LoRA name
+            var $entry = $('<div>').addClass('lora-entry').css({
+                'margin-bottom': '10px',
+                'padding': '10px',
+                'border': '1px solid #ddd',
+                'border-radius': '4px',
+                'background': '#f9f9f9'
+            });
+            
+            var $row = $('<div>').css({
+                'display': 'flex',
+                'gap': '10px',
+                'align-items': 'center'
+            });
+            
+            // LoRA name dropdown (will be populated asynchronously)
+            var $loraSelect = $('<select>').addClass('lora-name').css({
+                'flex': '1',
+                'color': '#000',
+                'padding': '5px'
+            });
+            $loraSelect.append($('<option>').val('').text('Loading LoRAs...'));
+            
+            // Load LoRAs and populate dropdown
+            loadAvailableLoras(function(loras) {
+                $loraSelect.empty();
+                $loraSelect.append($('<option>').val('').text('Select LoRA...'));
+                
+                loras.forEach(function(lora) {
+                    var $option = $('<option>').val(lora.name).text(lora.title);
+                    if (loraName && lora.name === loraName) {
+                        $option.prop('selected', true);
+                    }
+                    $loraSelect.append($option);
+                });
+                
+                // If custom LoRA name was provided and not found in list, add it
+                if (loraName && !loras.find(function(l) { return l.name === loraName; })) {
+                    $loraSelect.append($('<option>').val(loraName).text(loraName + ' (custom)').prop('selected', true));
+                }
+            });
+            
+            $row.append($loraSelect);
+            
+            // Weight input
+            var $weightInput = $('<input>').attr({
+                'type': 'number',
+                'class': 'lora-weight',
+                'placeholder': 'Weight',
+                'value': loraWeight,
+                'min': '0',
+                'max': '2',
+                'step': '0.1'
+            }).css({
+                'width': '100px',
+                'color': '#000',
+                'padding': '5px'
+            });
+            $row.append($weightInput);
+            
+            // TenC Weight input
+            var $tencWeightInput = $('<input>').attr({
+                'type': 'number',
+                'class': 'lora-tenc-weight',
+                'placeholder': 'TenC Weight',
+                'value': loraTencWeight,
+                'min': '0',
+                'max': '2',
+                'step': '0.1'
+            }).css({
+                'width': '120px',
+                'color': '#000',
+                'padding': '5px'
+            });
+            $row.append($tencWeightInput);
+            
+            // Remove button
+            var $removeBtn = $('<button>').attr('type', 'button').addClass('button button-small remove-lora-btn').text('Remove').css('color', '#000');
+            $row.append($removeBtn);
+            
+            $entry.append($row);
+            $container.append($entry);
         }
         
         function getLorasFromContainer(containerId) {
             var loras = [];
             $(containerId + ' .lora-entry').each(function() {
                 var $entry = $(this);
+                // Get LoRA name from select dropdown (not input)
                 var name = $entry.find('.lora-name').val().trim();
                 var weight = $entry.find('.lora-weight').val().trim() || '1';
                 var tencWeight = $entry.find('.lora-tenc-weight').val().trim();

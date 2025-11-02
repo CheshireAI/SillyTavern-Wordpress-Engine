@@ -27,6 +27,10 @@ class PMV_SwarmUI_API_Handler extends PMV_API_Handler_Base {
         
         // Credit consumption after successful image generation
         add_action('wp_ajax_pmv_consume_image_credits', array($this, 'ajax_consume_image_credits'));
+        
+        // LoRA listing handler
+        add_action('wp_ajax_pmv_get_available_loras', array($this, 'ajax_get_available_loras'));
+        add_action('wp_ajax_nopriv_pmv_get_available_loras', array($this, 'ajax_get_available_loras'));
     }
     
     private function get_new_session() {
@@ -459,6 +463,62 @@ class PMV_SwarmUI_API_Handler extends PMV_API_Handler_Base {
         }
 
         return json_decode(wp_remote_retrieve_body($response), true);
+    }
+
+    protected function get_available_loras() {
+        if (empty($this->session_id)) {
+            $session_result = $this->get_new_session();
+            if (is_wp_error($session_result)) {
+                return $session_result;
+            }
+        }
+
+        $url = trailingslashit($this->api_base_url) . 'API/ListT2IParams';
+        $request_data = array(
+            'path' => '',
+            'depth' => 1,
+            'subtype' => 'LoRA',
+            'sortBy' => 'Name',
+            'sortReverse' => false,
+            'session_id' => $this->session_id
+        );
+
+        // Include user token cookie if available
+        $user_token = get_option('pmv_swarmui_user_token', '');
+        $headers = array('Content-Type' => 'application/json');
+        if (!empty($user_token)) {
+            $headers['Cookie'] = 'swarm_user_token=' . $user_token;
+        }
+
+        $response = wp_remote_post($url, array(
+            'body' => json_encode($request_data),
+            'timeout' => 30,
+            'sslverify' => false,
+            'headers' => $headers
+        ));
+
+        if (is_wp_error($response)) {
+            return $response;
+        }
+
+        return json_decode(wp_remote_retrieve_body($response), true);
+    }
+
+    public function ajax_get_available_loras() {
+        if (!wp_verify_nonce($_POST['nonce'], 'pmv_ajax_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed'));
+        }
+
+        $result = $this->get_available_loras();
+
+        if (is_wp_error($result)) {
+            wp_send_json_error(array(
+                'message' => $result->get_error_message(),
+                'code' => $result->get_error_code()
+            ));
+        }
+        
+        wp_send_json_success($result);
     }
 
     protected function test_connection() {
