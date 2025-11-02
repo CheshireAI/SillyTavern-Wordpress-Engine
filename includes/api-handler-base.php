@@ -144,12 +144,21 @@ abstract class PMV_API_Handler_Base {
             wp_die('Security check failed');
         }
         
-        $chat_history = sanitize_textarea_field($_POST['chat_history']);
+        // Check if this is a preset-based request (has preset_id) - let image-presets.php handle it
+        // The preset handler should take priority, so we skip processing here if preset_id is present
+        if (isset($_POST['preset_id']) && !empty($_POST['preset_id'])) {
+            // Don't process - let PMV_Image_Presets::ajax_generate_image_prompt handle it
+            // Return early without sending response to let the preset handler process it
+            return;
+        }
+        
+        $chat_history = sanitize_textarea_field($_POST['chat_history'] ?? '');
         $custom_prompt = sanitize_textarea_field($_POST['custom_prompt'] ?? '');
         $custom_template = sanitize_textarea_field($_POST['custom_template'] ?? '');
         
-        if (empty($chat_history)) {
-            wp_send_json_error(array('message' => 'Chat history is required'));
+        // Make chat_history optional - use custom_prompt or character description if available
+        if (empty($chat_history) && empty($custom_prompt)) {
+            wp_send_json_error(array('message' => 'Either chat history or a custom prompt is required'));
         }
         
         $prompt = $this->generate_image_prompt_from_chat($chat_history, $custom_prompt, $custom_template);

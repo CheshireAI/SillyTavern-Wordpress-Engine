@@ -33,7 +33,8 @@ class PMV_Unified_Image_Handler {
         add_action('wp_ajax_nopriv_pmv_generate_image', array($this->active_handler, 'ajax_generate_image_guest'));
         add_action('wp_ajax_pmv_get_available_models', array($this->active_handler, 'ajax_get_available_models'));
         add_action('wp_ajax_pmv_test_image_connection', array($this->active_handler, 'ajax_test_connection'));
-        add_action('wp_ajax_pmv_generate_image_prompt', array($this->active_handler, 'ajax_generate_image_prompt'));
+        // Note: pmv_generate_image_prompt is handled by PMV_Image_Presets (preset-based system)
+        // Don't register the base handler here to avoid conflicts
         
         // Credit consumption endpoint (works for all providers)
         add_action('wp_ajax_pmv_consume_image_credits', array($this->active_handler, 'ajax_consume_image_credits'));

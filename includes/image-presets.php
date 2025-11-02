@@ -397,9 +397,9 @@ class PMV_Image_Presets {
     }
 }
 
-// Register AJAX handlers
-add_action('wp_ajax_pmv_get_image_presets', array('PMV_Image_Presets', 'ajax_get_presets'));
-add_action('wp_ajax_nopriv_pmv_get_image_presets', array('PMV_Image_Presets', 'ajax_get_presets'));
-add_action('wp_ajax_pmv_generate_image_prompt', array('PMV_Image_Presets', 'ajax_generate_image_prompt'));
-add_action('wp_ajax_nopriv_pmv_generate_image_prompt', array('PMV_Image_Presets', 'ajax_generate_image_prompt'));
+// Register AJAX handlers with HIGH priority to ensure preset handler runs before base handler
+add_action('wp_ajax_pmv_get_image_presets', array('PMV_Image_Presets', 'ajax_get_presets'), 5);
+add_action('wp_ajax_nopriv_pmv_get_image_presets', array('PMV_Image_Presets', 'ajax_get_presets'), 5);
+add_action('wp_ajax_pmv_generate_image_prompt', array('PMV_Image_Presets', 'ajax_generate_image_prompt'), 5);
+add_action('wp_ajax_nopriv_pmv_generate_image_prompt', array('PMV_Image_Presets', 'ajax_generate_image_prompt'), 5);
 
