@@ -3570,19 +3570,8 @@
                                 </div>
                             `);
                             
-                            // Add hover event handlers for the prompt caption
-                            const $img = $('#chat-history .pmv-generated-image').last();
-                            const $caption = $img.siblings('.pmv-image-prompt-caption');
-                            
-                            if ($img.length && $caption.length) {
-                                $img.on('mouseenter', function() {
-                                    $caption.fadeIn(200);
-                                });
-                                
-                                $img.on('mouseleave', function() {
-                                    $caption.fadeOut(200);
-                                });
-                            }
+                            // Note: Hover handlers are now handled globally via event delegation
+                            // on .generated-image-container to prevent flickering
                             
                             pushContentUp();
                             
@@ -4632,17 +4621,18 @@
         
         // Global hover handler for all generated images (using event delegation)
         // This works for both new images and images loaded from saved conversations
-        $(document).on('mouseenter', '.pmv-generated-image', function() {
-            const $img = $(this);
-            const $caption = $img.siblings('.pmv-image-prompt-caption');
+        // Use the container instead of the image to prevent flickering when hovering over caption
+        $(document).on('mouseenter', '.generated-image-container', function() {
+            const $container = $(this);
+            const $caption = $container.find('.pmv-image-prompt-caption');
             if ($caption.length) {
                 $caption.fadeIn(200);
             }
         });
         
-        $(document).on('mouseleave', '.pmv-generated-image', function() {
-            const $img = $(this);
-            const $caption = $img.siblings('.pmv-image-prompt-caption');
+        $(document).on('mouseleave', '.generated-image-container', function() {
+            const $container = $(this);
+            const $caption = $container.find('.pmv-image-prompt-caption');
             if ($caption.length) {
                 $caption.fadeOut(200);
             }
