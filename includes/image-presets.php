@@ -336,6 +336,7 @@ class PMV_Image_Presets {
         $user_prompt = sanitize_text_field($_POST['user_prompt'] ?? '');
         $preset_id = sanitize_text_field($_POST['preset_id'] ?? '');
         $context_json = sanitize_text_field($_POST['context'] ?? '{}');
+        $character_filename = sanitize_file_name($_POST['character_filename'] ?? '');
         
         // Get preset first to validate
         $preset = self::get_preset($preset_id);
@@ -350,6 +351,22 @@ class PMV_Image_Presets {
         // Build final prompt - user prompt is optional
         $final_prompt = '';
         
+        // Get character-specific prefix/suffix if available
+        $prompt_prefix = '';
+        $prompt_suffix = '';
+        if (!empty($character_filename) && class_exists('PMV_Character_Settings_Manager')) {
+            $char_settings = PMV_Character_Settings_Manager::get_settings($character_filename);
+            if ($char_settings) {
+                $prompt_prefix = $char_settings['prompt_prefix'];
+                $prompt_suffix = $char_settings['prompt_suffix'];
+            }
+        }
+        
+        // Add character prefix first
+        if (!empty($prompt_prefix)) {
+            $final_prompt = trim($prompt_prefix);
+        }
+        
         // Sanitize user prompt with content filtering (if provided)
         if (!empty($user_prompt)) {
             $sanitized = self::sanitize_user_prompt($user_prompt);
@@ -361,17 +378,30 @@ class PMV_Image_Presets {
                 return;
             }
             
-            $final_prompt = $sanitized;
+            if (!empty($sanitized)) {
+                if (!empty($final_prompt)) {
+                    $final_prompt .= ', ' . $sanitized;
+                } else {
+                    $final_prompt = $sanitized;
+                }
+            }
         }
         
         // Add character description from context if available
-        $context_data = array();
+        $context = $context_json;
         if (!empty($context)) {
             // Parse context string (format: "You: message\nCharacter: message\n\nCharacter Description: ...")
             if (strpos($context, 'Character Description:') !== false) {
                 $parts = explode('Character Description:', $context);
                 if (count($parts) > 1) {
-                    $final_prompt .= (!empty($final_prompt) ? ', ' : '') . trim($parts[1]);
+                    $desc = trim($parts[1]);
+                    if (!empty($desc)) {
+                        if (!empty($final_prompt)) {
+                            $final_prompt .= ', ' . $desc;
+                        } else {
+                            $final_prompt = $desc;
+                        }
+                    }
                 }
             }
         }
@@ -382,6 +412,15 @@ class PMV_Image_Presets {
                 $final_prompt .= ', ' . $preset['config']['prompt_enhancer'];
             } else {
                 $final_prompt = $preset['config']['prompt_enhancer'];
+            }
+        }
+        
+        // Add character suffix last
+        if (!empty($prompt_suffix)) {
+            if (!empty($final_prompt)) {
+                $final_prompt .= ', ' . trim($prompt_suffix);
+            } else {
+                $final_prompt = trim($prompt_suffix);
             }
         }
         

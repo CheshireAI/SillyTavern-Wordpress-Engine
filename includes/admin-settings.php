@@ -710,6 +710,7 @@ function pmv_admin_page_wrapper() {
         'content_moderation' => 'Content Moderation',
         'swarmui' => 'SwarmUI Settings',
         'subscriptions' => 'Credit System',
+        'character_settings' => 'Character Settings',
         'upload' => 'Upload Files',
         'settings_backup' => 'Settings Backup'
     ];
@@ -1020,6 +1021,8 @@ function pmv_admin_page_wrapper() {
                 <?php pmv_content_moderation_tab_content(); ?>
             <?php elseif ($current_tab === 'settings_backup') : ?>
                 <?php pmv_settings_backup_tab_content(); ?>
+            <?php elseif ($current_tab === 'character_settings') : ?>
+                <?php pmv_character_settings_tab_content(); ?>
             <?php else : ?>
                 <form method="post" action="options.php" id="pmv-settings-form">
                     <?php

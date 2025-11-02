@@ -532,10 +532,11 @@ function pmv_add_simple_grid_js() {
         $(document).on('click', '.png-chat-button', function(e) {
             e.preventDefault();
             var metadata = $(this).data('metadata');
-            console.log('SIMPLE GRID: Chat clicked', metadata);
+            var fileUrl = $(this).closest('.png-card').data('file-url') || $(this).closest('.png-card').find('img').attr('src') || '';
+            console.log('SIMPLE GRID: Chat clicked', metadata, 'fileUrl:', fileUrl);
             
-            // Trigger chat event
-            $(document).trigger('pmv_start_chat', [metadata]);
+            // Trigger chat event with metadata and fileUrl
+            $(document).trigger('pmv_start_chat', [metadata, fileUrl]);
         });
         
         console.log('SIMPLE GRID: Ready');

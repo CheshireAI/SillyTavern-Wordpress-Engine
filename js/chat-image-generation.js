@@ -291,6 +291,9 @@
             return;
         }
         
+        // Get character filename from chatState if available
+        const characterFilename = window.chatState?.characterFile || '';
+        
         // Send to server for prompt generation with content filtering
         $.ajax({
             url: pmv_ajax_object.ajax_url,
@@ -300,7 +303,8 @@
                 nonce: pmv_ajax_object.nonce,
                 user_prompt: userDescription,
                 preset_id: presetId,
-                context: window.PMV_ChatCore ? JSON.stringify(window.PMV_ChatCore.collectConversationHistory().slice(-3)) : '{}'
+                context: window.PMV_ChatCore ? JSON.stringify(window.PMV_ChatCore.collectConversationHistory().slice(-3)) : '{}',
+                character_filename: characterFilename
             },
             success: function(response) {
                 if (response.success) {

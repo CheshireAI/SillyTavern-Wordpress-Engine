@@ -1294,12 +1294,27 @@ function pmv_upload_files_tab_content() {
     </div>
     
     <h3>Register Existing Character Cards</h3>
-    <p>If you've uploaded character card files via SCP, FTP, or other direct methods, use this button to register them with the system:</p>
+    <p>If you've uploaded character card files via SCP, FTP, or other direct methods, use this button to register them with the system. The system will automatically scan for new files when you visit this page.</p>
     <div style="margin: 20px 0;">
         <button type="button" id="register-existing-cards" class="button button-secondary">Register Existing Character Cards</button>
         <div id="register-progress" style="margin: 10px 0; display: none;"></div>
         <div id="register-results" style="margin: 10px 0;"></div>
     </div>
+    
+    <script type="text/javascript">
+    jQuery(document).ready(function($) {
+        // Auto-scan for new files on page load
+        var registerButton = $('#register-existing-cards');
+        var registerProgressDiv = $('#register-progress');
+        var registerResultsDiv = $('#register-results');
+        
+        // Auto-trigger scan on page load (only if not already done)
+        if (sessionStorage.getItem('pmv_auto_scan_done') !== 'true') {
+            registerButton.trigger('click');
+            sessionStorage.setItem('pmv_auto_scan_done', 'true');
+        }
+    });
+    </script>
     
     <h3>Directory Information</h3>
     <div id="directory-info" style="margin: 20px 0; padding: 15px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 5px;">
@@ -3154,4 +3169,9 @@ function pmv_subscriptions_tab_content() {
     <?php endif; ?>
     
     <?php
+}
+
+// Include character settings UI
+if (file_exists(plugin_dir_path(__FILE__) . 'character-settings-ui.php')) {
+    require_once plugin_dir_path(__FILE__) . 'character-settings-ui.php';
 }

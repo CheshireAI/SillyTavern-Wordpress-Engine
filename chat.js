@@ -1431,14 +1431,33 @@
         }
 
         // Start full screen chat (UPDATED to use PMV_ConversationManager)
-        function startFullScreenChat(metadata) {
+        function startFullScreenChat(metadata, fileUrl) {
             try {
                 const parsedData = parseCharacterData(metadata);
                 const character = extractCharacterInfo(parsedData);
+                
+                // Extract character filename from fileUrl if provided
+                let characterFile = '';
+                if (fileUrl) {
+                    const urlParts = fileUrl.split('/');
+                    characterFile = urlParts[urlParts.length - 1] || '';
+                } else if (typeof metadata === 'string') {
+                    // Try to extract filename from metadata if it contains file info
+                    try {
+                        const metaObj = JSON.parse(metadata);
+                        if (metaObj.file_url) {
+                            const urlParts = metaObj.file_url.split('/');
+                            characterFile = urlParts[urlParts.length - 1] || '';
+                        }
+                    } catch (e) {
+                        // Not JSON, ignore
+                    }
+                }
 
                 // Set up chat state
                 chatState.characterData = character;
                 chatState.characterId = generateCharacterId(parsedData);
+                chatState.characterFile = characterFile; // Store filename for image generation
                 chatState.chatModeActive = true;
                 chatState.originalBodyContent = $('body').html();
 
@@ -2042,7 +2061,7 @@
                 const metadata = $(this).attr('data-metadata') || $(this).closest('[data-metadata]').attr('data-metadata');
                 if (metadata) startFullScreenChat(metadata);
             })
-            .on('pmv_start_chat', function(e, metadata) {
+            .on('pmv_start_chat', function(e, metadata, fileUrl) {
                 if (metadata) {
                     // Decode if URL encoded
                     try {
@@ -2052,7 +2071,7 @@
                     } catch (err) {
                         console.warn('Failed to decode metadata:', err);
                     }
-                    startFullScreenChat(metadata);
+                    startFullScreenChat(metadata, fileUrl);
                 }
             })
             .on('click', '.close-modal, #png-modal', function(e) {
@@ -2193,11 +2212,11 @@
                     return;
                 }
 
-                // Check for slash commands (disabled for image generation - use preset button instead)
-                // if (message.startsWith('/')) {
-                //     handleSlashCommand(message);
-                //     return;
-                // }
+                // Slash commands completely disabled - only preset-based image generation is used
+                if (message.startsWith('/')) {
+                    alert('Slash commands are disabled. Please use the 🎨 button for image generation.');
+                    return;
+                }
 
                 // Add user message
                 $('#chat-history').append(`<div class="chat-message user"><span class="speaker-name">You:</span><span class="chat-message-content-wrapper">${escapeHtml(message)}</span></div>`);
@@ -3314,26 +3333,11 @@
             }
         }
         
-        function handleSlashCommand(message) {
-            const command = message.split(' ')[0].toLowerCase();
-            const args = message.substring(command.length).trim();
-            
-            const settings = JSON.parse(localStorage.getItem('pmv_image_settings') || '{}');
-            const commands = settings.slashCommands || getDefaultSlashCommands();
-            
-            console.log('handleSlashCommand called with:', { message, command, args });
-            console.log('Available commands:', Object.keys(commands));
-            console.log('Settings:', settings);
-            
-            if (commands[command]) {
-                console.log('Command found:', command, commands[command]);
-                executeSlashCommand(command, args, commands[command]);
-            } else {
-                console.log('Command not found:', command);
-                // Show available commands
-                showSlashCommandHelp();
-            }
-        }
+        // Slash commands completely disabled - only preset-based image generation is used
+        // function handleSlashCommand(message) {
+        //     // DISABLED: Slash commands are no longer supported
+        //     alert('Slash commands are disabled. Please use the 🎨 button for image generation.');
+        // }
         
         function getDefaultSlashCommands() {
             // Get custom command names from settings if available
@@ -3385,64 +3389,13 @@
             return commands;
         }
         
+        // Slash commands completely disabled - only preset-based image generation is used
+        /*
         function executeSlashCommand(command, args, commandConfig) {
-            let prompt = '';
-            let customPrompt = '';
-            
-            console.log('executeSlashCommand called with:', { command, args, commandConfig });
-            
-            switch (commandConfig.type) {
-                case 'selfie':
-                    customPrompt = commandConfig.template;
-                    break;
-                case 'freestyle':
-                    if (!args) {
-                        alert('Please provide a prompt for /generate command. Example: /generate a beautiful sunset');
-                        return;
-                    }
-                    prompt = args; // Use the prompt directly for /generate
-                    customPrompt = commandConfig.template.replace('{prompt}', args);
-                    break;
-                case 'surroundings':
-                    customPrompt = commandConfig.template;
-                    break;
-                case 'custom':
-                    if (args) {
-                        // For custom commands, use the template and replace {prompt} with the user's input
-                        console.log('Custom command with args - template before replacement:', commandConfig.template);
-                        customPrompt = commandConfig.template.replace('{prompt}', args);
-                        console.log('Custom command with args - template after replacement:', customPrompt);
-                        
-                        // Set the final prompt to the processed template
-                        prompt = customPrompt;
-                    } else {
-                        // If no args provided, use the template as-is
-                        customPrompt = commandConfig.template;
-                        prompt = customPrompt;
-                        console.log('Custom command without args - using template as-is:', customPrompt);
-                    }
-                    break;
-            }
-            
-            console.log('executeSlashCommand result:', { prompt, customPrompt, commandType: commandConfig.type });
-            
-            // Add command message to chat
-            $('#chat-history').append(`
-                <div class="chat-message user">
-                    <span class="speaker-name">You:</span>
-                    <span class="chat-message-content-wrapper">${escapeHtml(command + (args ? ' ' + args : ''))}</span>
-                </div>
-            `);
-            
-            // Clear input
-            $('#chat-input').val('');
-            
-            // Scroll to bottom to show the new message
-            scrollToBottom();
-            
-            // Generate and create image - pass command type to handle custom commands properly
-            generateImageFromSlashCommand(prompt, customPrompt, commandConfig.type);
+            // DISABLED: Slash commands are no longer supported
+            alert('Slash commands are disabled. Please use the 🎨 button for image generation.');
         }
+        */
         
         function generateImageFromSlashCommand(prompt, customPrompt, commandType) {
             const settings = JSON.parse(localStorage.getItem('pmv_image_settings') || '{}');
@@ -3644,17 +3597,13 @@
             });
         }
         
+        // Slash commands completely disabled
+        /*
         function showSlashCommandHelp() {
-            const settings = JSON.parse(localStorage.getItem('pmv_image_settings') || '{}');
-            const commands = settings.slashCommands || getDefaultSlashCommands();
-            
-            let helpText = 'Available slash commands:\n\n';
-            Object.keys(commands).forEach(cmd => {
-                helpText += `${cmd}: ${commands[cmd].description}\n`;
-            });
-            
-            alert(helpText);
+            // DISABLED: Slash commands are no longer supported
+            alert('Slash commands are disabled. Please use the 🎨 button for image generation.');
         }
+        */
         
         function exportImageSettings() {
             const settings = JSON.parse(localStorage.getItem('pmv_image_settings') || '{}');
@@ -4563,6 +4512,9 @@
             
             closeImageGenModal();
             
+            // Get character filename from chatState if available
+            const characterFilename = chatState.characterFile || '';
+            
             $.ajax({
                 url: pmv_ajax_object.ajax_url,
                 type: 'POST',
@@ -4571,7 +4523,8 @@
                     nonce: pmv_ajax_object.nonce,
                     preset_id: presetId,
                     user_prompt: userPrompt,
-                    context: context
+                    context: context,
+                    character_filename: characterFilename
                 },
                 success: function(response) {
                     if (response.success) {

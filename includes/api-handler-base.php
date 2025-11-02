@@ -171,10 +171,20 @@ abstract class PMV_API_Handler_Base {
     }
 
     public function check_image_generation_limits($user_id, $requested_count) {
-        $today = current_time('Y-m-d');
-        $current_month = current_time('Y-m');
-        
+        // For logged-in users with credits, no limits - only credit-based restrictions apply
         if ($user_id > 0) {
+            // Check if user has credits via subscription system
+            if (class_exists('PMV_Subscription_System')) {
+                $subscription_system = PMV_Subscription_System::getInstance();
+                $credits = $subscription_system->get_user_credits($user_id);
+                // If user has credits, no daily/monthly limits - credits are the only limit
+                if ($credits['image_credits'] > 0) {
+                    return array('allowed' => true);
+                }
+            }
+            // Fallback: If no subscription system or no credits, apply limits
+            $today = current_time('Y-m-d');
+            $current_month = current_time('Y-m');
             $daily_limit = get_user_meta($user_id, "pmv_{$this->provider_id}_daily_limit", true) ?: get_option("pmv_{$this->provider_id}_user_daily_limit", 10);
             $monthly_limit = get_user_meta($user_id, "pmv_{$this->provider_id}_monthly_limit", true) ?: get_option("pmv_{$this->provider_id}_user_monthly_limit", 100);
             
