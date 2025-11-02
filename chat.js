@@ -3018,7 +3018,8 @@
                 nonce: pmv_ajax_object.nonce
             };
             
-            // Get model: character-specific first, then preset config, then defaults
+            // Get model: preset model (characterModel param) first, then preset config, then defaults
+            // Note: characterModel param may contain preset model or character model (priority already handled in backend)
             let model = characterModel || (presetConfig && presetConfig.model) || null;
             
             // Add provider-specific parameters
@@ -4124,12 +4125,13 @@
                     if (response.success) {
                         const finalPrompt = response.data.final_prompt;
                         const presetConfig = response.data.preset_config;
-                        const characterModel = response.data.character_model || null; // Character-specific model if set
+                        // Preset model has highest priority, then character model
+                        const presetModel = response.data.preset_model || response.data.character_model || null;
                         
                         // Remove loading message
                         $('#chat-history .chat-message.system').last().remove();
                         
-                        createImageFromPrompt(finalPrompt, presetConfig, characterModel);
+                        createImageFromPrompt(finalPrompt, presetConfig, presetModel);
                     } else {
                         // Remove loading message
                         $('#chat-history .chat-message.system').last().remove();

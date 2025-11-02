@@ -201,6 +201,15 @@ function pmv_character_settings_tab_content() {
                                 <th style="color: #000;"><label for="universal-preset-enhancer" style="color: #000;">Prompt Enhancer</label></th>
                                 <td><textarea id="universal-preset-enhancer" name="prompt_enhancer" rows="2" class="large-text" style="color: #000;"></textarea></td>
                             </tr>
+                            <tr>
+                                <th style="color: #000;"><label for="universal-preset-model" style="color: #000;">Model</label></th>
+                                <td>
+                                    <select id="universal-preset-model" name="preset_model" style="width: 100%; color: #000;">
+                                        <option value="">Use character/default model</option>
+                                    </select>
+                                    <p class="description" style="color: #666; font-size: 13px;">Optional: Select a specific model for this preset. If not set, will use character-specific model or default.</p>
+                                </td>
+                            </tr>
                         </table>
                         <p class="submit">
                             <button type="button" id="save-universal-preset-btn" class="button button-primary">Save Preset</button>
@@ -269,6 +278,15 @@ function pmv_character_settings_tab_content() {
                         <tr>
                             <th style="color: #000;"><label for="preset-enhancer" style="color: #000;">Prompt Enhancer</label></th>
                             <td><textarea id="preset-enhancer" name="prompt_enhancer" rows="2" class="large-text" placeholder="e.g., high quality, detailed, professional" style="color: #000;"></textarea></td>
+                        </tr>
+                        <tr>
+                            <th style="color: #000;"><label for="preset-model" style="color: #000;">Model</label></th>
+                            <td>
+                                <select id="preset-model" name="preset_model" style="width: 100%; color: #000;">
+                                    <option value="">Use character/default model</option>
+                                </select>
+                                <p class="description" style="color: #666; font-size: 13px;">Optional: Select a specific model for this preset. If not set, will use character-specific model or default.</p>
+                            </td>
                         </tr>
                     </table>
                     <p class="submit">
@@ -681,6 +699,67 @@ function pmv_character_settings_tab_content() {
         var currentFilename = '';
         var currentPresetId = '';
         
+        // Function to load models for preset editor dropdowns
+        function loadModelsForPresetEditor(selectId, selectedModel) {
+            var $select = $(selectId);
+            $select.html('<option value="">Use character/default model</option>');
+            
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'pmv_get_available_models',
+                    nonce: '<?= wp_create_nonce('pmv_ajax_nonce') ?>'
+                },
+                success: function(response) {
+                    if (response.success && response.data) {
+                        var models = [];
+                        if (response.data.files && Array.isArray(response.data.files)) {
+                            response.data.files.forEach(function(file) {
+                                models.push({
+                                    name: file.name || file.title || 'Unknown',
+                                    title: file.title || file.name || 'Unknown'
+                                });
+                            });
+                        } else if (response.data.models && typeof response.data.models === 'object') {
+                            Object.keys(response.data.models).forEach(function(category) {
+                                if (Array.isArray(response.data.models[category])) {
+                                    response.data.models[category].forEach(function(model) {
+                                        models.push({name: model, title: model});
+                                    });
+                                }
+                            });
+                        }
+                        
+                        models.forEach(function(model) {
+                            var option = $('<option>').val(model.name).text(model.title);
+                            if (selectedModel && model.name === selectedModel) {
+                                option.prop('selected', true);
+                            }
+                            $select.append(option);
+                        });
+                    }
+                    if (selectedModel) {
+                        $select.val(selectedModel);
+                    }
+                },
+                error: function() {
+                    // Keep default option if models fail to load
+                }
+            });
+        }
+        
+        // Load models when preset modal opens (for new presets)
+        presetModal.on('show', function() {
+            if (!isEditing) {
+                loadModelsForPresetEditor('#preset-model', '');
+            }
+        });
+        
+        universalPresetModal.on('show', function() {
+            loadModelsForPresetEditor('#universal-preset-model', '');
+        });
+        
         // Add preset button
         $(document).on('click', '.add-preset-btn', function() {
             isEditing = false;
@@ -690,6 +769,7 @@ function pmv_character_settings_tab_content() {
             $('#preset-editor-preset-id').val('');
             $('#preset-editor-title').text('Add New Preset');
             $('#preset-id').prop('readonly', false);
+            loadModelsForPresetEditor('#preset-model', '');
             presetModal.show();
         });
         
@@ -722,6 +802,8 @@ function pmv_character_settings_tab_content() {
                         $('#preset-height').val(preset.config.height || 512);
                         $('#preset-negative-prompt').val(preset.config.negative_prompt || '');
                         $('#preset-enhancer').val(preset.config.prompt_enhancer || '');
+                        // Load models first, then set model value
+                        loadModelsForPresetEditor('#preset-model', preset.config.model || '');
                         $('#preset-editor-title').text('Edit Preset: ' + preset.name);
                         presetModal.show();
                     }
@@ -783,6 +865,7 @@ function pmv_character_settings_tab_content() {
                 height: parseInt($('#preset-height').val()) || 512,
                 negative_prompt: $('#preset-negative-prompt').val(),
                 prompt_enhancer: $('#preset-enhancer').val(),
+                model: $('#preset-model').val() || '',
                 is_active: true,
                 sort_order: 0
             };
@@ -859,6 +942,8 @@ function pmv_character_settings_tab_content() {
                         $('#universal-preset-height').val(preset.config.height || 512);
                         $('#universal-preset-negative-prompt').val(preset.config.negative_prompt || '');
                         $('#universal-preset-enhancer').val(preset.config.prompt_enhancer || '');
+                        // Load models first, then set model value
+                        loadModelsForPresetEditor('#universal-preset-model', preset.config.model || '');
                         $('#universal-preset-editor-title').text('Edit Universal Preset: ' + preset.name);
                         universalPresetModal.show();
                     }
@@ -880,7 +965,8 @@ function pmv_character_settings_tab_content() {
                 width: parseInt($('#universal-preset-width').val()) || 512,
                 height: parseInt($('#universal-preset-height').val()) || 512,
                 negative_prompt: $('#universal-preset-negative-prompt').val(),
-                prompt_enhancer: $('#universal-preset-enhancer').val()
+                prompt_enhancer: $('#universal-preset-enhancer').val(),
+                model: $('#universal-preset-model').val() || ''
             };
             
             $(this).prop('disabled', true).text('Saving...');

@@ -153,7 +153,8 @@ class PMV_Character_Presets_Manager {
             'width' => 512,
             'height' => 512,
             'negative_prompt' => 'blurry, distorted, low quality',
-            'prompt_enhancer' => ''
+            'prompt_enhancer' => '',
+            'model' => ''
         );
         
         $preset_config = wp_parse_args($preset_config, $default_config);
@@ -266,7 +267,8 @@ class PMV_Character_Presets_Manager {
             'width' => intval($_POST['width'] ?? 512),
             'height' => intval($_POST['height'] ?? 512),
             'negative_prompt' => sanitize_textarea_field($_POST['negative_prompt'] ?? ''),
-            'prompt_enhancer' => sanitize_textarea_field($_POST['prompt_enhancer'] ?? '')
+            'prompt_enhancer' => sanitize_textarea_field($_POST['prompt_enhancer'] ?? ''),
+            'model' => sanitize_text_field($_POST['model'] ?? '')
         );
         
         $is_active = isset($_POST['is_active']) ? (bool) $_POST['is_active'] : true;

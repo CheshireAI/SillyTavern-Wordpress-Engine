@@ -559,10 +559,16 @@ class PMV_Image_Presets {
             $final_prompt .= ', ' . trim($prompt_suffix);
         }
         
+        // Get preset model (highest priority), then character model, then empty
+        $preset_model = isset($preset['config']['model']) && !empty($preset['config']['model']) 
+            ? $preset['config']['model'] 
+            : ($image_model ?: '');
+        
         wp_send_json_success(array(
             'final_prompt' => $final_prompt,
             'preset_config' => $preset['config'],
-            'character_model' => $image_model // Return character-specific model if set
+            'character_model' => $image_model, // Character-specific model
+            'preset_model' => $preset_model // Preset model (highest priority) or character model or empty
         ));
     }
 }

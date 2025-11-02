@@ -144,7 +144,8 @@ class PMV_Universal_Presets_Manager {
                 'width' => intval($_POST['width'] ?? $original_preset['config']['width']),
                 'height' => intval($_POST['height'] ?? $original_preset['config']['height']),
                 'negative_prompt' => sanitize_textarea_field($_POST['negative_prompt'] ?? $original_preset['config']['negative_prompt']),
-                'prompt_enhancer' => sanitize_textarea_field($_POST['prompt_enhancer'] ?? $original_preset['config']['prompt_enhancer'])
+                'prompt_enhancer' => sanitize_textarea_field($_POST['prompt_enhancer'] ?? $original_preset['config']['prompt_enhancer']),
+                'model' => sanitize_text_field($_POST['model'] ?? ($original_preset['config']['model'] ?? ''))
             )
         );
         
