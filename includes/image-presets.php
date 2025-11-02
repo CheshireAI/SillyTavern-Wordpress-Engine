@@ -407,15 +407,100 @@ class PMV_Image_Presets {
     }
     
     /**
-     * AJAX handler to generate image prompt from user input and preset
+     * Generate image prompt using LLM based on chat context and preset
+     * 
+     * @param string $chat_history Last 5 messages from chat
+     * @param string $preset_id Preset ID
+     * @param string $preset_name Preset name
+     * @param string $character_description Character description
+     * @return string|WP_Error Generated prompt or error
+     */
+    private static function generate_prompt_with_llm($chat_history, $preset_id, $preset_name, $character_description) {
+        $openai_api_key = get_option('openai_api_key', '');
+        $openai_model = get_option('openai_model', 'gpt-3.5-turbo');
+        $openai_base_url = get_option('openai_api_base_url', 'https://api.openai.com/v1');
+        
+        if (empty($openai_api_key)) {
+            return new WP_Error('no_openai_key', 'OpenAI API key not configured');
+        }
+        
+        // Clean up API base URL
+        $api_url = rtrim($openai_base_url, '/');
+        if (strpos($api_url, '/chat/completions') === false) {
+            if (strpos($api_url, '/v1') === false) {
+                $api_url .= '/v1';
+            }
+            $api_url .= '/chat/completions';
+        }
+        
+        // Build system prompt
+        $system_prompt = "You are an expert at creating detailed, descriptive prompts for AI image generation. ";
+        $system_prompt .= "Your prompts should be clear, specific, and suitable for Stable Diffusion or similar image generation models. ";
+        $system_prompt .= "Include details about appearance, pose, setting, lighting, mood, and style. ";
+        $system_prompt .= "Use commas to separate different aspects of the prompt.";
+        
+        // Build user prompt
+        $user_prompt = "Based on the following conversation context and character information, create a detailed image generation prompt.\n\n";
+        
+        if (!empty($character_description)) {
+            $user_prompt .= "Character Description:\n" . $character_description . "\n\n";
+        }
+        
+        if (!empty($chat_history)) {
+            $user_prompt .= "Recent Chat Messages:\n" . $chat_history . "\n\n";
+        }
+        
+        $user_prompt .= "The user wants a \"" . $preset_name . "\" type image. ";
+        $user_prompt .= "Generate a prompt that makes sense given the conversation context. ";
+        $user_prompt .= "For example, if they've been talking about cuddling on a bed and the preset is 'selfie', generate a prompt for the character taking a selfie in bed. ";
+        $user_prompt .= "If they've been talking about posing on a boat and the preset is 'pose', generate a prompt for the character in that pose on a boat.\n\n";
+        $user_prompt .= "Generate ONLY the image prompt - no explanations, no meta-commentary, just the prompt text.";
+        
+        $response = wp_remote_post($api_url, array(
+            'headers' => array(
+                'Authorization' => 'Bearer ' . $openai_api_key,
+                'Content-Type' => 'application/json'
+            ),
+            'body' => json_encode(array(
+                'model' => $openai_model,
+                'messages' => array(
+                    array('role' => 'system', 'content' => $system_prompt),
+                    array('role' => 'user', 'content' => $user_prompt)
+                ),
+                'max_tokens' => 500,
+                'temperature' => 0.7
+            )),
+            'timeout' => 60
+        ));
+        
+        if (is_wp_error($response)) {
+            return $response;
+        }
+        
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+        
+        if (empty($data) || !isset($data['choices'][0]['message']['content'])) {
+            return new WP_Error('invalid_response', 'Invalid response from OpenAI API');
+        }
+        
+        if (isset($data['error'])) {
+            return new WP_Error('api_error', $data['error']['message'] ?? 'OpenAI API error');
+        }
+        
+        return trim($data['choices'][0]['message']['content']);
+    }
+    
+    /**
+     * AJAX handler to generate image prompt from chat context and preset using LLM
      */
     public static function ajax_generate_image_prompt() {
         check_ajax_referer('pmv_ajax_nonce', 'nonce');
         
         // Get parameters
-        $user_prompt = sanitize_text_field($_POST['user_prompt'] ?? '');
         $preset_id = sanitize_text_field($_POST['preset_id'] ?? '');
-        $context_json = sanitize_text_field($_POST['context'] ?? '{}');
+        $chat_history = sanitize_textarea_field($_POST['chat_history'] ?? '');
+        $character_description = sanitize_textarea_field($_POST['character_description'] ?? '');
         $character_filename = sanitize_file_name($_POST['character_filename'] ?? '');
         
         // Get preset first to validate (check character-specific first)
@@ -428,8 +513,23 @@ class PMV_Image_Presets {
             return;
         }
         
-        // Build final prompt - user prompt is optional
-        $final_prompt = '';
+        // Generate prompt using LLM based on chat context and preset
+        $llm_prompt = self::generate_prompt_with_llm(
+            $chat_history,
+            $preset_id,
+            $preset['name'],
+            $character_description
+        );
+        
+        if (is_wp_error($llm_prompt)) {
+            wp_send_json_error(array(
+                'message' => $llm_prompt->get_error_message()
+            ));
+            return;
+        }
+        
+        // Now apply character prefix/suffix and preset enhancer to the LLM-generated prompt
+        $final_prompt = $llm_prompt;
         
         // Get character-specific prefix/suffix if available
         $prompt_prefix = '';
@@ -444,69 +544,17 @@ class PMV_Image_Presets {
         
         // Add character prefix first
         if (!empty($prompt_prefix)) {
-            $final_prompt = trim($prompt_prefix);
+            $final_prompt = trim($prompt_prefix) . ', ' . $final_prompt;
         }
         
-        // Sanitize user prompt with content filtering (if provided)
-        if (!empty($user_prompt)) {
-            $sanitized = self::sanitize_user_prompt($user_prompt);
-            
-            if (is_wp_error($sanitized)) {
-                wp_send_json_error(array(
-                    'message' => $sanitized->get_error_message()
-                ));
-                return;
-            }
-            
-            if (!empty($sanitized)) {
-                if (!empty($final_prompt)) {
-                    $final_prompt .= ', ' . $sanitized;
-                } else {
-                    $final_prompt = $sanitized;
-                }
-            }
-        }
-        
-        // Add character description from context if available
-        $context = $context_json;
-        if (!empty($context)) {
-            // Parse context string (format: "You: message\nCharacter: message\n\nCharacter Description: ...")
-            if (strpos($context, 'Character Description:') !== false) {
-                $parts = explode('Character Description:', $context);
-                if (count($parts) > 1) {
-                    $desc = trim($parts[1]);
-                    if (!empty($desc)) {
-                        if (!empty($final_prompt)) {
-                            $final_prompt .= ', ' . $desc;
-                        } else {
-                            $final_prompt = $desc;
-                        }
-                    }
-                }
-            }
-        }
-        
-        // Add preset enhancer if available
+        // Add preset enhancer after LLM prompt
         if (!empty($preset['config']['prompt_enhancer'])) {
-            if (!empty($final_prompt)) {
-                $final_prompt .= ', ' . $preset['config']['prompt_enhancer'];
-            } else {
-                $final_prompt = $preset['config']['prompt_enhancer'];
-            }
+            $final_prompt .= ', ' . $preset['config']['prompt_enhancer'];
         }
         
         // Add character suffix last
         if (!empty($prompt_suffix)) {
-            if (!empty($final_prompt)) {
-                $final_prompt .= ', ' . trim($prompt_suffix);
-            } else {
-                $final_prompt = trim($prompt_suffix);
-            }
-        }
-        
-        // If still empty, use preset name as fallback
-        if (empty($final_prompt)) {
-            $final_prompt = $preset['name'];
+            $final_prompt .= ', ' . trim($prompt_suffix);
         }
         
         wp_send_json_success(array(

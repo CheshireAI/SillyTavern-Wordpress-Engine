@@ -4504,40 +4504,38 @@
             }
             
             const presetId = selectedPreset.data('preset-id');
-            const userPrompt = $('#chat-input').val().trim() || '';
+            const presetName = selectedPreset.find('.preset-card-name').text().trim();
             
-            // Get conversation context (optional)
-            let context = '';
+            // Get conversation context - last 5 messages
+            let chatHistory = '';
+            let characterDescription = '';
             
-            // Add character description if available
-            if (chatState.characterData?.description) {
-                context = `Character Description: ${chatState.characterData.description}`;
-            }
-            
-            // Optionally add recent chat messages for context
             try {
                 const messages = collectConversationHistory();
                 if (messages && messages.length > 0) {
-                    const lastMessages = messages.slice(-3); // Last 3 messages for context
-                    const chatContext = lastMessages.map(msg => 
+                    // Get last 5 messages for context
+                    const lastMessages = messages.slice(-5);
+                    chatHistory = lastMessages.map(msg => 
                         `${msg.role === 'user' ? 'You' : chatState.characterData?.name || 'Character'}: ${msg.content}`
                     ).join('\n');
-                    
-                    if (context) {
-                        context = chatContext + '\n\n' + context;
-                    } else {
-                        context = chatContext;
-                    }
                 }
             } catch (err) {
                 console.warn('Could not collect conversation history:', err);
-                // Continue without chat history - it's optional
+            }
+            
+            // Get character description if available
+            if (chatState.characterData?.description) {
+                characterDescription = chatState.characterData.description;
             }
             
             closeImageGenModal();
             
             // Get character filename from chatState if available
             const characterFilename = chatState.characterFile || '';
+            
+            // Show loading indicator
+            $('#chat-history').append(`<div class="chat-message system"><span class="speaker-name">System:</span><span class="chat-message-content-wrapper">Generating image with "${presetName}" preset...</span></div>`);
+            pushContentUp();
             
             $.ajax({
                 url: pmv_ajax_object.ajax_url,
@@ -4546,8 +4544,8 @@
                     action: 'pmv_generate_image_prompt',
                     nonce: pmv_ajax_object.nonce,
                     preset_id: presetId,
-                    user_prompt: userPrompt,
-                    context: context,
+                    chat_history: chatHistory,
+                    character_description: characterDescription,
                     character_filename: characterFilename
                 },
                 success: function(response) {
@@ -4555,19 +4553,19 @@
                         const finalPrompt = response.data.final_prompt;
                         const presetConfig = response.data.preset_config;
                         
-                        $('#chat-input').val('');
-                        
-                        if (userPrompt) {
-                            $('#chat-history').append(`<div class="chat-message user"><span class="speaker-name">You:</span><span class="chat-message-content-wrapper">Generate image: ${escapeHtml(userPrompt)}</span></div>`);
-                            pushContentUp();
-                        }
+                        // Remove loading message
+                        $('#chat-history .chat-message.system').last().remove();
                         
                         createImageFromPrompt(finalPrompt, presetConfig);
                     } else {
+                        // Remove loading message
+                        $('#chat-history .chat-message.system').last().remove();
                         alert('Error: ' + (response.data?.message || 'Failed to generate prompt'));
                     }
                 },
                 error: function() {
+                    // Remove loading message
+                    $('#chat-history .chat-message.system').last().remove();
                     alert('Failed to generate image prompt');
                 }
             });
