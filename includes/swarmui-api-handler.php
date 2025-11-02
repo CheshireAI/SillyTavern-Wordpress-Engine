@@ -442,7 +442,14 @@ class PMV_SwarmUI_API_Handler extends PMV_API_Handler_Base {
         }
 
         $url = trailingslashit($this->api_base_url) . 'API/ListT2IParams';
-        $request_data = array('session_id' => $this->session_id);
+        $request_data = array(
+            'session_id' => $this->session_id,
+            'subtype' => 'Model', // Request only models, not all parameters
+            'path' => '',
+            'depth' => 1,
+            'sortBy' => 'Name',
+            'sortReverse' => false
+        );
 
         // Include user token cookie if available
         $user_token = get_option('pmv_swarmui_user_token', '');

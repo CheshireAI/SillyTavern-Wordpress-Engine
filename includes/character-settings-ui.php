@@ -418,23 +418,25 @@ function pmv_character_settings_tab_content() {
                 success: function(response) {
                     var models = [];
                     if (response.success && response.data) {
-                        // Parse models from response - ListT2IParams returns all parameters as an object
-                        // Models are typically in response.data.models object with categories like 'Stable-Diffusion'
-                        if (response.data.models && typeof response.data.models === 'object') {
-                            Object.keys(response.data.models).forEach(function(category) {
-                                if (category === 'Model' && typeof response.data.models[category] === 'object') {
-                                    // Special handling if 'Model' is a direct category
-                                    Object.keys(response.data.models[category]).forEach(function(subCat) {
-                                        if (Array.isArray(response.data.models[category][subCat])) {
-                                            response.data.models[category][subCat].forEach(function(model) {
-                                                if (typeof model === 'string' && model.indexOf('/') !== -1) {
-                                                    models.push({name: model, title: model});
-                                                }
-                                            });
-                                        }
+                        // Parse models from response - ListT2IParams with subtype='Model' returns files array
+                        // Similar structure to LoRAs: {folders: [], files: [{name, title, ...}]}
+                        if (response.data.files && Array.isArray(response.data.files)) {
+                            // Models are in the files array, each file has name (with path) and title
+                            response.data.files.forEach(function(file) {
+                                var modelName = file.name || '';
+                                var modelTitle = file.title || file.name || '';
+                                if (modelName && modelName.indexOf('/') !== -1) {
+                                    // Only include if it looks like a model path (contains /)
+                                    models.push({
+                                        name: modelName,
+                                        title: modelTitle || modelName
                                     });
-                                } else if (Array.isArray(response.data.models[category])) {
-                                    // Categories like 'Stable-Diffusion' contain arrays of model paths
+                                }
+                            });
+                        } else if (response.data.models && typeof response.data.models === 'object') {
+                            // Fallback: Check for models in nested structure
+                            Object.keys(response.data.models).forEach(function(category) {
+                                if (Array.isArray(response.data.models[category])) {
                                     response.data.models[category].forEach(function(model) {
                                         if (typeof model === 'string' && model.indexOf('/') !== -1) {
                                             models.push({name: model, title: model});
@@ -771,27 +773,28 @@ function pmv_character_settings_tab_content() {
                 success: function(response) {
                     if (response.success && response.data) {
                         var models = [];
-                        // Parse models from response - ListT2IParams returns all parameters as an object
-                        // Models are typically in response.data.models object with categories like 'Stable-Diffusion'
-                        if (response.data.models && typeof response.data.models === 'object') {
+                        // Parse models from response - ListT2IParams with subtype='Model' returns files array
+                        // Similar structure to LoRAs: {folders: [], files: [{name, title, ...}]}
+                        if (response.data.files && Array.isArray(response.data.files)) {
+                            // Models are in the files array, each file has name (with path) and title
+                            response.data.files.forEach(function(file) {
+                                var modelName = file.name || '';
+                                var modelTitle = file.title || file.name || '';
+                                if (modelName && modelName.indexOf('/') !== -1) {
+                                    // Only include if it looks like a model path (contains /)
+                                    models.push({
+                                        name: modelName,
+                                        title: modelTitle || modelName
+                                    });
+                                }
+                            });
+                        } else if (response.data.models && typeof response.data.models === 'object') {
+                            // Fallback: Check for models in nested structure
                             Object.keys(response.data.models).forEach(function(category) {
-                                // Look for actual model categories (Stable-Diffusion, etc.)
                                 if (Array.isArray(response.data.models[category])) {
-                                    // Categories like 'Stable-Diffusion' contain arrays of model paths
                                     response.data.models[category].forEach(function(model) {
                                         if (typeof model === 'string' && model.indexOf('/') !== -1) {
                                             models.push({name: model, title: model});
-                                        }
-                                    });
-                                } else if (category === 'Model' && typeof response.data.models[category] === 'object') {
-                                    // Special handling if 'Model' is a direct category
-                                    Object.keys(response.data.models[category]).forEach(function(subCat) {
-                                        if (Array.isArray(response.data.models[category][subCat])) {
-                                            response.data.models[category][subCat].forEach(function(model) {
-                                                if (typeof model === 'string' && model.indexOf('/') !== -1) {
-                                                    models.push({name: model, title: model});
-                                                }
-                                            });
                                         }
                                     });
                                 }
@@ -853,32 +856,30 @@ function pmv_character_settings_tab_content() {
                 success: function(response) {
                     if (response.success && response.data) {
                         var loras = [];
-                        // Parse LoRAs from response - SwarmUI returns files array
+                        // Parse LoRAs from response - SwarmUI returns files array with name and title
                         if (response.data.files && Array.isArray(response.data.files)) {
                             response.data.files.forEach(function(file) {
-                                // LoRA files have a name/path field
-                                var loraName = file.name || file.path || file.title || '';
-                                // Remove file extension if present
-                                if (loraName && loraName.indexOf('.') !== -1) {
-                                    loraName = loraName.replace(/\.(safetensors|ckpt|pt)$/i, '');
-                                }
+                                // Use the full filename as the identifier (SwarmUI expects full path/name)
+                                var loraName = file.name || '';
+                                var loraTitle = file.title || file.name || '';
+                                
+                                // If name includes folder path, keep it (e.g., "Pony/filename.safetensors")
+                                // Otherwise, just use the filename
                                 if (loraName) {
                                     loras.push({
                                         name: loraName,
-                                        title: file.title || file.name || file.path || loraName
+                                        title: loraTitle || loraName
                                     });
                                 }
                             });
                         } else if (response.data.list && Array.isArray(response.data.list)) {
                             response.data.list.forEach(function(item) {
-                                var loraName = item.name || item.path || item.title || '';
-                                if (loraName && loraName.indexOf('.') !== -1) {
-                                    loraName = loraName.replace(/\.(safetensors|ckpt|pt)$/i, '');
-                                }
+                                var loraName = item.name || item.path || '';
+                                var loraTitle = item.title || item.name || '';
                                 if (loraName) {
                                     loras.push({
                                         name: loraName,
-                                        title: item.title || item.name || item.path || loraName
+                                        title: loraTitle || loraName
                                     });
                                 }
                             });
