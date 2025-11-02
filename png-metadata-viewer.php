@@ -324,6 +324,9 @@ function pmv_localize_scripts() {
             'monthly_tokens' => intval(get_option('pmv_guest_daily_token_limit', 10000))
         ),
         
+        // Image generation provider (backend-only setting)
+        'image_provider' => get_option('pmv_image_provider', 'swarmui'),
+        
         // CRITICAL: Enhanced debug info for troubleshooting
         'debug' => array(
             'api_key_set' => !empty(get_option('openai_api_key', '')),

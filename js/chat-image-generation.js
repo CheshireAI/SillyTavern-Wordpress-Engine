@@ -331,7 +331,8 @@
         const prompt = $('#generated-prompt').val();
         const presetId = $('#image-preset').val();
         const settings = JSON.parse(localStorage.getItem('pmv_image_settings') || '{}');
-        const provider = settings.provider || 'swarmui';
+        // Get provider from backend settings, not localStorage
+        const provider = (pmv_ajax_object && pmv_ajax_object.image_provider) || 'swarmui';
         
         // Validate preset
         if (!presetId) {
@@ -481,23 +482,20 @@
     function loadImageSettings() {
         const settings = JSON.parse(localStorage.getItem('pmv_image_settings') || '{}');
         
-        // Populate form fields - only load settings that still exist
-        if ($('#image-provider').length) {
-            $('#image-provider').val(settings.provider || 'swarmui');
-        }
+        // Provider is configured in backend only - no need to load it here
     }
 
     // Save image settings
     function saveImageSettings() {
-        const settings = {
-            provider: $('#image-provider').val() || 'swarmui'
-        };
+        // Provider is configured in backend only - no settings to save from frontend
+        const settings = {};
         
         localStorage.setItem('pmv_image_settings', JSON.stringify(settings));
         
         // Update current state
         Object.assign(imageState.settings, settings);
-        imageState.currentProvider = settings.provider;
+            // Provider is configured in backend only - get from pmv_ajax_object
+            imageState.currentProvider = (pmv_ajax_object && pmv_ajax_object.image_provider) || 'swarmui';
         
         alert('Settings saved successfully!');
     }

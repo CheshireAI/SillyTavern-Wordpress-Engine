@@ -1611,24 +1611,6 @@
                             <div class="settings-body">
                                 
                                 <div class="settings-section">
-                                    <h4>Provider & Model</h4>
-                                    <div class="setting-group">
-                                        <label>Image Generation Provider:</label>
-                                        <select id="image-provider">
-                                            <option value="swarmui">SwarmUI</option>
-                                            <option value="nanogpt">Nano-GPT</option>
-                                        </select>
-                                        <p class="setting-description">Select which image generation service to use.</p>
-                                    </div>
-                                    <div class="setting-group">
-                                        <label>Default Model:</label>
-                                        <select id="default-model">
-                                            <option value="">Loading models...</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                
-                                <div class="settings-section">
                                     <h4>Preset-Based System</h4>
                                     <div class="setting-group">
                                         <p class="setting-description">Users can now select from predefined safe presets instead of technical parameters. This prevents jailbreaking and inappropriate content while maintaining creative flexibility.</p>
@@ -2659,7 +2641,8 @@
         function createImage() {
             const prompt = $('#generated-prompt').val() || $('#custom-prompt').val();
             const settings = JSON.parse(localStorage.getItem('pmv_image_settings') || '{}');
-            const provider = settings.provider || 'swarmui';
+            // Get provider from backend settings
+            const provider = (pmv_ajax_object && pmv_ajax_object.image_provider) || 'swarmui';
             
             // Validate prompt
             if (!prompt || !prompt.trim()) {
@@ -2901,27 +2884,12 @@
             const settings = JSON.parse(localStorage.getItem('pmv_image_settings') || '{}');
             console.log('Loaded settings from localStorage:', settings);
             
-            // Load provider selection
-            const provider = settings.provider || 'swarmui';
-            console.log('Selected provider:', provider);
-            $('#image-provider').val(provider);
-            
+            // Provider is set in backend - get from pmv_ajax_object
+            const provider = (pmv_ajax_object && pmv_ajax_object.image_provider) || 'swarmui';
+            console.log('Using provider from backend:', provider);
             
             // Note: Technical parameters (steps, cfg scale, width, height) are now handled
             // by the preset system server-side, so they are not loaded here
-            
-            // Load models for the selected provider
-            console.log('About to load models for provider:', provider);
-            loadModelsForProvider(provider);
-            
-            // Add provider change handler
-            $('#image-provider').off('change').on('change', function() {
-                const newProvider = $(this).val();
-                console.log('Provider changed to:', newProvider);
-                loadModelsForProvider(newProvider);
-                
-                // Note: Technical parameters are now handled by the preset system
-            });
         }
         
         function loadModelsForProvider(provider) {
@@ -2962,10 +2930,8 @@
         }
         
         function saveImageSettings() {
-            const settings = {
-                provider: $('#image-provider').val(),
-                defaultModel: $('#default-model').val() || ''
-            };
+            // Provider is configured in backend only - no frontend settings to save
+            const settings = {};
             
             localStorage.setItem('pmv_image_settings', JSON.stringify(settings));
             
@@ -3158,8 +3124,8 @@
             }
             const promptKey = 'pending_' + Date.now();
             
-            // Get provider-specific parameters
-            const provider = settings.provider || 'swarmui';
+            // Get provider from backend settings, not localStorage
+            const provider = (pmv_ajax_object && pmv_ajax_object.image_provider) || 'swarmui';
             let requestData = {
                 action: 'pmv_generate_image',
                 prompt: prompt,
@@ -3372,7 +3338,8 @@
 
         function createImageWithWebSocket(prompt, model, steps, cfgScale, width, height, negativePrompt = '') {
             const settings = JSON.parse(localStorage.getItem('pmv_image_settings') || '{}');
-            const provider = settings.provider || 'swarmui';
+            // Get provider from backend settings
+            const provider = (pmv_ajax_object && pmv_ajax_object.image_provider) || 'swarmui';
             
             if (provider !== 'swarmui') {
                 console.log('WebSocket generation only supported for SwarmUI');
