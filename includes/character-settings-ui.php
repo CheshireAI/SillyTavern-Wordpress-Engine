@@ -418,20 +418,27 @@ function pmv_character_settings_tab_content() {
                 success: function(response) {
                     var models = [];
                     if (response.success && response.data) {
-                        // Parse models from response
-                        if (response.data.files && Array.isArray(response.data.files)) {
-                            response.data.files.forEach(function(file) {
-                                models.push({
-                                    name: file.name || file.title || 'Unknown',
-                                    title: file.title || file.name || 'Unknown'
-                                });
-                            });
-                        } else if (response.data.models && typeof response.data.models === 'object') {
-                            // Legacy format
+                        // Parse models from response - ListT2IParams returns all parameters as an object
+                        // Models are typically in response.data.models object with categories like 'Stable-Diffusion'
+                        if (response.data.models && typeof response.data.models === 'object') {
                             Object.keys(response.data.models).forEach(function(category) {
-                                if (Array.isArray(response.data.models[category])) {
+                                if (category === 'Model' && typeof response.data.models[category] === 'object') {
+                                    // Special handling if 'Model' is a direct category
+                                    Object.keys(response.data.models[category]).forEach(function(subCat) {
+                                        if (Array.isArray(response.data.models[category][subCat])) {
+                                            response.data.models[category][subCat].forEach(function(model) {
+                                                if (typeof model === 'string' && model.indexOf('/') !== -1) {
+                                                    models.push({name: model, title: model});
+                                                }
+                                            });
+                                        }
+                                    });
+                                } else if (Array.isArray(response.data.models[category])) {
+                                    // Categories like 'Stable-Diffusion' contain arrays of model paths
                                     response.data.models[category].forEach(function(model) {
-                                        models.push({name: model, title: model});
+                                        if (typeof model === 'string' && model.indexOf('/') !== -1) {
+                                            models.push({name: model, title: model});
+                                        }
                                     });
                                 }
                             });
@@ -764,18 +771,28 @@ function pmv_character_settings_tab_content() {
                 success: function(response) {
                     if (response.success && response.data) {
                         var models = [];
-                        if (response.data.files && Array.isArray(response.data.files)) {
-                            response.data.files.forEach(function(file) {
-                                models.push({
-                                    name: file.name || file.title || 'Unknown',
-                                    title: file.title || file.name || 'Unknown'
-                                });
-                            });
-                        } else if (response.data.models && typeof response.data.models === 'object') {
+                        // Parse models from response - ListT2IParams returns all parameters as an object
+                        // Models are typically in response.data.models object with categories like 'Stable-Diffusion'
+                        if (response.data.models && typeof response.data.models === 'object') {
                             Object.keys(response.data.models).forEach(function(category) {
+                                // Look for actual model categories (Stable-Diffusion, etc.)
                                 if (Array.isArray(response.data.models[category])) {
+                                    // Categories like 'Stable-Diffusion' contain arrays of model paths
                                     response.data.models[category].forEach(function(model) {
-                                        models.push({name: model, title: model});
+                                        if (typeof model === 'string' && model.indexOf('/') !== -1) {
+                                            models.push({name: model, title: model});
+                                        }
+                                    });
+                                } else if (category === 'Model' && typeof response.data.models[category] === 'object') {
+                                    // Special handling if 'Model' is a direct category
+                                    Object.keys(response.data.models[category]).forEach(function(subCat) {
+                                        if (Array.isArray(response.data.models[category][subCat])) {
+                                            response.data.models[category][subCat].forEach(function(model) {
+                                                if (typeof model === 'string' && model.indexOf('/') !== -1) {
+                                                    models.push({name: model, title: model});
+                                                }
+                                            });
+                                        }
                                     });
                                 }
                             });
@@ -836,24 +853,32 @@ function pmv_character_settings_tab_content() {
                 success: function(response) {
                     if (response.success && response.data) {
                         var loras = [];
-                        // Parse LoRAs from response - structure may vary
+                        // Parse LoRAs from response - SwarmUI returns files array
                         if (response.data.files && Array.isArray(response.data.files)) {
                             response.data.files.forEach(function(file) {
-                                var loraName = file.name || file.title || file.path || '';
+                                // LoRA files have a name/path field
+                                var loraName = file.name || file.path || file.title || '';
+                                // Remove file extension if present
+                                if (loraName && loraName.indexOf('.') !== -1) {
+                                    loraName = loraName.replace(/\.(safetensors|ckpt|pt)$/i, '');
+                                }
                                 if (loraName) {
                                     loras.push({
                                         name: loraName,
-                                        title: file.title || file.name || loraName
+                                        title: file.title || file.name || file.path || loraName
                                     });
                                 }
                             });
                         } else if (response.data.list && Array.isArray(response.data.list)) {
                             response.data.list.forEach(function(item) {
                                 var loraName = item.name || item.path || item.title || '';
+                                if (loraName && loraName.indexOf('.') !== -1) {
+                                    loraName = loraName.replace(/\.(safetensors|ckpt|pt)$/i, '');
+                                }
                                 if (loraName) {
                                     loras.push({
                                         name: loraName,
-                                        title: item.title || item.name || loraName
+                                        title: item.title || item.name || item.path || loraName
                                     });
                                 }
                             });
