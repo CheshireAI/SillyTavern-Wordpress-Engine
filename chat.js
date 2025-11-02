@@ -1527,7 +1527,6 @@
                                 <button id="refresh-credits" class="refresh-credits-btn" title="Refresh Credits">🔄</button>
                             </div>
                             <div class="header-actions">
-                                <button id="image-settings-btn" class="image-settings-btn" title="Image Generation Settings">🎨</button>
                                 <button class="close-fullscreen-btn">✕</button>
                             </div>
                         </div>
@@ -1599,47 +1598,7 @@
                 // Replace body content with chat
                 $('body').html(chatHtml);
 
-                // Create image settings modal outside the chat container
-                const modalHtml = `
-                    <!-- Image Settings Modal -->
-                    <div id="image-settings-modal" class="image-settings-modal">
-                        <div class="image-settings-content">
-                            <div class="settings-header">
-                                <h3>🎨 Image Generation Settings</h3>
-                                <button class="close-settings-modal">✕</button>
-                            </div>
-                            <div class="settings-body">
-                                
-                                <div class="settings-section">
-                                    <h4>Preset-Based System</h4>
-                                    <div class="setting-group">
-                                        <p class="setting-description">Users can now select from predefined safe presets instead of technical parameters. This prevents jailbreaking and inappropriate content while maintaining creative flexibility.</p>
-                                        <p class="setting-description" style="margin-top: 10px; color: #4CAF50;">✓ All technical parameters (steps, CFG scale, dimensions) are now automatically configured based on presets</p>
-                                        <p class="setting-description" style="color: #4CAF50;">✓ Content filtering is automatically applied to all user inputs</p>
-                                        <p class="setting-description" style="color: #4CAF50;">✓ Users cannot bypass safety measures</p>
-                                    </div>
-                                </div>
-                                
-                                <div class="settings-section">
-                                    <h4>Import/Export Settings</h4>
-                                    <div class="setting-group">
-                                        <button id="export-settings" class="button-secondary">Export Settings</button>
-                                        <button id="import-settings" class="button-secondary">Import Settings</button>
-                                        <input type="file" id="import-file" accept=".json" style="display: none;">
-                                    </div>
-                                </div>
-                                
-                                <div class="settings-actions">
-                                    <button id="save-settings" class="button-primary">Save Settings</button>
-                                    <button id="test-connection" class="button-secondary">Test Connection</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                // Append modal to body (outside chat container)
-                $('body').append(modalHtml);
+                // Image settings button removed - no frontend settings needed
 
                 // Create and show conversation sidebar
                 createConversationSidebar();
@@ -2422,87 +2381,13 @@
         // Image Generation Functions
         function initializeImageGeneration() {
             
-            // Use event delegation for all dynamically created elements
-            // Remove any existing handlers first to prevent duplicates
-            $(document).off('click.imageSettings');
-            
-            // Use more specific event delegation that will catch dynamically created elements
-            $(document).on('click.imageSettings', '#image-settings-btn, .image-settings-btn', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                openImageSettings();
-            });
-            
-            $(document).on('click.imageSettings', '.close-settings-modal', function(e) {
-                e.preventDefault();
-                closeImageSettings();
-            });
-            
-            // Handle clicking outside modal to close
-            $(document).on('click.imageSettings', '#image-settings-modal', function(e) {
-                if (e.target === this) {
-                    closeImageSettings();
-                }
-            });
-            
-            $(document).on('click.imageSettings', '#save-settings', function(e) {
-                e.preventDefault();
-                saveImageSettings();
-            });
-            
-            $(document).on('click.imageSettings', '#test-connection', function(e) {
-                e.preventDefault();
-                testSwarmUIConnection();
-            });
-            
-            $(document).on('click.imageSettings', '#export-settings', function(e) {
-                e.preventDefault();
-                exportImageSettings();
-            });
-            
-            $(document).on('click.imageSettings', '#import-settings', function(e) {
-                e.preventDefault();
-                $('#import-file').click();
-            });
-            
-            $(document).on('change.imageSettings', '#import-file', function(e) {
-                importImageSettings(e);
-            });
-            
-            $(document).on('click.imageSettings', '#generate-prompt-btn', function(e) {
-                e.preventDefault();
-                generateImagePrompt();
-            });
-            
-            $(document).on('click.imageSettings', '#create-image-btn', function(e) {
-                e.preventDefault();
-                createImage();
-            });
-            
-            
-            // Load saved settings
-            loadImageSettings();
+            // Image settings button and modal removed - all settings are backend-only
             
             // Load available models
             loadSwarmUIModels();
         }
         
-        function openImageSettings() {
-            // Ensure modal exists
-            ensureModalExists();
-            
-            const modal = $('#image-settings-modal');
-            
-            // Load settings
-            loadImageSettings();
-            
-            // Show modal
-            modal.show();
-        }
-        
-        function closeImageSettings() {
-            $('#image-settings-modal').hide();
-        }
+        // Image settings functions removed - all settings are backend-only
         
         // Fix for the SwarmUI API integration
         function loadSwarmUIModels() {
@@ -3115,7 +3000,7 @@
             alert('Slash commands are disabled. Please use the 🎨 button for image generation.');
         }
         
-        function createImageFromPrompt(prompt, presetConfig = null) {
+        function createImageFromPrompt(prompt, presetConfig = null, characterModel = null) {
             const settings = JSON.parse(localStorage.getItem('pmv_image_settings') || '{}');
             
             // Store the prompt for later use (to display as caption)
@@ -3133,22 +3018,25 @@
                 nonce: pmv_ajax_object.nonce
             };
             
+            // Get model: character-specific first, then preset config, then defaults
+            let model = characterModel || (presetConfig && presetConfig.model) || null;
+            
             // Add provider-specific parameters
             if (provider === 'nanogpt') {
-                requestData.model = settings.defaultModel || 'recraft-v3';
-                requestData.steps = settings.defaultSteps || 10;
-                requestData.cfg_scale = settings.defaultScale || 7.5;
-                requestData.width = settings.defaultWidth || 1024;
-                requestData.height = settings.defaultHeight || 1024;
-                requestData.negative_prompt = settings.negativePrompt || '';
+                requestData.model = model || settings.defaultModel || 'recraft-v3';
+                requestData.steps = (presetConfig && presetConfig.steps) || settings.defaultSteps || 10;
+                requestData.cfg_scale = (presetConfig && presetConfig.cfg_scale) || settings.defaultScale || 7.5;
+                requestData.width = (presetConfig && presetConfig.width) || settings.defaultWidth || 1024;
+                requestData.height = (presetConfig && presetConfig.height) || settings.defaultHeight || 1024;
+                requestData.negative_prompt = (presetConfig && presetConfig.negative_prompt) || settings.negativePrompt || '';
             } else {
                 // SwarmUI defaults
-                requestData.model = settings.defaultModel || 'OfficialStableDiffusion/sd_xl_base_1.0';
-                requestData.steps = settings.defaultSteps || 20;
-                requestData.cfg_scale = settings.defaultCfgScale || 7.0;
-                requestData.width = settings.defaultWidth || 512;
-                requestData.height = settings.defaultHeight || 512;
-                requestData.negative_prompt = settings.negativePrompt || '';
+                requestData.model = model || settings.defaultModel || 'OfficialStableDiffusion/sd_xl_base_1.0';
+                requestData.steps = (presetConfig && presetConfig.steps) || settings.defaultSteps || 20;
+                requestData.cfg_scale = (presetConfig && presetConfig.cfg_scale) || settings.defaultCfgScale || 7.0;
+                requestData.width = (presetConfig && presetConfig.width) || settings.defaultWidth || 512;
+                requestData.height = (presetConfig && presetConfig.height) || settings.defaultHeight || 512;
+                requestData.negative_prompt = (presetConfig && presetConfig.negative_prompt) || settings.negativePrompt || '';
             }
             
             $.ajax({
@@ -4236,11 +4124,12 @@
                     if (response.success) {
                         const finalPrompt = response.data.final_prompt;
                         const presetConfig = response.data.preset_config;
+                        const characterModel = response.data.character_model || null; // Character-specific model if set
                         
                         // Remove loading message
                         $('#chat-history .chat-message.system').last().remove();
                         
-                        createImageFromPrompt(finalPrompt, presetConfig);
+                        createImageFromPrompt(finalPrompt, presetConfig, characterModel);
                     } else {
                         // Remove loading message
                         $('#chat-history .chat-message.system').last().remove();

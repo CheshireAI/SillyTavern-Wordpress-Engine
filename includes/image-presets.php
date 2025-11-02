@@ -531,14 +531,16 @@ class PMV_Image_Presets {
         // Now apply character prefix/suffix and preset enhancer to the LLM-generated prompt
         $final_prompt = $llm_prompt;
         
-        // Get character-specific prefix/suffix if available
+        // Get character-specific prefix/suffix/model if available
         $prompt_prefix = '';
         $prompt_suffix = '';
+        $image_model = '';
         if (!empty($character_filename) && class_exists('PMV_Character_Settings_Manager')) {
             $char_settings = PMV_Character_Settings_Manager::get_settings($character_filename);
             if ($char_settings) {
                 $prompt_prefix = $char_settings['prompt_prefix'];
                 $prompt_suffix = $char_settings['prompt_suffix'];
+                $image_model = isset($char_settings['image_model']) ? $char_settings['image_model'] : '';
             }
         }
         
@@ -559,7 +561,8 @@ class PMV_Image_Presets {
         
         wp_send_json_success(array(
             'final_prompt' => $final_prompt,
-            'preset_config' => $preset['config']
+            'preset_config' => $preset['config'],
+            'character_model' => $image_model // Return character-specific model if set
         ));
     }
 }

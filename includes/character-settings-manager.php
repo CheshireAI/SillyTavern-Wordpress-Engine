@@ -29,6 +29,7 @@ class PMV_Character_Settings_Manager {
             character_name varchar(255) DEFAULT '',
             prompt_prefix text DEFAULT '',
             prompt_suffix text DEFAULT '',
+            image_model varchar(255) DEFAULT '',
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
@@ -38,6 +39,12 @@ class PMV_Character_Settings_Manager {
         
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql);
+        
+        // Add image_model column if it doesn't exist (for existing installations)
+        $column_exists = $wpdb->get_results("SHOW COLUMNS FROM $table_name LIKE 'image_model'");
+        if (empty($column_exists)) {
+            $wpdb->query("ALTER TABLE $table_name ADD COLUMN image_model varchar(255) DEFAULT '' AFTER prompt_suffix");
+        }
     }
     
     /**
@@ -100,7 +107,8 @@ class PMV_Character_Settings_Manager {
             'character_filename' => $result['character_filename'],
             'character_name' => $result['character_name'],
             'prompt_prefix' => $result['prompt_prefix'],
-            'prompt_suffix' => $result['prompt_suffix']
+            'prompt_suffix' => $result['prompt_suffix'],
+            'image_model' => isset($result['image_model']) ? $result['image_model'] : ''
         );
     }
     
@@ -111,9 +119,10 @@ class PMV_Character_Settings_Manager {
      * @param string $name Character name
      * @param string $prompt_prefix Prompt prefix text
      * @param string $prompt_suffix Prompt suffix text
+     * @param string $image_model Image generation model
      * @return int|false Insert/update ID or false on failure
      */
-    public static function save_settings($filename, $name = '', $prompt_prefix = '', $prompt_suffix = '') {
+    public static function save_settings($filename, $name = '', $prompt_prefix = '', $prompt_suffix = '', $image_model = '') {
         global $wpdb;
         
         $table_name = $wpdb->prefix . self::$table_name;
@@ -128,10 +137,11 @@ class PMV_Character_Settings_Manager {
                 array(
                     'character_name' => sanitize_text_field($name),
                     'prompt_prefix' => sanitize_textarea_field($prompt_prefix),
-                    'prompt_suffix' => sanitize_textarea_field($prompt_suffix)
+                    'prompt_suffix' => sanitize_textarea_field($prompt_suffix),
+                    'image_model' => sanitize_text_field($image_model)
                 ),
                 array('character_filename' => $filename),
-                array('%s', '%s', '%s'),
+                array('%s', '%s', '%s', '%s'),
                 array('%s')
             );
             
@@ -144,9 +154,10 @@ class PMV_Character_Settings_Manager {
                     'character_filename' => sanitize_file_name($filename),
                     'character_name' => sanitize_text_field($name),
                     'prompt_prefix' => sanitize_textarea_field($prompt_prefix),
-                    'prompt_suffix' => sanitize_textarea_field($prompt_suffix)
+                    'prompt_suffix' => sanitize_textarea_field($prompt_suffix),
+                    'image_model' => sanitize_text_field($image_model)
                 ),
-                array('%s', '%s', '%s', '%s')
+                array('%s', '%s', '%s', '%s', '%s')
             );
             
             if ($result) {
@@ -197,7 +208,8 @@ class PMV_Character_Settings_Manager {
                 'character_filename' => $result['character_filename'],
                 'character_name' => $result['character_name'],
                 'prompt_prefix' => $result['prompt_prefix'],
-                'prompt_suffix' => $result['prompt_suffix']
+                'prompt_suffix' => $result['prompt_suffix'],
+                'image_model' => isset($result['image_model']) ? $result['image_model'] : ''
             );
         }
         
@@ -246,13 +258,14 @@ class PMV_Character_Settings_Manager {
         $name = sanitize_text_field($_POST['name'] ?? '');
         $prompt_prefix = sanitize_textarea_field($_POST['prompt_prefix'] ?? '');
         $prompt_suffix = sanitize_textarea_field($_POST['prompt_suffix'] ?? '');
+        $image_model = sanitize_text_field($_POST['image_model'] ?? '');
         
         if (empty($filename)) {
             wp_send_json_error(array('message' => 'Character filename is required'));
             return;
         }
         
-        $result = self::save_settings($filename, $name, $prompt_prefix, $prompt_suffix);
+        $result = self::save_settings($filename, $name, $prompt_prefix, $prompt_suffix, $image_model);
         
         if ($result !== false) {
             wp_send_json_success(array(

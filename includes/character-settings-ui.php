@@ -64,6 +64,7 @@ function pmv_character_settings_tab_content() {
                             <th>Character Name</th>
                             <th>Prompt Prefix</th>
                             <th>Prompt Suffix</th>
+                            <th>Image Model</th>
                             <th style="width: 100px;">Actions</th>
                         </tr>
                     </thead>
@@ -368,19 +369,87 @@ function pmv_character_settings_tab_content() {
             var tbody = $('#character-settings-tbody');
             tbody.empty();
             
-            cards.forEach(function(card) {
-                var setting = settingsMap && settingsMap[card.filename] ? settingsMap[card.filename] : null;
-                var prefix = setting ? setting.prompt_prefix : '';
-                var suffix = setting ? setting.prompt_suffix : '';
-                var settingName = setting ? setting.character_name : card.name;
-                
-                var row = $('<tr>').attr('data-filename', card.filename);
-                row.append('<td><img src="' + card.url + '" alt="' + card.name.replace(/"/g, '&quot;') + '" style="width: 80px; height: auto; border-radius: 4px;"></td>');
-                row.append('<td><input type="text" class="character-name-input" value="' + settingName.replace(/"/g, '&quot;') + '" placeholder="' + card.name.replace(/"/g, '&quot;') + '" style="width: 100%;"></td>');
-                row.append('<td><textarea class="prompt-prefix-input" rows="2" placeholder="e.g., (character name), detailed, high quality">' + prefix.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea></td>');
-                row.append('<td><textarea class="prompt-suffix-input" rows="2" placeholder="e.g., masterpiece, best quality">' + suffix.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea></td>');
-                row.append('<td><button class="button button-primary save-character-setting" data-filename="' + card.filename.replace(/"/g, '&quot;') + '">Save</button></td>');
-                tbody.append(row);
+            // Load models for dropdown
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'pmv_get_available_models',
+                    nonce: '<?= wp_create_nonce('pmv_ajax_nonce') ?>'
+                },
+                success: function(response) {
+                    var models = [];
+                    if (response.success && response.data) {
+                        // Parse models from response
+                        if (response.data.files && Array.isArray(response.data.files)) {
+                            response.data.files.forEach(function(file) {
+                                models.push({
+                                    name: file.name || file.title || 'Unknown',
+                                    title: file.title || file.name || 'Unknown'
+                                });
+                            });
+                        } else if (response.data.models && typeof response.data.models === 'object') {
+                            // Legacy format
+                            Object.keys(response.data.models).forEach(function(category) {
+                                if (Array.isArray(response.data.models[category])) {
+                                    response.data.models[category].forEach(function(model) {
+                                        models.push({name: model, title: model});
+                                    });
+                                }
+                            });
+                        }
+                    }
+                    
+                    // Build model dropdown HTML
+                    var modelSelectHtml = '<select class="image-model-input" style="width: 100%; color: #000;"><option value="">Use default model</option>';
+                    models.forEach(function(model) {
+                        modelSelectHtml += '<option value="' + model.name.replace(/"/g, '&quot;') + '">' + model.title.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</option>';
+                    });
+                    modelSelectHtml += '</select>';
+                    
+                    // Render table rows
+                    cards.forEach(function(card) {
+                        var setting = settingsMap && settingsMap[card.filename] ? settingsMap[card.filename] : null;
+                        var prefix = setting ? setting.prompt_prefix : '';
+                        var suffix = setting ? setting.prompt_suffix : '';
+                        var model = setting ? setting.image_model : '';
+                        var settingName = setting ? setting.character_name : card.name;
+                        
+                        var row = $('<tr>').attr('data-filename', card.filename);
+                        row.append('<td><img src="' + card.url + '" alt="' + card.name.replace(/"/g, '&quot;') + '" style="width: 80px; height: auto; border-radius: 4px;"></td>');
+                        row.append('<td><input type="text" class="character-name-input" value="' + settingName.replace(/"/g, '&quot;') + '" placeholder="' + card.name.replace(/"/g, '&quot;') + '" style="width: 100%; color: #000;"></td>');
+                        row.append('<td><textarea class="prompt-prefix-input" rows="2" placeholder="e.g., (character name), detailed, high quality" style="color: #000;">' + prefix.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea></td>');
+                        row.append('<td><textarea class="prompt-suffix-input" rows="2" placeholder="e.g., masterpiece, best quality" style="color: #000;">' + suffix.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea></td>');
+                        
+                        // Model dropdown - create from HTML string
+                        var $modelSelect = $(modelSelectHtml);
+                        if (model) {
+                            $modelSelect.val(model);
+                        }
+                        row.append('<td>' + $modelSelect[0].outerHTML + '</td>');
+                        row.append('<td><button class="button button-primary save-character-setting" data-filename="' + card.filename.replace(/"/g, '&quot;') + '">Save</button></td>');
+                        tbody.append(row);
+                    });
+                },
+                error: function() {
+                    // Fallback: render without models
+                    cards.forEach(function(card) {
+                        var setting = settingsMap && settingsMap[card.filename] ? settingsMap[card.filename] : null;
+                        var prefix = setting ? setting.prompt_prefix : '';
+                        var suffix = setting ? setting.prompt_suffix : '';
+                        var model = setting ? setting.image_model : '';
+                        var settingName = setting ? setting.character_name : card.name;
+                        
+                        var row = $('<tr>').attr('data-filename', card.filename);
+                        row.append('<td><img src="' + card.url + '" alt="' + card.name.replace(/"/g, '&quot;') + '" style="width: 80px; height: auto; border-radius: 4px;"></td>');
+                        row.append('<td><input type="text" class="character-name-input" value="' + settingName.replace(/"/g, '&quot;') + '" placeholder="' + card.name.replace(/"/g, '&quot;') + '" style="width: 100%; color: #000;"></td>');
+                        row.append('<td><textarea class="prompt-prefix-input" rows="2" placeholder="e.g., (character name), detailed, high quality" style="color: #000;">' + prefix.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea></td>');
+                        row.append('<td><textarea class="prompt-suffix-input" rows="2" placeholder="e.g., masterpiece, best quality" style="color: #000;">' + suffix.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea></td>');
+                        row.append('<td><input type="text" class="image-model-input" value="' + model.replace(/"/g, '&quot;') + '" placeholder="Model name (optional)" style="width: 100%; color: #000;"></td>');
+                        row.append('<td><button class="button button-primary save-character-setting" data-filename="' + card.filename.replace(/"/g, '&quot;') + '">Save</button></td>');
+                        tbody.append(row);
+                    });
+                }
             });
         }
         
@@ -558,6 +627,7 @@ function pmv_character_settings_tab_content() {
             var name = row.find('.character-name-input').val();
             var prefix = row.find('.prompt-prefix-input').val();
             var suffix = row.find('.prompt-suffix-input').val();
+            var model = row.find('.image-model-input').val();
             
             button.prop('disabled', true).text('Saving...');
             
@@ -570,7 +640,8 @@ function pmv_character_settings_tab_content() {
                     filename: filename,
                     name: name,
                     prompt_prefix: prefix,
-                    prompt_suffix: suffix
+                    prompt_suffix: suffix,
+                    image_model: model
                 },
                 success: function(response) {
                     if (response.success) {
