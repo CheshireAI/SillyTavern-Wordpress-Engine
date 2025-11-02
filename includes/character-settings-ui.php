@@ -17,29 +17,7 @@ function pmv_character_settings_tab_content() {
         return;
     }
     
-    // Get all character cards
-    $upload_dir = wp_upload_dir();
-    $png_cards_dir = trailingslashit($upload_dir['basedir']) . 'png-cards/';
-    $png_cards = array();
-    
-    if (file_exists($png_cards_dir)) {
-        $files = glob($png_cards_dir . '*.png');
-        foreach ($files as $file) {
-            $filename = basename($file);
-            $metadata = null;
-            if (class_exists('PNG_Metadata_Reader')) {
-                $metadata = PNG_Metadata_Reader::extract_highest_spec_fields($file);
-            }
-            $name = isset($metadata['data']['name']) ? $metadata['data']['name'] : pathinfo($filename, PATHINFO_FILENAME);
-            $png_cards[] = array(
-                'filename' => $filename,
-                'name' => $name,
-                'url' => trailingslashit($upload_dir['baseurl']) . 'png-cards/' . $filename
-            );
-        }
-    }
-    
-    // Get all existing character settings
+    // Get all existing character settings (for the map)
     $all_settings = array();
     if (class_exists('PMV_Character_Settings_Manager')) {
         $all_settings = PMV_Character_Settings_Manager::get_all_settings();
@@ -63,12 +41,23 @@ function pmv_character_settings_tab_content() {
         
         <div id="prefix-suffix-settings" class="settings-tab">
         <div id="character-settings-container">
-            <?php if (empty($png_cards)): ?>
-                <div class="notice notice-warning">
-                    <p><strong>No character cards found.</strong> Please upload character cards first.</p>
+            <div id="character-settings-loading" style="text-align: center; padding: 40px;">
+                <span class="spinner is-active" style="float: none;"></span>
+                <p>Loading character cards...</p>
+            </div>
+            <div id="character-settings-table-wrapper" style="display: none;">
+                <div style="margin-bottom: 15px;">
+                    <label>
+                        Items per page: 
+                        <select id="character-settings-per-page" style="width: auto;">
+                            <option value="10">10</option>
+                            <option value="25" selected>25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                    </label>
                 </div>
-            <?php else: ?>
-                <table class="wp-list-table widefat fixed striped">
+                <table class="wp-list-table widefat fixed striped" id="character-settings-table">
                     <thead>
                         <tr>
                             <th style="width: 150px;">Character</th>
@@ -78,45 +67,17 @@ function pmv_character_settings_tab_content() {
                             <th style="width: 100px;">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <?php foreach ($png_cards as $card): ?>
-                            <?php 
-                            $setting = isset($settings_map[$card['filename']]) ? $settings_map[$card['filename']] : null;
-                            $prefix = $setting ? $setting['prompt_prefix'] : '';
-                            $suffix = $setting ? $setting['prompt_suffix'] : '';
-                            $setting_name = $setting ? $setting['character_name'] : $card['name'];
-                            ?>
-                            <tr data-filename="<?= esc_attr($card['filename']) ?>">
-                                <td>
-                                    <img src="<?= esc_url($card['url']) ?>" alt="<?= esc_attr($card['name']) ?>" style="width: 80px; height: auto; border-radius: 4px;">
-                                </td>
-                                <td>
-                                    <input type="text" class="character-name-input" 
-                                           value="<?= esc_attr($setting_name) ?>" 
-                                           placeholder="<?= esc_attr($card['name']) ?>"
-                                           style="width: 100%;">
-                                </td>
-                                <td>
-                                    <textarea class="prompt-prefix-input" 
-                                              rows="2" 
-                                              placeholder="e.g., (character name), detailed, high quality"><?= esc_textarea($prefix) ?></textarea>
-                                </td>
-                                <td>
-                                    <textarea class="prompt-suffix-input" 
-                                              rows="2" 
-                                              placeholder="e.g., masterpiece, best quality"><?= esc_textarea($suffix) ?></textarea>
-                                </td>
-                                <td>
-                                    <button class="button button-primary save-character-setting" 
-                                            data-filename="<?= esc_attr($card['filename']) ?>">
-                                        Save
-                                    </button>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
+                    <tbody id="character-settings-tbody">
+                        <!-- Cards loaded via AJAX -->
                     </tbody>
                 </table>
-            <?php endif; ?>
+                <div id="character-settings-pagination" style="margin-top: 20px; text-align: center;"></div>
+            </div>
+            <div id="character-settings-empty" style="display: none;">
+                <div class="notice notice-warning">
+                    <p><strong>No character cards found.</strong> Please upload character cards first.</p>
+                </div>
+            </div>
         </div>
         </div>
         
@@ -124,58 +85,19 @@ function pmv_character_settings_tab_content() {
             <h3>Character-Specific Presets</h3>
             <p>Create custom presets for each character. These will appear in the image generation modal when chatting with that character.</p>
             <div id="character-presets-container">
-                <?php if (empty($png_cards)): ?>
+                <div id="character-presets-loading" style="text-align: center; padding: 40px;">
+                    <span class="spinner is-active" style="float: none;"></span>
+                    <p>Loading character cards...</p>
+                </div>
+                <div id="character-presets-list" style="display: none;">
+                    <!-- Character presets loaded via AJAX -->
+                </div>
+                <div id="character-presets-empty" style="display: none;">
                     <div class="notice notice-warning">
                         <p><strong>No character cards found.</strong> Please upload character cards first.</p>
                     </div>
-                <?php else: ?>
-                    <?php foreach ($png_cards as $card): ?>
-                        <?php
-                        // Get character presets
-                        $character_presets = array();
-                        if (class_exists('PMV_Character_Presets_Manager')) {
-                            $character_presets = PMV_Character_Presets_Manager::get_character_presets($card['filename']);
-                        }
-                        ?>
-                        <div class="character-presets-section" data-filename="<?= esc_attr($card['filename']) ?>" style="margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9;">
-                            <h4>
-                                <img src="<?= esc_url($card['url']) ?>" alt="<?= esc_attr($card['name']) ?>" style="width: 50px; height: auto; vertical-align: middle; border-radius: 4px; margin-right: 10px;">
-                                <?= esc_html($card['name']) ?> (<?= esc_html($card['filename']) ?>)
-                            </h4>
-                            <div class="presets-list" style="margin-top: 15px;">
-                                <?php if (empty($character_presets)): ?>
-                                    <p style="color: #666;">No custom presets yet. Click "Add Preset" below to create one.</p>
-                                    <button class="button button-secondary add-preset-btn" data-filename="<?= esc_attr($card['filename']) ?>" style="margin-top: 15px;">Add Preset</button>
-                                <?php else: ?>
-                                    <table class="wp-list-table widefat fixed striped">
-                                        <thead>
-                                            <tr>
-                                                <th>Preset Name</th>
-                                                <th>Description</th>
-                                                <th>Category</th>
-                                                <th style="width: 150px;">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php foreach ($character_presets as $preset): ?>
-                                                <tr data-preset-id="<?= esc_attr($preset['id']) ?>">
-                                                    <td><strong><?= esc_html($preset['name']) ?></strong></td>
-                                                    <td><?= esc_html($preset['description']) ?></td>
-                                                    <td><?= esc_html($preset['category']) ?></td>
-                                                    <td>
-                                                        <button class="button button-small edit-preset-btn" data-filename="<?= esc_attr($card['filename']) ?>" data-preset-id="<?= esc_attr($preset['id']) ?>">Edit</button>
-                                                        <button class="button button-small delete-preset-btn" data-filename="<?= esc_attr($card['filename']) ?>" data-preset-id="<?= esc_attr($preset['id']) ?>">Delete</button>
-                                                    </td>
-                                                </tr>
-                                            <?php endforeach; ?>
-                                        </tbody>
-                                    </table>
-                                    <button class="button button-secondary add-preset-btn" data-filename="<?= esc_attr($card['filename']) ?>" style="margin-top: 15px;">Add Preset</button>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+                </div>
+                <div id="character-presets-pagination" style="margin-top: 20px; text-align: center;"></div>
             </div>
         </div>
         
@@ -359,8 +281,257 @@ function pmv_character_settings_tab_content() {
     
     <script type="text/javascript">
     jQuery(document).ready(function($) {
+        // Pagination state
+        var currentPage = {
+            prefixSuffix: 1,
+            presets: 1
+        };
+        var perPage = {
+            prefixSuffix: 25,
+            presets: 25
+        };
+        var totalPages = {
+            prefixSuffix: 1,
+            presets: 1
+        };
+        
+        // Load character cards for prefix/suffix settings
+        function loadCharacterCardsForSettings(page, tab) {
+            var loadingSelector = tab === 'prefixSuffix' ? '#character-settings-loading' : '#character-presets-loading';
+            var wrapperSelector = tab === 'prefixSuffix' ? '#character-settings-table-wrapper' : '#character-presets-list';
+            var emptySelector = tab === 'prefixSuffix' ? '#character-settings-empty' : '#character-presets-empty';
+            var tbodySelector = tab === 'prefixSuffix' ? '#character-settings-tbody' : null;
+            var paginationSelector = tab === 'prefixSuffix' ? '#character-settings-pagination' : '#character-presets-pagination';
+            
+            $(loadingSelector).show();
+            $(wrapperSelector).hide();
+            $(emptySelector).hide();
+            
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'pmv_get_character_cards_for_settings',
+                    nonce: '<?= wp_create_nonce('pmv_ajax_nonce') ?>',
+                    page: page,
+                    per_page: perPage[tab]
+                },
+                success: function(response) {
+                    $(loadingSelector).hide();
+                    
+                    if (response.success && response.data && response.data.cards && response.data.cards.length > 0) {
+                        $(wrapperSelector).show();
+                        
+                        if (tab === 'prefixSuffix') {
+                            renderPrefixSuffixTable(response.data.cards, response.data.settings_map);
+                        } else {
+                            renderPresetsList(response.data.cards);
+                        }
+                        
+                        totalPages[tab] = response.data.pagination.total_pages;
+                        renderPagination(paginationSelector, response.data.pagination, tab);
+                        currentPage[tab] = page;
+                    } else {
+                        $(emptySelector).show();
+                    }
+                },
+                error: function() {
+                    $(loadingSelector).hide();
+                    $(emptySelector).show();
+                    $(emptySelector).html('<div class="notice notice-error"><p>Error loading character cards. Please try again.</p></div>');
+                }
+            });
+        }
+        
+        // Render prefix/suffix table
+        function renderPrefixSuffixTable(cards, settingsMap) {
+            var tbody = $('#character-settings-tbody');
+            tbody.empty();
+            
+            cards.forEach(function(card) {
+                var setting = settingsMap && settingsMap[card.filename] ? settingsMap[card.filename] : null;
+                var prefix = setting ? setting.prompt_prefix : '';
+                var suffix = setting ? setting.prompt_suffix : '';
+                var settingName = setting ? setting.character_name : card.name;
+                
+                var row = $('<tr>').attr('data-filename', card.filename);
+                row.append('<td><img src="' + card.url + '" alt="' + card.name.replace(/"/g, '&quot;') + '" style="width: 80px; height: auto; border-radius: 4px;"></td>');
+                row.append('<td><input type="text" class="character-name-input" value="' + settingName.replace(/"/g, '&quot;') + '" placeholder="' + card.name.replace(/"/g, '&quot;') + '" style="width: 100%;"></td>');
+                row.append('<td><textarea class="prompt-prefix-input" rows="2" placeholder="e.g., (character name), detailed, high quality">' + prefix.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea></td>');
+                row.append('<td><textarea class="prompt-suffix-input" rows="2" placeholder="e.g., masterpiece, best quality">' + suffix.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea></td>');
+                row.append('<td><button class="button button-primary save-character-setting" data-filename="' + card.filename.replace(/"/g, '&quot;') + '">Save</button></td>');
+                tbody.append(row);
+            });
+        }
+        
+        // Render presets list
+        function renderPresetsList(cards) {
+            var container = $('#character-presets-list');
+            container.empty();
+            
+            cards.forEach(function(card) {
+                var section = $('<div>').addClass('character-presets-section').attr('data-filename', card.filename).css({
+                    'margin-bottom': '30px',
+                    'padding': '20px',
+                    'border': '1px solid #ddd',
+                    'border-radius': '8px',
+                    'background': '#f9f9f9'
+                });
+                
+                var header = $('<h4>');
+                header.append($('<img>').attr('src', card.url).attr('alt', card.name).css({
+                    'width': '50px',
+                    'height': 'auto',
+                    'vertical-align': 'middle',
+                    'border-radius': '4px',
+                    'margin-right': '10px'
+                }));
+                header.append(card.name + ' (' + card.filename + ')');
+                section.append(header);
+                
+                var presetsDiv = $('<div>').addClass('presets-list').css('margin-top', '15px');
+                presetsDiv.html('<p style="color: #666;">Loading presets...</p>');
+                section.append(presetsDiv);
+                
+                // Load presets for this character
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'pmv_get_character_presets',
+                        nonce: '<?= wp_create_nonce('pmv_ajax_nonce') ?>',
+                        filename: card.filename
+                    },
+                    success: function(response) {
+                        if (response.success && response.data.presets) {
+                            var presets = response.data.presets;
+                            if (Object.keys(presets).length === 0) {
+                                presetsDiv.html('<p style="color: #666;">No custom presets yet. Click "Add Preset" below to create one.</p><button class="button button-secondary add-preset-btn" data-filename="' + card.filename.replace(/"/g, '&quot;') + '" style="margin-top: 15px;">Add Preset</button>');
+                            } else {
+                                var table = $('<table>').addClass('wp-list-table widefat fixed striped');
+                                var thead = $('<thead>').append('<tr><th>Preset Name</th><th>Description</th><th>Category</th><th style="width: 150px;">Actions</th></tr>');
+                                var tbody = $('<tbody>');
+                                
+                                Object.keys(presets).forEach(function(presetId) {
+                                    var preset = presets[presetId];
+                                    var row = $('<tr>').attr('data-preset-id', presetId);
+                                    row.append('<td><strong>' + preset.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</strong></td>');
+                                    row.append('<td>' + preset.description.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</td>');
+                                    row.append('<td>' + preset.category + '</td>');
+                                    row.append('<td><button class="button button-small edit-preset-btn" data-filename="' + card.filename.replace(/"/g, '&quot;') + '" data-preset-id="' + presetId + '">Edit</button> <button class="button button-small delete-preset-btn" data-filename="' + card.filename.replace(/"/g, '&quot;') + '" data-preset-id="' + presetId + '">Delete</button></td>');
+                                    tbody.append(row);
+                                });
+                                
+                                table.append(thead).append(tbody);
+                                presetsDiv.empty().append(table);
+                                presetsDiv.append($('<button>').addClass('button button-secondary add-preset-btn').attr('data-filename', card.filename).css('margin-top', '15px').text('Add Preset'));
+                            }
+                        }
+                    }
+                });
+                
+                container.append(section);
+            });
+        }
+        
+        // Render pagination
+        function renderPagination(selector, pagination, tab) {
+            var $pagination = $(selector);
+            $pagination.empty();
+            
+            if (pagination.total_pages <= 1) {
+                return;
+            }
+            
+            var startItem = (pagination.current_page - 1) * pagination.per_page + 1;
+            var endItem = Math.min(pagination.current_page * pagination.per_page, pagination.total_items);
+            
+            var info = $('<div>').addClass('pmv-pagination-info').css('margin-bottom', '10px');
+            info.text('Showing ' + startItem + '-' + endItem + ' of ' + pagination.total_items + ' characters (Page ' + pagination.current_page + ' of ' + pagination.total_pages + ')');
+            $pagination.append(info);
+            
+            var links = $('<div>').addClass('pmv-pagination-links');
+            
+            // Previous
+            if (pagination.has_prev) {
+                links.append($('<a>').addClass('pmv-page-link').attr('href', '#').attr('data-page', pagination.current_page - 1).attr('data-tab', tab).text('« Previous'));
+            } else {
+                links.append($('<span>').addClass('pmv-page-disabled').text('« Previous'));
+            }
+            
+            // Page numbers
+            var maxVisible = 7;
+            var startPage = Math.max(1, pagination.current_page - Math.floor(maxVisible / 2));
+            var endPage = Math.min(pagination.total_pages, startPage + maxVisible - 1);
+            
+            if (startPage > 1) {
+                links.append($('<a>').addClass('pmv-page-link').attr('href', '#').attr('data-page', 1).attr('data-tab', tab).text('1'));
+                if (startPage > 2) {
+                    links.append($('<span>').text('...'));
+                }
+            }
+            
+            for (var i = startPage; i <= endPage; i++) {
+                if (i === pagination.current_page) {
+                    links.append($('<span>').addClass('pmv-page-current').text(i));
+                } else {
+                    links.append($('<a>').addClass('pmv-page-link').attr('href', '#').attr('data-page', i).attr('data-tab', tab).text(i));
+                }
+            }
+            
+            if (endPage < pagination.total_pages) {
+                if (endPage < pagination.total_pages - 1) {
+                    links.append($('<span>').text('...'));
+                }
+                links.append($('<a>').addClass('pmv-page-link').attr('href', '#').attr('data-page', pagination.total_pages).attr('data-tab', tab).text(pagination.total_pages));
+            }
+            
+            // Next
+            if (pagination.has_next) {
+                links.append($('<a>').addClass('pmv-page-link').attr('href', '#').attr('data-page', pagination.current_page + 1).attr('data-tab', tab).text('Next »'));
+            } else {
+                links.append($('<span>').addClass('pmv-page-disabled').text('Next »'));
+            }
+            
+            $pagination.append(links);
+        }
+        
+        // Page change handler
+        $(document).on('click', '.pmv-page-link', function(e) {
+            e.preventDefault();
+            var page = parseInt($(this).data('page'));
+            var tab = $(this).data('tab');
+            if (page && tab) {
+                loadCharacterCardsForSettings(page, tab);
+            }
+        });
+        
+        // Per-page change handler
+        $('#character-settings-per-page').on('change', function() {
+            perPage.prefixSuffix = parseInt($(this).val());
+            loadCharacterCardsForSettings(1, 'prefixSuffix');
+        });
+        
+        // Load initial data when prefix/suffix tab is shown
+        var prefixSuffixLoaded = false;
+        $(document).on('click', '.nav-tab', function() {
+            var target = $(this).attr('href');
+            if (target === '#prefix-suffix-settings' && !prefixSuffixLoaded) {
+                loadCharacterCardsForSettings(1, 'prefixSuffix');
+                prefixSuffixLoaded = true;
+            } else if (target === '#preset-settings') {
+                loadCharacterCardsForSettings(1, 'presets');
+            }
+        });
+        
+        // Initial load if prefix/suffix tab is active
+        if ($('#prefix-suffix-settings').is(':visible')) {
+            loadCharacterCardsForSettings(1, 'prefixSuffix');
+            prefixSuffixLoaded = true;
+        }
+        
         // Prefix/Suffix Settings
-        $('.save-character-setting').on('click', function() {
+        $(document).on('click', '.save-character-setting', function() {
             var button = $(this);
             var row = button.closest('tr');
             var filename = button.data('filename');

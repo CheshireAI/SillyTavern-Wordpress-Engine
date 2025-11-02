@@ -123,6 +123,11 @@ if (file_exists(PMV_PLUGIN_DIR . 'includes/universal-presets-manager.php')) {
     require_once PMV_PLUGIN_DIR . 'includes/universal-presets-manager.php';
 }
 
+// Load character settings AJAX handler
+if (file_exists(PMV_PLUGIN_DIR . 'includes/character-settings-ajax.php')) {
+    require_once PMV_PLUGIN_DIR . 'includes/character-settings-ajax.php';
+}
+
 // Add hook to backup settings before plugin updates
 add_action('upgrader_process_complete', 'pmv_backup_settings_before_update', 10, 2);
 
