@@ -13,6 +13,7 @@ if (!defined('ABSPATH')) {
  * AJAX handler to get character cards for settings page with pagination
  */
 function pmv_ajax_get_character_cards_for_settings() {
+    // Verify nonce - check_ajax_referer expects the action name
     check_ajax_referer('pmv_ajax_nonce', 'nonce');
     
     if (!current_user_can('manage_options')) {
@@ -20,28 +21,38 @@ function pmv_ajax_get_character_cards_for_settings() {
         return;
     }
     
-    $page = intval($_POST['page'] ?? 1);
-    $per_page = intval($_POST['per_page'] ?? 25);
+    $page = max(1, intval($_POST['page'] ?? 1));
+    $per_page = max(1, intval($_POST['per_page'] ?? 25));
     
-    // Get character cards using cache handler if available
+    // Get character cards - use processing function if available, otherwise load directly
     $cards = array();
     $total = 0;
     
-    if (class_exists('PMV_Cache_Handler')) {
-        // Use cache handler for efficient loading
-        $cache_handler = PMV_Cache_Handler::getInstance();
-        $result = $cache_handler->get_character_cards(array(
+    // Try using the processing function from cache handler
+    if (function_exists('pmv_process_character_cards')) {
+        $result = pmv_process_character_cards(array(
             'page' => $page,
             'per_page' => $per_page,
-            'folder' => 'png-cards'
+            'folder' => '' // Empty folder means root png-cards directory
         ));
         
         if ($result && isset($result['cards'])) {
-            $cards = $result['cards'];
+            // Convert from cache handler format to our format
+            foreach ($result['cards'] as $card) {
+                // Extract filename from file_url
+                $filename = basename($card['file_url']);
+                $cards[] = array(
+                    'filename' => $filename,
+                    'name' => $card['name'],
+                    'url' => $card['file_url']
+                );
+            }
             $total = isset($result['pagination']['total_items']) ? $result['pagination']['total_items'] : 0;
         }
-    } else {
-        // Fallback: Load directly
+    }
+    
+    // Fallback: Load directly if processing function didn't work or returned empty
+    if (empty($cards)) {
         $upload_dir = wp_upload_dir();
         $png_cards_dir = trailingslashit($upload_dir['basedir']) . 'png-cards/';
         
@@ -57,7 +68,12 @@ function pmv_ajax_get_character_cards_for_settings() {
                 $filename = basename($file);
                 $metadata = null;
                 if (class_exists('PNG_Metadata_Reader')) {
-                    $metadata = PNG_Metadata_Reader::extract_highest_spec_fields($file);
+                    try {
+                        $metadata = PNG_Metadata_Reader::extract_highest_spec_fields($file);
+                    } catch (Exception $e) {
+                        // If metadata extraction fails, use filename
+                        error_log('PMV Settings: Error extracting metadata for ' . $filename . ': ' . $e->getMessage());
+                    }
                 }
                 $name = isset($metadata['data']['name']) ? $metadata['data']['name'] : pathinfo($filename, PATHINFO_FILENAME);
                 
@@ -84,6 +100,24 @@ function pmv_ajax_get_character_cards_for_settings() {
     }
     
     $total_pages = $total > 0 ? ceil($total / $per_page) : 1;
+    
+    // Ensure we have valid pagination data
+    if ($total === 0 && empty($cards)) {
+        // No cards found
+        wp_send_json_success(array(
+            'cards' => array(),
+            'settings_map' => $settings_map,
+            'pagination' => array(
+                'total_items' => 0,
+                'total_pages' => 1,
+                'current_page' => 1,
+                'per_page' => $per_page,
+                'has_prev' => false,
+                'has_next' => false
+            )
+        ));
+        return;
+    }
     
     wp_send_json_success(array(
         'cards' => $cards,

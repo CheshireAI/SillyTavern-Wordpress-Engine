@@ -319,26 +319,46 @@ function pmv_character_settings_tab_content() {
                 success: function(response) {
                     $(loadingSelector).hide();
                     
-                    if (response.success && response.data && response.data.cards && response.data.cards.length > 0) {
-                        $(wrapperSelector).show();
-                        
-                        if (tab === 'prefixSuffix') {
-                            renderPrefixSuffixTable(response.data.cards, response.data.settings_map);
+                    if (response.success && response.data) {
+                        if (response.data.cards && response.data.cards.length > 0) {
+                            $(wrapperSelector).show();
+                            $(emptySelector).hide();
+                            
+                            if (tab === 'prefixSuffix') {
+                                renderPrefixSuffixTable(response.data.cards, response.data.settings_map || {});
+                            } else {
+                                renderPresetsList(response.data.cards);
+                            }
+                            
+                            if (response.data.pagination) {
+                                totalPages[tab] = response.data.pagination.total_pages;
+                                renderPagination(paginationSelector, response.data.pagination, tab);
+                                currentPage[tab] = page;
+                            }
                         } else {
-                            renderPresetsList(response.data.cards);
+                            // No cards but successful response
+                            $(wrapperSelector).hide();
+                            $(emptySelector).show();
                         }
-                        
-                        totalPages[tab] = response.data.pagination.total_pages;
-                        renderPagination(paginationSelector, response.data.pagination, tab);
-                        currentPage[tab] = page;
                     } else {
+                        // Error response
+                        $(wrapperSelector).hide();
                         $(emptySelector).show();
+                        var errorMsg = response.data && response.data.message ? response.data.message : 'Error loading character cards.';
+                        $(emptySelector).html('<div class="notice notice-error"><p>' + errorMsg + '</p></div>');
                     }
                 },
-                error: function() {
+                error: function(xhr, status, error) {
                     $(loadingSelector).hide();
                     $(emptySelector).show();
-                    $(emptySelector).html('<div class="notice notice-error"><p>Error loading character cards. Please try again.</p></div>');
+                    var errorMsg = 'Error loading character cards. ';
+                    if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
+                        errorMsg += xhr.responseJSON.data.message;
+                    } else {
+                        errorMsg += 'Please try again.';
+                    }
+                    console.error('PMV Settings AJAX Error:', {xhr, status, error, responseText: xhr.responseText});
+                    $(emptySelector).html('<div class="notice notice-error"><p>' + errorMsg + '</p></div>');
                 }
             });
         }
