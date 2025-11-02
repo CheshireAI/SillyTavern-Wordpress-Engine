@@ -147,27 +147,27 @@ function pmv_character_settings_tab_content() {
             
             <!-- Universal Preset Editor Modal -->
             <div id="universal-preset-editor-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 100000;">
-                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 30px; border-radius: 8px; max-width: 800px; width: 90%; max-height: 90vh; overflow-y: auto;">
-                    <h3 id="universal-preset-editor-title">Edit Universal Preset</h3>
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 30px; border-radius: 8px; max-width: 800px; width: 90%; max-height: 90vh; overflow-y: auto; color: #000;">
+                    <h3 id="universal-preset-editor-title" style="color: #000;">Edit Universal Preset</h3>
                     <form id="universal-preset-editor-form">
                         <input type="hidden" id="universal-preset-editor-preset-id" name="preset_id">
                         <table class="form-table">
                             <tr>
-                                <th><label>Preset ID</label></th>
-                                <td><input type="text" id="universal-preset-id" name="preset_id" class="regular-text" readonly style="background: #f0f0f0;"></td>
+                                <th style="color: #000;"><label style="color: #000;">Preset ID</label></th>
+                                <td><input type="text" id="universal-preset-id" name="preset_id" class="regular-text" readonly style="background: #f0f0f0; color: #000;"></td>
                             </tr>
                             <tr>
-                                <th><label for="universal-preset-name">Preset Name</label></th>
-                                <td><input type="text" id="universal-preset-name" name="preset_name" class="regular-text" required></td>
+                                <th style="color: #000;"><label for="universal-preset-name" style="color: #000;">Preset Name</label></th>
+                                <td><input type="text" id="universal-preset-name" name="preset_name" class="regular-text" required style="color: #000;"></td>
                             </tr>
                             <tr>
-                                <th><label for="universal-preset-description">Description</label></th>
-                                <td><textarea id="universal-preset-description" name="preset_description" rows="3" class="large-text"></textarea></td>
+                                <th style="color: #000;"><label for="universal-preset-description" style="color: #000;">Description</label></th>
+                                <td><textarea id="universal-preset-description" name="preset_description" rows="3" class="large-text" style="color: #000;"></textarea></td>
                             </tr>
                             <tr>
-                                <th><label for="universal-preset-category">Category</label></th>
+                                <th style="color: #000;"><label for="universal-preset-category" style="color: #000;">Category</label></th>
                                 <td>
-                                    <select id="universal-preset-category" name="preset_category">
+                                    <select id="universal-preset-category" name="preset_category" style="color: #000;">
                                         <option value="character">Character</option>
                                         <option value="environment">Environment</option>
                                         <option value="action">Action</option>
@@ -177,28 +177,28 @@ function pmv_character_settings_tab_content() {
                                 </td>
                             </tr>
                             <tr>
-                                <th><label for="universal-preset-steps">Steps</label></th>
-                                <td><input type="number" id="universal-preset-steps" name="steps" value="20" min="1" max="100" class="small-text"></td>
+                                <th style="color: #000;"><label for="universal-preset-steps" style="color: #000;">Steps</label></th>
+                                <td><input type="number" id="universal-preset-steps" name="steps" value="20" min="1" max="100" class="small-text" style="color: #000;"></td>
                             </tr>
                             <tr>
-                                <th><label for="universal-preset-cfg-scale">CFG Scale</label></th>
-                                <td><input type="number" id="universal-preset-cfg-scale" name="cfg_scale" value="7.0" min="0.1" max="20" step="0.1" class="small-text"></td>
+                                <th style="color: #000;"><label for="universal-preset-cfg-scale" style="color: #000;">CFG Scale</label></th>
+                                <td><input type="number" id="universal-preset-cfg-scale" name="cfg_scale" value="7.0" min="0.1" max="20" step="0.1" class="small-text" style="color: #000;"></td>
                             </tr>
                             <tr>
-                                <th><label for="universal-preset-width">Width</label></th>
-                                <td><input type="number" id="universal-preset-width" name="width" value="512" min="256" max="2048" step="64" class="small-text"></td>
+                                <th style="color: #000;"><label for="universal-preset-width" style="color: #000;">Width</label></th>
+                                <td><input type="number" id="universal-preset-width" name="width" value="512" min="256" max="2048" step="64" class="small-text" style="color: #000;"></td>
                             </tr>
                             <tr>
-                                <th><label for="universal-preset-height">Height</label></th>
-                                <td><input type="number" id="universal-preset-height" name="height" value="512" min="256" max="2048" step="64" class="small-text"></td>
+                                <th style="color: #000;"><label for="universal-preset-height" style="color: #000;">Height</label></th>
+                                <td><input type="number" id="universal-preset-height" name="height" value="512" min="256" max="2048" step="64" class="small-text" style="color: #000;"></td>
                             </tr>
                             <tr>
-                                <th><label for="universal-preset-negative-prompt">Negative Prompt</label></th>
-                                <td><textarea id="universal-preset-negative-prompt" name="negative_prompt" rows="2" class="large-text"></textarea></td>
+                                <th style="color: #000;"><label for="universal-preset-negative-prompt" style="color: #000;">Negative Prompt</label></th>
+                                <td><textarea id="universal-preset-negative-prompt" name="negative_prompt" rows="2" class="large-text" style="color: #000;"></textarea></td>
                             </tr>
                             <tr>
-                                <th><label for="universal-preset-enhancer">Prompt Enhancer</label></th>
-                                <td><textarea id="universal-preset-enhancer" name="prompt_enhancer" rows="2" class="large-text"></textarea></td>
+                                <th style="color: #000;"><label for="universal-preset-enhancer" style="color: #000;">Prompt Enhancer</label></th>
+                                <td><textarea id="universal-preset-enhancer" name="prompt_enhancer" rows="2" class="large-text" style="color: #000;"></textarea></td>
                             </tr>
                         </table>
                         <p class="submit">
@@ -215,28 +215,28 @@ function pmv_character_settings_tab_content() {
         
         <!-- Preset Editor Modal -->
         <div id="preset-editor-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 100000;">
-            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 30px; border-radius: 8px; max-width: 800px; width: 90%; max-height: 90vh; overflow-y: auto;">
-                <h3 id="preset-editor-title">Add/Edit Preset</h3>
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 30px; border-radius: 8px; max-width: 800px; width: 90%; max-height: 90vh; overflow-y: auto; color: #000;">
+                <h3 id="preset-editor-title" style="color: #000;">Add/Edit Preset</h3>
                 <form id="preset-editor-form">
                     <input type="hidden" id="preset-editor-filename" name="filename">
                     <input type="hidden" id="preset-editor-preset-id" name="preset_id">
                     <table class="form-table">
                         <tr>
-                            <th><label for="preset-name">Preset ID</label></th>
-                            <td><input type="text" id="preset-id" name="preset_id" class="regular-text" required pattern="[a-z0-9_]+" title="Lowercase letters, numbers, and underscores only"></td>
+                            <th style="color: #000;"><label for="preset-id" style="color: #000;">Preset ID</label></th>
+                            <td><input type="text" id="preset-id" name="preset_id" class="regular-text" required pattern="[a-z0-9_]+" title="Lowercase letters, numbers, and underscores only" style="color: #000;"></td>
                         </tr>
                         <tr>
-                            <th><label for="preset-name">Preset Name</label></th>
-                            <td><input type="text" id="preset-name" name="preset_name" class="regular-text" required></td>
+                            <th style="color: #000;"><label for="preset-name" style="color: #000;">Preset Name</label></th>
+                            <td><input type="text" id="preset-name" name="preset_name" class="regular-text" required style="color: #000;"></td>
                         </tr>
                         <tr>
-                            <th><label for="preset-description">Description</label></th>
-                            <td><textarea id="preset-description" name="preset_description" rows="3" class="large-text"></textarea></td>
+                            <th style="color: #000;"><label for="preset-description" style="color: #000;">Description</label></th>
+                            <td><textarea id="preset-description" name="preset_description" rows="3" class="large-text" style="color: #000;"></textarea></td>
                         </tr>
                         <tr>
-                            <th><label for="preset-category">Category</label></th>
+                            <th style="color: #000;"><label for="preset-category" style="color: #000;">Category</label></th>
                             <td>
-                                <select id="preset-category" name="preset_category">
+                                <select id="preset-category" name="preset_category" style="color: #000;">
                                     <option value="custom">Custom</option>
                                     <option value="character">Character</option>
                                     <option value="environment">Environment</option>
@@ -246,28 +246,28 @@ function pmv_character_settings_tab_content() {
                             </td>
                         </tr>
                         <tr>
-                            <th><label for="preset-steps">Steps</label></th>
-                            <td><input type="number" id="preset-steps" name="steps" value="20" min="1" max="100" class="small-text"></td>
+                            <th style="color: #000;"><label for="preset-steps" style="color: #000;">Steps</label></th>
+                            <td><input type="number" id="preset-steps" name="steps" value="20" min="1" max="100" class="small-text" style="color: #000;"></td>
                         </tr>
                         <tr>
-                            <th><label for="preset-cfg-scale">CFG Scale</label></th>
-                            <td><input type="number" id="preset-cfg-scale" name="cfg_scale" value="7.0" min="0.1" max="20" step="0.1" class="small-text"></td>
+                            <th style="color: #000;"><label for="preset-cfg-scale" style="color: #000;">CFG Scale</label></th>
+                            <td><input type="number" id="preset-cfg-scale" name="cfg_scale" value="7.0" min="0.1" max="20" step="0.1" class="small-text" style="color: #000;"></td>
                         </tr>
                         <tr>
-                            <th><label for="preset-width">Width</label></th>
-                            <td><input type="number" id="preset-width" name="width" value="512" min="256" max="2048" step="64" class="small-text"></td>
+                            <th style="color: #000;"><label for="preset-width" style="color: #000;">Width</label></th>
+                            <td><input type="number" id="preset-width" name="width" value="512" min="256" max="2048" step="64" class="small-text" style="color: #000;"></td>
                         </tr>
                         <tr>
-                            <th><label for="preset-height">Height</label></th>
-                            <td><input type="number" id="preset-height" name="height" value="512" min="256" max="2048" step="64" class="small-text"></td>
+                            <th style="color: #000;"><label for="preset-height" style="color: #000;">Height</label></th>
+                            <td><input type="number" id="preset-height" name="height" value="512" min="256" max="2048" step="64" class="small-text" style="color: #000;"></td>
                         </tr>
                         <tr>
-                            <th><label for="preset-negative-prompt">Negative Prompt</label></th>
-                            <td><textarea id="preset-negative-prompt" name="negative_prompt" rows="2" class="large-text">blurry, distorted, low quality</textarea></td>
+                            <th style="color: #000;"><label for="preset-negative-prompt" style="color: #000;">Negative Prompt</label></th>
+                            <td><textarea id="preset-negative-prompt" name="negative_prompt" rows="2" class="large-text" style="color: #000;">blurry, distorted, low quality</textarea></td>
                         </tr>
                         <tr>
-                            <th><label for="preset-enhancer">Prompt Enhancer</label></th>
-                            <td><textarea id="preset-enhancer" name="prompt_enhancer" rows="2" class="large-text" placeholder="e.g., high quality, detailed, professional"></textarea></td>
+                            <th style="color: #000;"><label for="preset-enhancer" style="color: #000;">Prompt Enhancer</label></th>
+                            <td><textarea id="preset-enhancer" name="prompt_enhancer" rows="2" class="large-text" placeholder="e.g., high quality, detailed, professional" style="color: #000;"></textarea></td>
                         </tr>
                     </table>
                     <p class="submit">
