@@ -700,9 +700,39 @@ function pmv_character_settings_tab_content() {
         var currentPresetId = '';
         
         // Function to load models for preset editor dropdowns
+        // Cache models to avoid multiple AJAX calls
+        var modelsCache = null;
+        var modelsLoading = false;
+        
         function loadModelsForPresetEditor(selectId, selectedModel) {
             var $select = $(selectId);
             $select.html('<option value="">Use character/default model</option>');
+            
+            // Use cached models if available
+            if (modelsCache && modelsCache.length > 0) {
+                modelsCache.forEach(function(model) {
+                    var option = $('<option>').val(model.name).text(model.title);
+                    if (selectedModel && model.name === selectedModel) {
+                        option.prop('selected', true);
+                    }
+                    $select.append(option);
+                });
+                if (selectedModel) {
+                    $select.val(selectedModel);
+                }
+                return;
+            }
+            
+            // Don't make multiple simultaneous requests
+            if (modelsLoading) {
+                // Wait for existing request to complete
+                setTimeout(function() {
+                    loadModelsForPresetEditor(selectId, selectedModel);
+                }, 500);
+                return;
+            }
+            
+            modelsLoading = true;
             
             $.ajax({
                 url: ajaxurl,
@@ -731,6 +761,9 @@ function pmv_character_settings_tab_content() {
                             });
                         }
                         
+                        // Cache the models
+                        modelsCache = models;
+                        
                         models.forEach(function(model) {
                             var option = $('<option>').val(model.name).text(model.title);
                             if (selectedModel && model.name === selectedModel) {
@@ -742,23 +775,14 @@ function pmv_character_settings_tab_content() {
                     if (selectedModel) {
                         $select.val(selectedModel);
                     }
+                    modelsLoading = false;
                 },
                 error: function() {
                     // Keep default option if models fail to load
+                    modelsLoading = false;
                 }
             });
         }
-        
-        // Load models when preset modal opens (for new presets)
-        presetModal.on('show', function() {
-            if (!isEditing) {
-                loadModelsForPresetEditor('#preset-model', '');
-            }
-        });
-        
-        universalPresetModal.on('show', function() {
-            loadModelsForPresetEditor('#universal-preset-model', '');
-        });
         
         // Add preset button
         $(document).on('click', '.add-preset-btn', function() {
@@ -770,7 +794,7 @@ function pmv_character_settings_tab_content() {
             $('#preset-editor-title').text('Add New Preset');
             $('#preset-id').prop('readonly', false);
             loadModelsForPresetEditor('#preset-model', '');
-            presetModal.show();
+            presetModal.css('display', 'block');
         });
         
         // Edit preset button
@@ -805,7 +829,7 @@ function pmv_character_settings_tab_content() {
                         // Load models first, then set model value
                         loadModelsForPresetEditor('#preset-model', preset.config.model || '');
                         $('#preset-editor-title').text('Edit Preset: ' + preset.name);
-                        presetModal.show();
+                        presetModal.css('display', 'block');
                     }
                 }
             });
@@ -883,7 +907,7 @@ function pmv_character_settings_tab_content() {
                 data: formData,
                 success: function(response) {
                     if (response.success) {
-                        presetModal.hide();
+                        presetModal.css('display', 'none');
                         showMessage('Preset saved successfully', 'success');
                         // Reload page to refresh preset list
                         setTimeout(function() {
@@ -903,13 +927,13 @@ function pmv_character_settings_tab_content() {
         
         // Cancel preset editor
         $('#cancel-preset-btn').on('click', function() {
-            presetModal.hide();
+            presetModal.css('display', 'none');
         });
         
         // Close modal on background click
         presetModal.on('click', function(e) {
             if (e.target === this) {
-                presetModal.hide();
+                presetModal.css('display', 'none');
             }
         });
         
@@ -945,7 +969,7 @@ function pmv_character_settings_tab_content() {
                         // Load models first, then set model value
                         loadModelsForPresetEditor('#universal-preset-model', preset.config.model || '');
                         $('#universal-preset-editor-title').text('Edit Universal Preset: ' + preset.name);
-                        universalPresetModal.show();
+                        universalPresetModal.css('display', 'block');
                     }
                 }
             });
@@ -977,7 +1001,7 @@ function pmv_character_settings_tab_content() {
                 data: formData,
                 success: function(response) {
                     if (response.success) {
-                        universalPresetModal.hide();
+                        universalPresetModal.css('display', 'none');
                         showMessage('Universal preset updated successfully', 'success');
                         // Reload page to refresh preset list
                         setTimeout(function() {
@@ -1015,7 +1039,7 @@ function pmv_character_settings_tab_content() {
                 },
                 success: function(response) {
                     if (response.success) {
-                        universalPresetModal.hide();
+                        universalPresetModal.css('display', 'none');
                         showMessage('Preset reverted to default successfully', 'success');
                         setTimeout(function() {
                             location.reload();
@@ -1034,13 +1058,13 @@ function pmv_character_settings_tab_content() {
         
         // Cancel universal preset editor
         $('#cancel-universal-preset-btn').on('click', function() {
-            universalPresetModal.hide();
+            universalPresetModal.css('display', 'none');
         });
         
         // Close modal on background click
         universalPresetModal.on('click', function(e) {
             if (e.target === this) {
-                universalPresetModal.hide();
+                universalPresetModal.css('display', 'none');
             }
         });
         
