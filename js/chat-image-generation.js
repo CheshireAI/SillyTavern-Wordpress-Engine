@@ -482,47 +482,15 @@
         const settings = JSON.parse(localStorage.getItem('pmv_image_settings') || '{}');
         
         // Populate form fields - only load settings that still exist
-        if ($('#custom-prompt-template').length) {
-            $('#custom-prompt-template').val(settings.custom_prompt_template || '');
-        }
-        if ($('#use-full-history').length) {
-            $('#use-full-history').prop('checked', settings.use_full_history !== false);
-        }
-        if ($('#auto-trigger-keywords').length) {
-            $('#auto-trigger-keywords').val(settings.auto_trigger_keywords || '');
-        }
-        if ($('#allow-prompt-editing').length) {
-            $('#allow-prompt-editing').prop('checked', settings.allow_prompt_editing !== false);
-        }
         if ($('#image-provider').length) {
             $('#image-provider').val(settings.provider || 'swarmui');
-        }
-        
-        // Load slash command templates if they exist
-        if ($('#slash-self-template').length) {
-            $('#slash-self-template').val(settings.slash_self_template || '');
-            $('#slash-generate-template').val(settings.slash_generate_template || '');
-            $('#slash-look-template').val(settings.slash_look_template || '');
-            $('#slash-custom1-template').val(settings.slash_custom1_template || '');
-            $('#slash-custom2-template').val(settings.slash_custom2_template || '');
-            $('#slash-custom3-template').val(settings.slash_custom3_template || '');
         }
     }
 
     // Save image settings
     function saveImageSettings() {
         const settings = {
-            custom_prompt_template: $('#custom-prompt-template').val() || '',
-            use_full_history: $('#use-full-history').is(':checked'),
-            auto_trigger_keywords: $('#auto-trigger-keywords').val() || '',
-            allow_prompt_editing: $('#allow-prompt-editing').is(':checked'),
-            provider: $('#image-provider').val() || 'swarmui',
-            slash_self_template: $('#slash-self-template').val() || '',
-            slash_generate_template: $('#slash-generate-template').val() || '',
-            slash_look_template: $('#slash-look-template').val() || '',
-            slash_custom1_template: $('#slash-custom1-template').val() || '',
-            slash_custom2_template: $('#slash-custom2-template').val() || '',
-            slash_custom3_template: $('#slash-custom3-template').val() || ''
+            provider: $('#image-provider').val() || 'swarmui'
         };
         
         localStorage.setItem('pmv_image_settings', JSON.stringify(settings));
@@ -540,51 +508,6 @@
         // No client-side technical parameters to set
     }
 
-    // Setup auto-trigger for image generation
-    function setupAutoTrigger() {
-        const settings = JSON.parse(localStorage.getItem('pmv_image_settings') || '{}');
-        const keywords = settings.auto_trigger_keywords || '';
-        
-        if (keywords) {
-            const keywordList = keywords.split(',').map(k => k.trim().toLowerCase());
-            
-            // Monitor chat input for keywords
-            $(document).on('keyup', '#chat-input', function() {
-                const input = $(this).val().toLowerCase();
-                
-                for (const keyword of keywordList) {
-                    if (input.includes(keyword)) {
-                        // Auto-trigger image generation
-                        generateImagePrompt();
-                        break;
-                    }
-                }
-            });
-        }
-    }
-
-    // Generate image prompt from chat history
-    function generateImagePrompt() {
-        const settings = JSON.parse(localStorage.getItem('pmv_image_settings') || '{}');
-        const template = settings.custom_prompt_template || 'Create an image based on the conversation context';
-        
-        let context = '';
-        
-        if (settings.use_full_history !== false) {
-            // Use full chat history
-            const messages = window.PMV_ChatCore.collectConversationHistory();
-            context = messages.map(msg => msg.content).join(' ');
-        } else {
-            // Use only last message
-            const lastMessage = $('#chat-history .chat-message').last().find('.chat-message-content-wrapper').text();
-            context = lastMessage;
-        }
-        
-        // Apply template
-        const prompt = template.replace('{context}', context).replace('{history}', context);
-        
-        $('#generated-prompt').val(prompt);
-    }
 
     // Export image settings
     function exportImageSettings() {
@@ -631,8 +554,6 @@
         loadImageSettings,
         saveImageSettings,
         updateImagePanelWithSettings,
-        setupAutoTrigger,
-        generateImagePrompt,
         exportImageSettings,
         importImageSettings,
         updatePresetDescription,

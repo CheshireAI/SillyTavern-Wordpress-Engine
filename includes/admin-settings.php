@@ -591,8 +591,6 @@ function pmv_register_plugin_settings() {
     ));
     
     // Image Generation Settings
-    register_setting('png_metadata_viewer_settings', 'pmv_swarmui_auto_trigger_keywords');
-    register_setting('png_metadata_viewer_settings', 'pmv_swarmui_allow_prompt_editing');
     register_setting('png_metadata_viewer_settings', 'pmv_swarmui_default_steps', array(
         'type' => 'integer',
         'default' => 20
@@ -611,8 +609,6 @@ function pmv_register_plugin_settings() {
     ));
     
     // Nano-GPT Image Generation Settings
-    register_setting('png_metadata_viewer_settings', 'pmv_nanogpt_auto_trigger_keywords');
-    register_setting('png_metadata_viewer_settings', 'pmv_nanogpt_allow_prompt_editing');
     register_setting('png_metadata_viewer_settings', 'pmv_nanogpt_default_steps', array(
         'type' => 'integer',
         'default' => 10
@@ -875,8 +871,6 @@ function pmv_admin_page_wrapper() {
                     'pmv_swarmui_user_daily_limit': '<?= esc_js(get_option('pmv_swarmui_user_daily_limit', '10')) ?>',
                     'pmv_swarmui_user_monthly_limit': '<?= esc_js(get_option('pmv_swarmui_user_monthly_limit', '100')) ?>',
                     'pmv_swarmui_guest_daily_limit': '<?= esc_js(get_option('pmv_swarmui_guest_daily_limit', '5')) ?>',
-                    'pmv_swarmui_auto_trigger_keywords': '<?= esc_js(get_option('pmv_swarmui_auto_trigger_keywords', 'generate image, create image, draw, picture, photo')) ?>',
-                    'pmv_swarmui_allow_prompt_editing': '<?= esc_js(get_option('pmv_swarmui_allow_prompt_editing', '1')) ?>',
                     'pmv_swarmui_default_steps': '<?= esc_js(get_option('pmv_swarmui_default_steps', '20')) ?>',
                     'pmv_swarmui_default_cfg_scale': '<?= esc_js(get_option('pmv_swarmui_default_cfg_scale', '7.0')) ?>',
                     'pmv_swarmui_default_width': '<?= esc_js(get_option('pmv_swarmui_default_width', '512')) ?>',
@@ -892,8 +886,6 @@ function pmv_admin_page_wrapper() {
                     'pmv_nanogpt_user_daily_limit': '<?= esc_js(get_option('pmv_nanogpt_user_daily_limit', '10')) ?>',
                     'pmv_nanogpt_user_monthly_limit': '<?= esc_js(get_option('pmv_nanogpt_user_monthly_limit', '100')) ?>',
                     'pmv_nanogpt_guest_daily_limit': '<?= esc_js(get_option('pmv_nanogpt_guest_daily_limit', '5')) ?>',
-                    'pmv_nanogpt_auto_trigger_keywords': '<?= esc_js(get_option('pmv_nanogpt_auto_trigger_keywords', 'generate image, create image, draw, picture, photo')) ?>',
-                    'pmv_nanogpt_allow_prompt_editing': '<?= esc_js(get_option('pmv_nanogpt_allow_prompt_editing', '1')) ?>',
                     'pmv_nanogpt_default_steps': '<?= esc_js(get_option('pmv_nanogpt_default_steps', '10')) ?>',
                     'pmv_nanogpt_default_scale': '<?= esc_js(get_option('pmv_nanogpt_default_scale', '7.5')) ?>',
                     'pmv_nanogpt_default_width': '<?= esc_js(get_option('pmv_nanogpt_default_width', '1024')) ?>',

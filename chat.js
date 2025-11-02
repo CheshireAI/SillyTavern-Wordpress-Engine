@@ -1609,39 +1609,6 @@
                                 <button class="close-settings-modal">✕</button>
                             </div>
                             <div class="settings-body">
-                                <div class="settings-section">
-                                    <h4>Custom Prompt Workflow</h4>
-                                    <div class="setting-group">
-                                        <label>Custom Prompt Template:</label>
-                                        <textarea id="custom-prompt-template" placeholder="Summarize the story so far, and create a comma separated list to create an image generation prompt" rows="3"></textarea>
-                                        <p class="setting-description">This template will be used to generate image prompts from chat history.</p>
-                                    </div>
-                                    <div class="setting-group">
-                                        <label>
-                                            <input type="checkbox" id="use-full-history"> Use full chat history
-                                        </label>
-                                        <p class="setting-description">If unchecked, only the last message will be used for prompt generation.</p>
-                                    </div>
-                                </div>
-                                
-                                <div class="settings-section">
-                                    <h4>Auto-trigger Keywords</h4>
-                                    <div class="setting-group">
-                                        <label>Trigger Keywords:</label>
-                                        <input type="text" id="auto-trigger-keywords" placeholder="send me a picture, take a picture, draw me">
-                                        <p class="setting-description">Comma-separated keywords that will automatically trigger image generation.</p>
-                                    </div>
-                                </div>
-                                
-                                <div class="settings-section">
-                                    <h4>Prompt Editing</h4>
-                                    <div class="setting-group">
-                                        <label>
-                                            <input type="checkbox" id="allow-prompt-editing" checked> Allow prompt editing before sending
-                                        </label>
-                                        <p class="setting-description">If checked, users can edit the generated prompt before it's sent to SwarmUI.</p>
-                                    </div>
-                                </div>
                                 
                                 <div class="settings-section">
                                     <h4>Provider & Model</h4>
@@ -2530,8 +2497,6 @@
                 createImage();
             });
             
-            // Auto-trigger image generation based on keywords
-            setupAutoTrigger();
             
             // Load saved settings
             loadImageSettings();
@@ -2929,31 +2894,6 @@
             }
         }
         
-        function setupAutoTrigger() {
-            $('#chat-input').on('input', function() {
-                const settings = JSON.parse(localStorage.getItem('pmv_image_settings') || '{}');
-                const autoTriggerKeywords = (settings.autoTriggerKeywords || 'send me a picture, take a picture, draw me').split(',').map(k => k.trim());
-                
-                const text = $(this).val().toLowerCase();
-                const hasTriggerKeyword = autoTriggerKeywords.some(keyword => 
-                    text.includes(keyword.toLowerCase())
-                );
-                
-                if (hasTriggerKeyword) {
-                    // Show a subtle hint
-                    if (!$('#image-trigger-hint').length) {
-                        $('.chat-input-container').append(`
-                            <div id="image-trigger-hint" style="color: #ffc107; font-size: 12px; margin-top: 5px;">
-                                💡 Tip: Click "🎨" in the top right to configure image generation
-                            </div>
-                        `);
-                    }
-                } else {
-                    $('#image-trigger-hint').remove();
-                }
-            });
-        }
-        
         function loadImageSettings() {
             console.log('Loading image settings...');
             
@@ -2966,10 +2906,6 @@
             console.log('Selected provider:', provider);
             $('#image-provider').val(provider);
             
-            $('#custom-prompt-template').val(settings.customPromptTemplate || 'Summarize the story so far, and create a comma separated list to create an image generation prompt');
-            $('#use-full-history').prop('checked', settings.useFullHistory !== false);
-            $('#auto-trigger-keywords').val(settings.autoTriggerKeywords || 'send me a picture, take a picture, draw me');
-            $('#allow-prompt-editing').prop('checked', settings.allowPromptEditing !== false);
             
             // Note: Technical parameters (steps, cfg scale, width, height) are now handled
             // by the preset system server-side, so they are not loaded here
@@ -3028,10 +2964,6 @@
         function saveImageSettings() {
             const settings = {
                 provider: $('#image-provider').val(),
-                customPromptTemplate: $('#custom-prompt-template').val() || '',
-                useFullHistory: $('#use-full-history').is(':checked'),
-                autoTriggerKeywords: $('#auto-trigger-keywords').val() || '',
-                allowPromptEditing: $('#allow-prompt-editing').is(':checked'),
                 defaultModel: $('#default-model').val() || ''
             };
             
@@ -3213,70 +3145,8 @@
                 return;
             }
             
-            // For other commands (like /selfie, /look), use chat history to generate prompt
-            let chatHistory;
-            if (settings.useFullHistory !== false) {
-                chatHistory = collectConversationHistory().map(msg => 
-                    `${msg.role === 'user' ? 'You' : chatState.characterData.name}: ${msg.content}`
-                ).join('\n');
-            } else {
-                const messages = collectConversationHistory();
-                if (messages.length > 0) {
-                    const lastMsg = messages[messages.length - 1];
-                    chatHistory = `${lastMsg.role === 'user' ? 'You' : chatState.characterData.name}: ${lastMsg.content}`;
-                } else {
-                    chatHistory = '';
-                }
-            }
-            
-            // Add character description for selfie commands
-            if (chatState.characterData.description) {
-                chatHistory += `\n\nCharacter Description: ${chatState.characterData.description}`;
-            }
-            
-            const requestData = {
-                action: 'pmv_generate_image_prompt',
-                chat_history: chatHistory,
-                custom_prompt: customPrompt,
-                custom_template: settings.customPromptTemplate || 'Create a detailed Stable Diffusion image prompt',
-                nonce: pmv_ajax_object.nonce
-            };
-            
-            console.log('Sending API request with data:', requestData);
-            console.log('customPrompt length:', customPrompt ? customPrompt.length : 0);
-            console.log('chatHistory length:', chatHistory ? chatHistory.length : 0);
-            console.log('custom_template length:', (settings.customPromptTemplate || 'Create a detailed Stable Diffusion image prompt').length);
-            
-            // Validate customPrompt
-            if (!customPrompt || customPrompt.trim() === '') {
-                console.error('customPrompt is empty or invalid:', customPrompt);
-                alert('Error: Custom prompt is empty. Please check your command template settings.');
-                return;
-            }
-            
-            $.ajax({
-                url: pmv_ajax_object.ajax_url,
-                type: 'POST',
-                data: requestData,
-                success: function(response) {
-                    console.log('API response:', response);
-                    if (response.success) {
-                        // Auto-create image if prompt editing is disabled
-                        if (!settings.allowPromptEditing) {
-                            createImageFromPrompt(response.data.prompt);
-                        } else {
-                            // Show prompt for editing
-                            showPromptForEditing(response.data.prompt);
-                        }
-                    } else {
-                        alert('Error generating prompt: ' + response.data.message);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('API error:', { xhr, status, error });
-                    alert('Error generating prompt: Network error');
-                }
-            });
+            // Slash commands are disabled - this function should not be called
+            alert('Slash commands are disabled. Please use the 🎨 button for image generation.');
         }
         
         function createImageFromPrompt(prompt, presetConfig = null) {

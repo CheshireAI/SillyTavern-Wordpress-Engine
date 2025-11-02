@@ -1875,22 +1875,6 @@ function pmv_swarmui_tab_content() {
         <h3>Image Generation Settings</h3>
         <table class="form-table">
             <tr>
-                <th>Auto-trigger Keywords</th>
-                <td>
-                    <textarea name="pmv_swarmui_auto_trigger_keywords" 
-                        style="width: 400px; height: 100px;"><?= esc_textarea(get_option('pmv_swarmui_auto_trigger_keywords', 'generate image, create image, draw, picture, photo')) ?></textarea>
-                    <p class="description">Comma-separated keywords that will automatically trigger image prompt generation from chat history.</p>
-                </td>
-            </tr>
-            <tr>
-                <th>Allow Prompt Editing</th>
-                <td>
-                    <input type="checkbox" name="pmv_swarmui_allow_prompt_editing" 
-                        value="1" <?= checked(get_option('pmv_swarmui_allow_prompt_editing', 1), 1, false) ?>>
-                    <p class="description">Allow users to edit the generated image prompt before sending to the selected provider.</p>
-                </td>
-            </tr>
-            <tr>
                 <th>Default Image Parameters</th>
                 <td>
                     <p>Steps: <input type="number" name="pmv_swarmui_default_steps" value="<?= esc_attr(get_option('pmv_swarmui_default_steps', 20)) ?>" min="1" max="100" style="width: 80px;"></p>
