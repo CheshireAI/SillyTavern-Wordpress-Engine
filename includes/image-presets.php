@@ -566,7 +566,7 @@ class PMV_Image_Presets {
         
         wp_send_json_success(array(
             'final_prompt' => $final_prompt,
-            'preset_config' => $preset['config'],
+            'preset_config' => $preset['config'], // Includes loras array
             'character_model' => $image_model, // Character-specific model
             'preset_model' => $preset_model // Preset model (highest priority) or character model or empty
         ));

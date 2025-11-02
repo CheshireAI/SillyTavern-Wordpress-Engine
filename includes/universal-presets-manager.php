@@ -69,7 +69,9 @@ class PMV_Universal_Presets_Manager {
                 'width' => intval($override['config']['width'] ?? 512),
                 'height' => intval($override['config']['height'] ?? 512),
                 'negative_prompt' => sanitize_textarea_field($override['config']['negative_prompt'] ?? ''),
-                'prompt_enhancer' => sanitize_textarea_field($override['config']['prompt_enhancer'] ?? '')
+                'prompt_enhancer' => sanitize_textarea_field($override['config']['prompt_enhancer'] ?? ''),
+                'model' => sanitize_text_field($override['config']['model'] ?? ''),
+                'loras' => isset($override['config']['loras']) && is_array($override['config']['loras']) ? $override['config']['loras'] : array()
             )
         );
         
@@ -145,9 +147,23 @@ class PMV_Universal_Presets_Manager {
                 'height' => intval($_POST['height'] ?? $original_preset['config']['height']),
                 'negative_prompt' => sanitize_textarea_field($_POST['negative_prompt'] ?? $original_preset['config']['negative_prompt']),
                 'prompt_enhancer' => sanitize_textarea_field($_POST['prompt_enhancer'] ?? $original_preset['config']['prompt_enhancer']),
-                'model' => sanitize_text_field($_POST['model'] ?? ($original_preset['config']['model'] ?? ''))
+                'model' => sanitize_text_field($_POST['model'] ?? ($original_preset['config']['model'] ?? '')),
+                'loras' => array()
             )
         );
+        
+        // Process LoRAs if provided
+        if (isset($_POST['loras']) && is_array($_POST['loras'])) {
+            foreach ($_POST['loras'] as $lora) {
+                if (isset($lora['name']) && !empty($lora['name'])) {
+                    $override['config']['loras'][] = array(
+                        'name' => sanitize_text_field($lora['name']),
+                        'weight' => sanitize_text_field($lora['weight'] ?? '1'),
+                        'tenc_weight' => sanitize_text_field($lora['tenc_weight'] ?? '')
+                    );
+                }
+            }
+        }
         
         $result = self::save_preset_override($preset_id, $override);
         

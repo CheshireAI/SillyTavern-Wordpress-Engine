@@ -210,6 +210,16 @@ function pmv_character_settings_tab_content() {
                                     <p class="description" style="color: #666; font-size: 13px;">Optional: Select a specific model for this preset. If not set, will use character-specific model or default.</p>
                                 </td>
                             </tr>
+                            <tr>
+                                <th style="color: #000;"><label style="color: #000;">LoRAs</label></th>
+                                <td>
+                                    <div id="universal-preset-loras-container" style="margin-bottom: 10px;">
+                                        <!-- LoRA entries will be added here -->
+                                    </div>
+                                    <button type="button" id="add-universal-preset-lora-btn" class="button button-small" style="color: #000;">+ Add LoRA</button>
+                                    <p class="description" style="color: #666; font-size: 13px;">Optional: Add LoRAs (Low-Rank Adaptations) for this preset. Each LoRA requires a name (e.g., "Pony/zy_AmateurStyle_v2") and weight (default: 1).</p>
+                                </td>
+                            </tr>
                         </table>
                         <p class="submit">
                             <button type="button" id="save-universal-preset-btn" class="button button-primary">Save Preset</button>
@@ -286,6 +296,16 @@ function pmv_character_settings_tab_content() {
                                     <option value="">Use character/default model</option>
                                 </select>
                                 <p class="description" style="color: #666; font-size: 13px;">Optional: Select a specific model for this preset. If not set, will use character-specific model or default.</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th style="color: #000;"><label style="color: #000;">LoRAs</label></th>
+                            <td>
+                                <div id="preset-loras-container" style="margin-bottom: 10px;">
+                                    <!-- LoRA entries will be added here -->
+                                </div>
+                                <button type="button" id="add-preset-lora-btn" class="button button-small" style="color: #000;">+ Add LoRA</button>
+                                <p class="description" style="color: #666; font-size: 13px;">Optional: Add LoRAs (Low-Rank Adaptations) for this preset. Each LoRA requires a name (e.g., "Pony/zy_AmateurStyle_v2") and weight (default: 1).</p>
                             </td>
                         </tr>
                     </table>
@@ -784,6 +804,67 @@ function pmv_character_settings_tab_content() {
             });
         }
         
+        // LoRA Management Functions
+        function addLoraEntry(containerId, loraName = '', loraWeight = '1', loraTencWeight = '') {
+            var $container = $(containerId);
+            var index = $container.find('.lora-entry').length;
+            var loraHtml = `
+                <div class="lora-entry" style="margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9;">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" class="lora-name" placeholder="LoRA name (e.g., Pony/zy_AmateurStyle_v2)" value="${loraName.replace(/"/g, '&quot;')}" style="flex: 1; color: #000; padding: 5px;">
+                        <input type="number" class="lora-weight" placeholder="Weight" value="${loraWeight}" min="0" max="2" step="0.1" style="width: 100px; color: #000; padding: 5px;">
+                        <input type="number" class="lora-tenc-weight" placeholder="TenC Weight" value="${loraTencWeight}" min="0" max="2" step="0.1" style="width: 120px; color: #000; padding: 5px;">
+                        <button type="button" class="button button-small remove-lora-btn" style="color: #000;">Remove</button>
+                    </div>
+                </div>
+            `;
+            $container.append(loraHtml);
+        }
+        
+        function getLorasFromContainer(containerId) {
+            var loras = [];
+            $(containerId + ' .lora-entry').each(function() {
+                var $entry = $(this);
+                var name = $entry.find('.lora-name').val().trim();
+                var weight = $entry.find('.lora-weight').val().trim() || '1';
+                var tencWeight = $entry.find('.lora-tenc-weight').val().trim();
+                
+                if (name) {
+                    loras.push({
+                        name: name,
+                        weight: weight,
+                        tenc_weight: tencWeight || ''
+                    });
+                }
+            });
+            return loras;
+        }
+        
+        function loadLorasIntoContainer(containerId, loras) {
+            var $container = $(containerId);
+            $container.empty();
+            
+            if (loras && Array.isArray(loras) && loras.length > 0) {
+                loras.forEach(function(lora) {
+                    addLoraEntry(containerId, lora.name || '', lora.weight || '1', lora.tenc_weight || '');
+                });
+            }
+        }
+        
+        // Remove LoRA entry
+        $(document).on('click', '.remove-lora-btn', function() {
+            $(this).closest('.lora-entry').remove();
+        });
+        
+        // Add LoRA buttons
+        $('#add-preset-lora-btn').on('click', function() {
+            addLoraEntry('#preset-loras-container');
+        });
+        
+        $('#add-universal-preset-lora-btn').on('click', function() {
+            addLoraEntry('#universal-preset-loras-container');
+        });
+        
         // Add preset button
         $(document).on('click', '.add-preset-btn', function() {
             isEditing = false;
@@ -794,6 +875,7 @@ function pmv_character_settings_tab_content() {
             $('#preset-editor-title').text('Add New Preset');
             $('#preset-id').prop('readonly', false);
             loadModelsForPresetEditor('#preset-model', '');
+            loadLorasIntoContainer('#preset-loras-container', []);
             presetModal.css('display', 'block');
         });
         
@@ -828,6 +910,8 @@ function pmv_character_settings_tab_content() {
                         $('#preset-enhancer').val(preset.config.prompt_enhancer || '');
                         // Load models first, then set model value
                         loadModelsForPresetEditor('#preset-model', preset.config.model || '');
+                        // Load LoRAs
+                        loadLorasIntoContainer('#preset-loras-container', preset.config.loras || []);
                         $('#preset-editor-title').text('Edit Preset: ' + preset.name);
                         presetModal.css('display', 'block');
                     }
@@ -890,6 +974,7 @@ function pmv_character_settings_tab_content() {
                 negative_prompt: $('#preset-negative-prompt').val(),
                 prompt_enhancer: $('#preset-enhancer').val(),
                 model: $('#preset-model').val() || '',
+                loras: getLorasFromContainer('#preset-loras-container'),
                 is_active: true,
                 sort_order: 0
             };
@@ -968,6 +1053,8 @@ function pmv_character_settings_tab_content() {
                         $('#universal-preset-enhancer').val(preset.config.prompt_enhancer || '');
                         // Load models first, then set model value
                         loadModelsForPresetEditor('#universal-preset-model', preset.config.model || '');
+                        // Load LoRAs
+                        loadLorasIntoContainer('#universal-preset-loras-container', preset.config.loras || []);
                         $('#universal-preset-editor-title').text('Edit Universal Preset: ' + preset.name);
                         universalPresetModal.css('display', 'block');
                     }
@@ -990,7 +1077,8 @@ function pmv_character_settings_tab_content() {
                 height: parseInt($('#universal-preset-height').val()) || 512,
                 negative_prompt: $('#universal-preset-negative-prompt').val(),
                 prompt_enhancer: $('#universal-preset-enhancer').val(),
-                model: $('#universal-preset-model').val() || ''
+                model: $('#universal-preset-model').val() || '',
+                loras: getLorasFromContainer('#universal-preset-loras-container')
             };
             
             $(this).prop('disabled', true).text('Saving...');

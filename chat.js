@@ -3000,7 +3000,7 @@
             alert('Slash commands are disabled. Please use the 🎨 button for image generation.');
         }
         
-        function createImageFromPrompt(prompt, presetConfig = null, characterModel = null) {
+        function createImageFromPrompt(prompt, presetConfig = null, characterModel = null, presetLoras = []) {
             const settings = JSON.parse(localStorage.getItem('pmv_image_settings') || '{}');
             
             // Store the prompt for later use (to display as caption)
@@ -4127,11 +4127,13 @@
                         const presetConfig = response.data.preset_config;
                         // Preset model has highest priority, then character model
                         const presetModel = response.data.preset_model || response.data.character_model || null;
+                        // Get LoRAs from preset config
+                        const presetLoras = presetConfig.loras || [];
                         
                         // Remove loading message
                         $('#chat-history .chat-message.system').last().remove();
                         
-                        createImageFromPrompt(finalPrompt, presetConfig, presetModel);
+                        createImageFromPrompt(finalPrompt, presetConfig, presetModel, presetLoras);
                     } else {
                         // Remove loading message
                         $('#chat-history .chat-message.system').last().remove();

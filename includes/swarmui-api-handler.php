@@ -165,6 +165,9 @@ class PMV_SwarmUI_API_Handler extends PMV_API_Handler_Base {
         if (strlen($negative) > 1000) {
             $negative = substr($negative, 0, 1000);
         }
+        
+        // Get LoRAs from params if provided
+        $loras = isset($_POST['loras']) && is_array($_POST['loras']) ? $_POST['loras'] : array();
 
         // Build request payload expected by SwarmUI WS endpoint
         $request_data = array(
@@ -178,6 +181,22 @@ class PMV_SwarmUI_API_Handler extends PMV_API_Handler_Base {
             'cfg_scale'      => $cfg_scale,
             'negative_prompt'=> $negative,
         );
+        
+        // Add LoRAs if provided
+        if (!empty($loras)) {
+            // SwarmUI expects comma-separated LoRA names and weights
+            // For now, we'll use the first LoRA if multiple are provided
+            $first_lora = $loras[0];
+            if (isset($first_lora['name']) && !empty($first_lora['name'])) {
+                $request_data['loras'] = $first_lora['name'];
+                $request_data['loraweights'] = isset($first_lora['weight']) ? $first_lora['weight'] : '1';
+                if (isset($first_lora['tenc_weight']) && !empty($first_lora['tenc_weight'])) {
+                    $request_data['loratencweights'] = $first_lora['tenc_weight'];
+                } else {
+                    $request_data['loratencweights'] = '';
+                }
+            }
+        }
 
         // Convert API base URL (http/https) to ws/wss for WebSocket
         $ws_url = trailingslashit($this->api_base_url) . 'API/GenerateText2ImageWS';
@@ -213,7 +232,30 @@ class PMV_SwarmUI_API_Handler extends PMV_API_Handler_Base {
                 'model'      => basename($model),
                 'width'      => intval($params['width'] ?? 512),
                 'height'     => intval($params['height'] ?? 512),
+                'steps'      => intval($params['steps'] ?? 20),
+                'cfg_scale'  => floatval($params['cfg_scale'] ?? 7.0),
             );
+            
+            // Add negative prompt if provided
+            if (isset($params['negative_prompt']) && !empty($params['negative_prompt'])) {
+                $request_data['negative_prompt'] = sanitize_textarea_field($params['negative_prompt']);
+            }
+            
+            // Add LoRAs if provided
+            if (isset($params['loras']) && is_array($params['loras']) && !empty($params['loras'])) {
+                // SwarmUI expects comma-separated LoRA names and weights
+                // For now, we'll use the first LoRA if multiple are provided
+                $first_lora = $params['loras'][0];
+                if (isset($first_lora['name']) && !empty($first_lora['name'])) {
+                    $request_data['loras'] = $first_lora['name'];
+                    $request_data['loraweights'] = isset($first_lora['weight']) ? $first_lora['weight'] : '1';
+                    if (isset($first_lora['tenc_weight']) && !empty($first_lora['tenc_weight'])) {
+                        $request_data['loratencweights'] = $first_lora['tenc_weight'];
+                    } else {
+                        $request_data['loratencweights'] = '';
+                    }
+                }
+            }
 
             // Include user token cookie if available
             $user_token = get_option('pmv_swarmui_user_token', '');

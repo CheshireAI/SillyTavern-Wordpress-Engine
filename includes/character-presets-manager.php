@@ -154,7 +154,8 @@ class PMV_Character_Presets_Manager {
             'height' => 512,
             'negative_prompt' => 'blurry, distorted, low quality',
             'prompt_enhancer' => '',
-            'model' => ''
+            'model' => '',
+            'loras' => array()
         );
         
         $preset_config = wp_parse_args($preset_config, $default_config);
@@ -268,8 +269,22 @@ class PMV_Character_Presets_Manager {
             'height' => intval($_POST['height'] ?? 512),
             'negative_prompt' => sanitize_textarea_field($_POST['negative_prompt'] ?? ''),
             'prompt_enhancer' => sanitize_textarea_field($_POST['prompt_enhancer'] ?? ''),
-            'model' => sanitize_text_field($_POST['model'] ?? '')
+            'model' => sanitize_text_field($_POST['model'] ?? ''),
+            'loras' => array()
         );
+        
+        // Process LoRAs if provided
+        if (isset($_POST['loras']) && is_array($_POST['loras'])) {
+            foreach ($_POST['loras'] as $lora) {
+                if (isset($lora['name']) && !empty($lora['name'])) {
+                    $preset_config['loras'][] = array(
+                        'name' => sanitize_text_field($lora['name']),
+                        'weight' => sanitize_text_field($lora['weight'] ?? '1'),
+                        'tenc_weight' => sanitize_text_field($lora['tenc_weight'] ?? '')
+                    );
+                }
+            }
+        }
         
         $is_active = isset($_POST['is_active']) ? (bool) $_POST['is_active'] : true;
         $sort_order = intval($_POST['sort_order'] ?? 0);
