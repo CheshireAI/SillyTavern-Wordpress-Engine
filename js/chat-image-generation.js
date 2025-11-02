@@ -249,13 +249,17 @@
             return;
         }
         
+        // Get character filename from chatState if available
+        const characterFilename = window.chatState?.characterFile || '';
+        
         // Load presets from server
         $.ajax({
             url: pmv_ajax_object.ajax_url,
             type: 'POST',
             data: {
                 action: 'pmv_get_image_presets',
-                nonce: pmv_ajax_object.nonce
+                nonce: pmv_ajax_object.nonce,
+                character_filename: characterFilename
             },
             success: function(response) {
                 if (response.success && response.data.presets) {

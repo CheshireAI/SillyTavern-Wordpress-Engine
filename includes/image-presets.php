@@ -195,9 +195,25 @@ class PMV_Image_Presets {
      * Get preset by ID
      * 
      * @param string $id Preset ID
+     * @param string $character_filename Optional character filename to check for character-specific preset
      * @return array|null Preset data or null if not found
      */
-    public static function get_preset($id) {
+    public static function get_preset($id, $character_filename = '') {
+        // Check character-specific preset first if filename provided
+        if (!empty($character_filename) && class_exists('PMV_Character_Presets_Manager')) {
+            $char_preset = PMV_Character_Presets_Manager::get_preset($character_filename, $id);
+            if ($char_preset) {
+                return $char_preset;
+            }
+        }
+        
+        // Fall back to universal presets (with saved overrides if any)
+        if (class_exists('PMV_Universal_Presets_Manager')) {
+            $universal_presets = PMV_Universal_Presets_Manager::get_universal_presets();
+            return isset($universal_presets[$id]) ? $universal_presets[$id] : null;
+        }
+        
+        // Fallback to default presets if manager not available
         $presets = self::get_presets();
         return isset($presets[$id]) ? $presets[$id] : null;
     }
@@ -316,13 +332,77 @@ class PMV_Image_Presets {
     }
     
     /**
+     * Get all presets including character-specific ones
+     * 
+     * @param string $character_filename Optional character filename to get character-specific presets
+     * @return array Merged presets (universal + character-specific)
+     */
+    public static function get_all_presets($character_filename = '') {
+        // Get universal presets (with saved overrides if any)
+        if (class_exists('PMV_Universal_Presets_Manager')) {
+            $presets = PMV_Universal_Presets_Manager::get_universal_presets();
+        } else {
+            $presets = self::get_presets();
+        }
+        
+        // Add character-specific presets if filename provided
+        if (!empty($character_filename) && class_exists('PMV_Character_Presets_Manager')) {
+            $character_presets = PMV_Character_Presets_Manager::get_character_presets($character_filename);
+            
+            // Merge character presets with universal presets
+            // Character presets override universal presets with same ID
+            foreach ($character_presets as $preset_id => $preset) {
+                $presets[$preset_id] = $preset;
+            }
+        }
+        
+        // Sort presets by category and name
+        uasort($presets, function($a, $b) {
+            // Custom presets first (if both are custom or both are not)
+            if (isset($a['is_custom']) && isset($b['is_custom'])) {
+                if ($a['is_custom'] && !$b['is_custom']) {
+                    return -1;
+                }
+                if (!$a['is_custom'] && $b['is_custom']) {
+                    return 1;
+                }
+            }
+            
+            // Then by sort_order if available
+            $order_a = isset($a['sort_order']) ? intval($a['sort_order']) : 999;
+            $order_b = isset($b['sort_order']) ? intval($b['sort_order']) : 999;
+            if ($order_a !== $order_b) {
+                return $order_a <=> $order_b;
+            }
+            
+            // Then by category
+            $cat_a = isset($a['category']) ? $a['category'] : '';
+            $cat_b = isset($b['category']) ? $b['category'] : '';
+            if ($cat_a !== $cat_b) {
+                return strcmp($cat_a, $cat_b);
+            }
+            
+            // Finally by name
+            $name_a = isset($a['name']) ? $a['name'] : '';
+            $name_b = isset($b['name']) ? $b['name'] : '';
+            return strcmp($name_a, $name_b);
+        });
+        
+        return $presets;
+    }
+    
+    /**
      * AJAX handler to get available presets
      */
     public static function ajax_get_presets() {
         check_ajax_referer('pmv_ajax_nonce', 'nonce');
         
+        $character_filename = sanitize_file_name($_POST['character_filename'] ?? '');
+        
+        $presets = self::get_all_presets($character_filename);
+        
         wp_send_json_success(array(
-            'presets' => self::get_presets()
+            'presets' => $presets
         ));
     }
     
@@ -338,8 +418,8 @@ class PMV_Image_Presets {
         $context_json = sanitize_text_field($_POST['context'] ?? '{}');
         $character_filename = sanitize_file_name($_POST['character_filename'] ?? '');
         
-        // Get preset first to validate
-        $preset = self::get_preset($preset_id);
+        // Get preset first to validate (check character-specific first)
+        $preset = self::get_preset($preset_id, $character_filename);
         
         if (!$preset) {
             wp_send_json_error(array(

@@ -4442,12 +4442,16 @@
         };
         
         var loadPresetsIntoModal = function() {
+            // Get character filename from chatState if available
+            const characterFilename = chatState.characterFile || '';
+            
             $.ajax({
                 url: pmv_ajax_object.ajax_url,
                 type: 'POST',
                 data: {
                     action: 'pmv_get_image_presets',
-                    nonce: pmv_ajax_object.nonce
+                    nonce: pmv_ajax_object.nonce,
+                    character_filename: characterFilename
                 },
                 success: function(response) {
                     if (response.success && response.data.presets) {
@@ -4455,14 +4459,34 @@
                         const $grid = $('#preset-grid');
                         $grid.empty();
                         
-                        // Render presets
+                        // Group presets by category
+                        const categories = {};
                         $.each(presets, function(id, preset) {
-                            $grid.append(`
-                                <div class="preset-card" data-preset-id="${id}">
-                                    <div class="preset-card-name">${preset.name}</div>
-                                    <div class="preset-card-desc">${preset.description}</div>
-                                </div>
-                            `);
+                            const category = preset.category || 'custom';
+                            if (!categories[category]) {
+                                categories[category] = [];
+                            }
+                            categories[category].push({id: id, preset: preset});
+                        });
+                        
+                        // Render presets grouped by category
+                        $.each(categories, function(category, items) {
+                            // Category header
+                            const categoryName = category.charAt(0).toUpperCase() + category.slice(1);
+                            $grid.append(`<div class="preset-category-header" style="grid-column: 1 / -1; font-weight: bold; margin-top: 15px; margin-bottom: 10px; color: #fff; text-transform: capitalize;">${categoryName}</div>`);
+                            
+                            // Presets in this category
+                            $.each(items, function(i, item) {
+                                const id = item.id;
+                                const preset = item.preset;
+                                const isCustom = preset.is_custom ? 'custom-preset' : '';
+                                $grid.append(`
+                                    <div class="preset-card ${isCustom}" data-preset-id="${id}" style="${isCustom ? 'border: 2px solid #ffa500;' : ''}">
+                                        <div class="preset-card-name">${preset.name} ${isCustom ? '<span style="font-size: 0.8em; color: #ffa500;">(Custom)</span>' : ''}</div>
+                                        <div class="preset-card-desc">${preset.description}</div>
+                                    </div>
+                                `);
+                            });
                         });
                     }
                 },
