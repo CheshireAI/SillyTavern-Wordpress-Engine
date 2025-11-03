@@ -20,12 +20,12 @@ class PMV_Image_Presets {
      */
     public static function get_presets() {
         return array(
-            // Character-focused presets
+            // General presets
             'selfie' => array(
                 'id' => 'selfie',
                 'name' => 'Selfie',
                 'description' => 'A close-up self-portrait of the character',
-                'category' => 'character',
+                'category' => 'general',
                 'config' => array(
                     'steps' => 20,
                     'cfg_scale' => 7.0,
@@ -40,7 +40,7 @@ class PMV_Image_Presets {
                 'id' => 'portrait',
                 'name' => 'Portrait',
                 'description' => 'A portrait showing the character in detail',
-                'category' => 'character',
+                'category' => 'general',
                 'config' => array(
                     'steps' => 25,
                     'cfg_scale' => 7.5,
@@ -51,12 +51,11 @@ class PMV_Image_Presets {
                 )
             ),
             
-            // Environment presets
             'surroundings' => array(
                 'id' => 'surroundings',
                 'name' => 'Surroundings',
                 'description' => 'The environment and scene around the character',
-                'category' => 'environment',
+                'category' => 'general',
                 'config' => array(
                     'steps' => 25,
                     'cfg_scale' => 7.5,
