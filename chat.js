@@ -1401,8 +1401,8 @@
             $('.conversation-sidebar').remove();
             
             const sidebarHtml = `
-                <div class="conversation-sidebar ${chatState.sidebarOpen ? 'open' : ''}">
-                    <div class="sidebar-header">
+                <div class="conversation-sidebar ${chatState.sidebarOpen ? 'open' : ''}" style="background: #1a1a1a !important;">
+                    <div class="sidebar-header" style="background: #1a1a1a !important;">
                         <h3>Conversations</h3>
                         <div class="sidebar-actions">
                             <button id="new-conversation" class="new-chat-btn">🔄 New</button>
@@ -1411,12 +1411,22 @@
                         </div>
                         <button class="close-sidebar-btn">Close Menu</button>
                     </div>
-                    <div class="conversation-list"></div>
+                    <div class="conversation-list" style="background: #1a1a1a !important; color: #e0e0e0 !important;"></div>
                 </div>
             `;
 
             // Append to body instead of .chat-main since we're in fullscreen mode
             $('body').append(sidebarHtml);
+            
+            // Immediately apply dark background styles to prevent white flash
+            const $sidebar = $('.conversation-sidebar').last();
+            const $list = $sidebar.find('.conversation-list');
+            $sidebar.css('background', '#1a1a1a');
+            $sidebar.find('.sidebar-header').css('background', '#1a1a1a');
+            $list.css({
+                'background': '#1a1a1a',
+                'color': '#e0e0e0'
+            });
             
             // Initialize the conversation manager immediately
             if (window.PMV_ConversationManager) {

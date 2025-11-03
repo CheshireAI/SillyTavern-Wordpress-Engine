@@ -1316,14 +1316,21 @@
                 
                 // Show guest message
                 showGuestMessage: function() {
-                    $('.conversation-list').html(`
-                        <div class="guest-message" style="text-align: center; padding: 40px 20px; color: #e0e0e0; background: #1a1a1a; border-radius: 8px; margin: 15px;">
-                            <p style="margin-bottom: 15px; font-size: 18px; color: #ffffff;">💬 Save your conversations!</p>
-                            <p style="margin-bottom: 10px; color: #e0e0e0;">
-                                <a href="${pmv_ajax_object.login_url}" style="color: #007cba; text-decoration: none; font-weight: bold; transition: color 0.2s;">Login to save your chat history.</a>
+                    // Ensure conversation-list has dark background before adding content
+                    const $list = $('.conversation-list');
+                    $list.css({
+                        'background': '#1a1a1a',
+                        'color': '#e0e0e0'
+                    });
+                    
+                    $list.html(`
+                        <div class="guest-message" style="text-align: center; padding: 40px 20px; color: #e0e0e0 !important; background: #1a1a1a !important; border-radius: 8px; margin: 15px; border: 1px solid #444 !important;">
+                            <p style="margin-bottom: 15px; font-size: 18px; color: #ffffff !important;">💬 Save your conversations!</p>
+                            <p style="margin-bottom: 10px; color: #e0e0e0 !important;">
+                                <a href="${pmv_ajax_object.login_url}" style="color: #007cba !important; text-decoration: none; font-weight: bold; transition: color 0.2s;">Login to save your chat history.</a>
                             </p>
-                            <p style="color: #e0e0e0;">
-                                New user? <a href="${pmv_ajax_object.register_url}" style="color: #007cba; text-decoration: none; transition: color 0.2s;">Create an account</a>
+                            <p style="color: #e0e0e0 !important;">
+                                New user? <a href="${pmv_ajax_object.register_url}" style="color: #007cba !important; text-decoration: none; transition: color 0.2s;">Create an account</a>
                             </p>
                         </div>
                     `);
