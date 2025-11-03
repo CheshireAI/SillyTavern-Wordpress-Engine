@@ -51,21 +51,6 @@ class PMV_Image_Presets {
                 )
             ),
             
-            'full_body' => array(
-                'id' => 'full_body',
-                'name' => 'Full Body',
-                'description' => 'Show the complete character from head to toe',
-                'category' => 'character',
-                'config' => array(
-                    'steps' => 25,
-                    'cfg_scale' => 7.5,
-                    'width' => 512,
-                    'height' => 768,
-                    'negative_prompt' => 'blurry, distorted, low quality, cropped, nsfw',
-                    'prompt_enhancer' => 'full body shot, complete character, detailed'
-                )
-            ),
-            
             // Environment presets
             'surroundings' => array(
                 'id' => 'surroundings',
@@ -79,113 +64,6 @@ class PMV_Image_Presets {
                     'height' => 512,
                     'negative_prompt' => 'blurry, distorted, low quality, nsfw',
                     'prompt_enhancer' => 'detailed environment, scenic, immersive'
-                )
-            ),
-            
-            'landscape' => array(
-                'id' => 'landscape',
-                'name' => 'Landscape',
-                'description' => 'A wide scenic landscape view',
-                'category' => 'environment',
-                'config' => array(
-                    'steps' => 30,
-                    'cfg_scale' => 7.5,
-                    'width' => 1024,
-                    'height' => 512,
-                    'negative_prompt' => 'blurry, distorted, low quality, nsfw',
-                    'prompt_enhancer' => 'beautiful landscape, scenic, detailed environment'
-                )
-            ),
-            
-            'room' => array(
-                'id' => 'room',
-                'name' => 'Room/Interior',
-                'description' => 'An interior space or room',
-                'category' => 'environment',
-                'config' => array(
-                    'steps' => 25,
-                    'cfg_scale' => 7.5,
-                    'width' => 768,
-                    'height' => 768,
-                    'negative_prompt' => 'blurry, distorted, low quality, cluttered, nsfw',
-                    'prompt_enhancer' => 'detailed interior, cozy room, well-lit'
-                )
-            ),
-            
-            // Action presets
-            'action' => array(
-                'id' => 'action',
-                'name' => 'Action',
-                'description' => 'Character engaged in dynamic action',
-                'category' => 'action',
-                'config' => array(
-                    'steps' => 25,
-                    'cfg_scale' => 8.0,
-                    'width' => 768,
-                    'height' => 512,
-                    'negative_prompt' => 'blurry, static, boring, low quality, nsfw',
-                    'prompt_enhancer' => 'dynamic action, movement, energy, detailed'
-                )
-            ),
-            
-            'pose' => array(
-                'id' => 'pose',
-                'name' => 'Pose',
-                'description' => 'Character in a specific pose or stance',
-                'category' => 'action',
-                'config' => array(
-                    'steps' => 25,
-                    'cfg_scale' => 7.5,
-                    'width' => 512,
-                    'height' => 768,
-                    'negative_prompt' => 'blurry, awkward, low quality, nsfw',
-                    'prompt_enhancer' => 'natural pose, elegant stance, detailed anatomy'
-                )
-            ),
-            
-            // Mood/atmosphere presets
-            'closeup' => array(
-                'id' => 'closeup',
-                'name' => 'Close-up',
-                'description' => 'An extreme close-up focus on specific details',
-                'category' => 'detail',
-                'config' => array(
-                    'steps' => 30,
-                    'cfg_scale' => 8.0,
-                    'width' => 512,
-                    'height' => 512,
-                    'negative_prompt' => 'blurry, distorted, low quality, nsfw',
-                    'prompt_enhancer' => 'extreme close-up, detailed, sharp focus'
-                )
-            ),
-            
-            'cute' => array(
-                'id' => 'cute',
-                'name' => 'Cute',
-                'description' => 'A cute, adorable rendition',
-                'category' => 'style',
-                'config' => array(
-                    'steps' => 25,
-                    'cfg_scale' => 7.5,
-                    'width' => 512,
-                    'height' => 512,
-                    'negative_prompt' => 'blurry, distorted, low quality, frightening, scary, nsfw',
-                    'prompt_enhancer' => 'cute, adorable, charming, cheerful'
-                )
-            ),
-            
-            'serious' => array(
-                'id' => 'serious',
-                'name' => 'Serious/Dramatic',
-                'description' => 'A more serious or dramatic portrayal',
-                'category' => 'style',
-                'config' => array(
-                    'steps' => 25,
-                    'cfg_scale' => 7.5,
-                    'width' => 512,
-                    'height' => 768,
-                    'negative_prompt' => 'blurry, distorted, low quality, nsfw',
-                    'prompt_enhancer' => 'dramatic lighting, serious expression, cinematic'
                 )
             )
         );
@@ -453,7 +331,7 @@ class PMV_Image_Presets {
         $user_prompt .= "The user wants a \"" . $preset_name . "\" type image. ";
         $user_prompt .= "Generate a prompt that makes sense given the conversation context. ";
         $user_prompt .= "For example, if they've been talking about cuddling on a bed and the preset is 'selfie', generate a prompt for the character taking a selfie in bed. ";
-        $user_prompt .= "If they've been talking about posing on a boat and the preset is 'pose', generate a prompt for the character in that pose on a boat.\n\n";
+        $user_prompt .= "If they've been talking about a beach and the preset is 'surroundings', generate a prompt showing the character's surroundings at the beach.\n\n";
         $user_prompt .= "Generate ONLY the image prompt - no explanations, no meta-commentary, just the prompt text.";
         
         $response = wp_remote_post($api_url, array(
