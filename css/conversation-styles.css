@@ -595,6 +595,8 @@
 /* Conversation list styles */
 .conversation-sidebar .conversation-list {
     padding: 15px !important;
+    background: #1a1a1a !important;
+    min-height: 200px !important;
 }
 
 /* Guest message styles - ensure dark background */
@@ -605,6 +607,7 @@
     background: #1a1a1a !important;
     border-radius: 8px !important;
     margin: 15px !important;
+    border: 1px solid #444 !important;
 }
 
 .guest-message p {

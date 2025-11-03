@@ -1397,6 +1397,9 @@
 
         // Create conversation sidebar
         function createConversationSidebar() {
+            // Remove any existing sidebar first
+            $('.conversation-sidebar').remove();
+            
             const sidebarHtml = `
                 <div class="conversation-sidebar ${chatState.sidebarOpen ? 'open' : ''}">
                     <div class="sidebar-header">
@@ -1415,8 +1418,10 @@
             // Append to body instead of .chat-main since we're in fullscreen mode
             $('body').append(sidebarHtml);
             
-            // Initialize the conversation manager
+            // Initialize the conversation manager immediately
             if (window.PMV_ConversationManager) {
+                // Reset initialization state to allow re-initialization
+                window.PMV_ConversationManager.isInitialized = false;
                 window.PMV_ConversationManager.init(chatState.characterData, chatState.characterId);
             }
             

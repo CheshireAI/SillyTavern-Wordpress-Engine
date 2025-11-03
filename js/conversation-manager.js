@@ -114,8 +114,22 @@
                             userLoggedIn: pmv_ajax_object?.is_logged_in
                         });
                         
+                        // Allow re-initialization if sidebar was recreated
+                        const sidebarExists = $('.conversation-sidebar').length > 0;
+                        if (this.isInitialized && !sidebarExists) {
+                            console.log('PMV: Sidebar was removed, resetting initialization state');
+                            this.isInitialized = false;
+                        }
+                        
                         if (this.isInitialized) {
                             console.log('PMV: Already initialized, skipping');
+                            // But still refresh the guest message if needed
+                            if (!pmv_ajax_object.is_logged_in && $('.conversation-list').length > 0) {
+                                const hasContent = $('.conversation-list').children().length > 0;
+                                if (!hasContent) {
+                                    this.showGuestMessage();
+                                }
+                            }
                             return true;
                         }
                         
@@ -137,11 +151,14 @@
                         this.setupEventHandlers();
                         this.setupMessageObserver();
                         
-                        if (pmv_ajax_object.is_logged_in) {
-                            this.loadConversationList();
-                        } else {
-                            this.showGuestMessage();
-                        }
+                        // Wait for sidebar DOM to be ready before showing content
+                        setTimeout(() => {
+                            if (pmv_ajax_object.is_logged_in) {
+                                this.loadConversationList();
+                            } else {
+                                this.showGuestMessage();
+                            }
+                        }, 100);
                         
                         this.isInitialized = true;
                         console.log('PMV: Conversation manager initialized successfully');
