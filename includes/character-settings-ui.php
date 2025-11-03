@@ -418,18 +418,24 @@ function pmv_character_settings_tab_content() {
                 success: function(response) {
                     var models = [];
                     if (response.success && response.data) {
-                        // Parse models from response - ListT2IParams WITHOUT subtype returns all params
-                        // Models are in response.data.models organized by category (e.g., "Stable-Diffusion", "Flux", etc.)
-                        if (response.data.models && typeof response.data.models === 'object') {
-                            // Extract models from each category
-                            Object.keys(response.data.models).forEach(function(category) {
-                                // Only process arrays (actual model lists), not other parameter objects
-                                if (Array.isArray(response.data.models[category])) {
-                                    response.data.models[category].forEach(function(model) {
-                                        // Only add actual model paths (contain /)
-                                        if (typeof model === 'string' && model.indexOf('/') !== -1) {
-                                            models.push({name: model, title: model});
-                                        }
+                        // Parse models from ListModels API response
+                        // Response structure: {folders: [], files: [{name, title, ...}]}
+                        if (response.data.files && Array.isArray(response.data.files)) {
+                            // Models are in the files array
+                            response.data.files.forEach(function(file) {
+                                var modelName = file.name || '';
+                                var modelTitle = file.title || file.name || '';
+                                // Only include if it has a valid model file extension or is in a model folder structure
+                                // Model files typically have extensions like .safetensors, .ckpt, .pt, etc.
+                                // Or they're in folders like "Models/Stable-Diffusion/model.safetensors"
+                                if (modelName && (
+                                    modelName.match(/\.(safetensors|ckpt|pt|pth|bin)$/i) || 
+                                    modelName.indexOf('/') !== -1 ||
+                                    (file.title && file.title !== modelName) // Has a display title different from name
+                                )) {
+                                    models.push({
+                                        name: modelName,
+                                        title: modelTitle || modelName
                                     });
                                 }
                             });
@@ -762,18 +768,24 @@ function pmv_character_settings_tab_content() {
                 success: function(response) {
                     if (response.success && response.data) {
                         var models = [];
-                        // Parse models from response - ListT2IParams WITHOUT subtype returns all params
-                        // Models are in response.data.models organized by category (e.g., "Stable-Diffusion", "Flux", etc.)
-                        if (response.data.models && typeof response.data.models === 'object') {
-                            // Extract models from each category
-                            Object.keys(response.data.models).forEach(function(category) {
-                                // Only process arrays (actual model lists), not other parameter objects
-                                if (Array.isArray(response.data.models[category])) {
-                                    response.data.models[category].forEach(function(model) {
-                                        // Only add actual model paths (contain /)
-                                        if (typeof model === 'string' && model.indexOf('/') !== -1) {
-                                            models.push({name: model, title: model});
-                                        }
+                        // Parse models from ListModels API response
+                        // Response structure: {folders: [], files: [{name, title, ...}]}
+                        if (response.data.files && Array.isArray(response.data.files)) {
+                            // Models are in the files array
+                            response.data.files.forEach(function(file) {
+                                var modelName = file.name || '';
+                                var modelTitle = file.title || file.name || '';
+                                // Only include if it has a valid model file extension or is in a model folder structure
+                                // Model files typically have extensions like .safetensors, .ckpt, .pt, etc.
+                                // Or they're in folders like "Models/Stable-Diffusion/model.safetensors"
+                                if (modelName && (
+                                    modelName.match(/\.(safetensors|ckpt|pt|pth|bin)$/i) || 
+                                    modelName.indexOf('/') !== -1 ||
+                                    (file.title && file.title !== modelName) // Has a display title different from name
+                                )) {
+                                    models.push({
+                                        name: modelName,
+                                        title: modelTitle || modelName
                                     });
                                 }
                             });

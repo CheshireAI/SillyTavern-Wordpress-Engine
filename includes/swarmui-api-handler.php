@@ -441,9 +441,18 @@ class PMV_SwarmUI_API_Handler extends PMV_API_Handler_Base {
             }
         }
 
-        // Try without subtype first - models might be in the main response structure
-        $url = trailingslashit($this->api_base_url) . 'API/ListT2IParams';
-        $request_data = array('session_id' => $this->session_id);
+        // Use ListModels API endpoint (not ListT2IParams)
+        $url = trailingslashit($this->api_base_url) . 'API/ListModels';
+        $request_data = array(
+            'path' => '',
+            'depth' => 1,
+            'subtype' => 'Stable-Diffusion', // Default to Stable-Diffusion, but can include others
+            'sortBy' => 'Name',
+            'sortReverse' => false,
+            'allowRemote' => true,
+            'dataImages' => false,
+            'session_id' => $this->session_id // Include session_id in request body
+        );
 
         // Include user token cookie if available
         $user_token = get_option('pmv_swarmui_user_token', '');
@@ -463,7 +472,36 @@ class PMV_SwarmUI_API_Handler extends PMV_API_Handler_Base {
             return $response;
         }
 
-        return json_decode(wp_remote_retrieve_body($response), true);
+        $result = json_decode(wp_remote_retrieve_body($response), true);
+        
+        // ListModels returns {folders: [], files: []} structure for the specified subtype
+        // Fetch Flux models too if available
+        $all_models = isset($result['files']) && is_array($result['files']) ? $result['files'] : array();
+        
+        // Try to fetch Flux models as well
+        $flux_request_data = $request_data;
+        $flux_request_data['subtype'] = 'Flux';
+        $flux_response = wp_remote_post($url, array(
+            'body' => json_encode($flux_request_data),
+            'timeout' => 30,
+            'sslverify' => false,
+            'headers' => $headers
+        ));
+        
+        if (!is_wp_error($flux_response)) {
+            $flux_result = json_decode(wp_remote_retrieve_body($flux_response), true);
+            if (isset($flux_result['files']) && is_array($flux_result['files'])) {
+                foreach ($flux_result['files'] as $file) {
+                    $all_models[] = $file;
+                }
+            }
+        }
+        
+        // Return combined results in the same format
+        return array(
+            'folders' => $result['folders'] ?? array(),
+            'files' => $all_models
+        );
     }
 
     protected function get_available_loras() {
@@ -474,14 +512,17 @@ class PMV_SwarmUI_API_Handler extends PMV_API_Handler_Base {
             }
         }
 
-        $url = trailingslashit($this->api_base_url) . 'API/ListT2IParams';
+        // Use ListModels API endpoint for LoRAs (not ListT2IParams)
+        $url = trailingslashit($this->api_base_url) . 'API/ListModels';
         $request_data = array(
             'path' => '',
             'depth' => 1,
             'subtype' => 'LoRA',
             'sortBy' => 'Name',
             'sortReverse' => false,
-            'session_id' => $this->session_id
+            'allowRemote' => true,
+            'dataImages' => false,
+            'session_id' => $this->session_id // Include session_id in request body
         );
 
         // Include user token cookie if available

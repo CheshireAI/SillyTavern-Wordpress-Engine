@@ -1580,7 +1580,7 @@
                                     <div class="user-prompt-section" style="margin-top: 15px;">
                                         <label>Describe what you want to see:</label>
                                         <textarea id="user-description" placeholder="E.g., 'showing the character smiling' or 'the character in a forest'..." rows="3"></textarea>
-                                    </div>
+                                        </div>
                                     <div class="generated-prompt-section" style="margin-top: 15px; display: none;" id="final-prompt-section">
                                         <label>Ready to Generate:</label>
                                         <textarea id="generated-prompt" placeholder="The AI will prepare the prompt..." rows="3" readonly></textarea>
@@ -2998,8 +2998,8 @@
             
             // Slash commands are disabled - this function should not be called
             alert('Slash commands are disabled. Please use the 🎨 button for image generation.');
-        }
-        
+            }
+            
         function createImageFromPrompt(prompt, presetConfig = null, characterModel = null, presetLoras = []) {
             const settings = JSON.parse(localStorage.getItem('pmv_image_settings') || '{}');
             
