@@ -597,6 +597,38 @@
     padding: 15px !important;
 }
 
+/* Guest message styles - ensure dark background */
+.guest-message {
+    text-align: center !important;
+    padding: 40px 20px !important;
+    color: #e0e0e0 !important;
+    background: #1a1a1a !important;
+    border-radius: 8px !important;
+    margin: 15px !important;
+}
+
+.guest-message p {
+    color: #e0e0e0 !important;
+    margin-bottom: 10px !important;
+}
+
+.guest-message p:first-of-type {
+    font-size: 18px !important;
+    color: #ffffff !important;
+    margin-bottom: 15px !important;
+}
+
+.guest-message a {
+    color: #007cba !important;
+    text-decoration: none !important;
+    transition: color 0.2s !important;
+}
+
+.guest-message a:hover {
+    color: #005a9e !important;
+    text-decoration: underline !important;
+}
+
 /* Ensure proper z-index layering */
 .fullscreen-chat {
     z-index: 9998 !important;

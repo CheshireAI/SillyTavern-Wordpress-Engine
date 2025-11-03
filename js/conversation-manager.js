@@ -1300,14 +1300,13 @@
                 // Show guest message
                 showGuestMessage: function() {
                     $('.conversation-list').html(`
-                        <div class="guest-message" style="text-align: center; padding: 40px 20px; color: #999;">
-                            <p style="margin-bottom: 15px; font-size: 18px;">💬 Save your conversations!</p>
-                            <p style="margin-bottom: 10px;">
-                                <a href="${pmv_ajax_object.login_url}" style="color: #007cba; text-decoration: none; font-weight: bold;">Login</a> 
-                                to save your chat history.
+                        <div class="guest-message" style="text-align: center; padding: 40px 20px; color: #e0e0e0; background: #1a1a1a; border-radius: 8px; margin: 15px;">
+                            <p style="margin-bottom: 15px; font-size: 18px; color: #ffffff;">💬 Save your conversations!</p>
+                            <p style="margin-bottom: 10px; color: #e0e0e0;">
+                                <a href="${pmv_ajax_object.login_url}" style="color: #007cba; text-decoration: none; font-weight: bold; transition: color 0.2s;">Login to save your chat history.</a>
                             </p>
-                            <p>
-                                New user? <a href="${pmv_ajax_object.register_url}" style="color: #007cba; text-decoration: none;">Create an account</a>
+                            <p style="color: #e0e0e0;">
+                                New user? <a href="${pmv_ajax_object.register_url}" style="color: #007cba; text-decoration: none; transition: color 0.2s;">Create an account</a>
                             </p>
                         </div>
                     `);
