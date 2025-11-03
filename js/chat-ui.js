@@ -455,6 +455,20 @@
 
     // Create conversation sidebar
     function createConversationSidebar() {
+        // Inject anti-flash CSS into head BEFORE creating elements
+        if (!$('#pmv-sidebar-anti-flash').length) {
+            $('head').append(`
+                <style id="pmv-sidebar-anti-flash">
+                    .conversation-sidebar { background: #1a1a1a !important; }
+                    .conversation-sidebar .sidebar-header { background: #1a1a1a !important; }
+                    .conversation-sidebar .conversation-list { background: #1a1a1a !important; color: #e0e0e0 !important; }
+                    .conversation-sidebar * { background-color: inherit !important; }
+                    .conversation-list { background: #1a1a1a !important; color: #e0e0e0 !important; }
+                    .guest-message { background: #1a1a1a !important; color: #e0e0e0 !important; }
+                </style>
+            `);
+        }
+        
         // Remove any existing sidebar first
         $('.conversation-sidebar').remove();
         

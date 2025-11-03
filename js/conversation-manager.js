@@ -1316,6 +1316,19 @@
                 
                 // Show guest message
                 showGuestMessage: function() {
+                    // Ensure anti-flash CSS is injected
+                    if (!$('#pmv-sidebar-anti-flash').length) {
+                        $('head').append(`
+                            <style id="pmv-sidebar-anti-flash">
+                                .conversation-sidebar { background: #1a1a1a !important; }
+                                .conversation-sidebar .sidebar-header { background: #1a1a1a !important; }
+                                .conversation-sidebar .conversation-list { background: #1a1a1a !important; color: #e0e0e0 !important; }
+                                .conversation-list { background: #1a1a1a !important; color: #e0e0e0 !important; }
+                                .guest-message { background: #1a1a1a !important; color: #e0e0e0 !important; }
+                            </style>
+                        `);
+                    }
+                    
                     // Ensure conversation-list has dark background before adding content
                     const $list = $('.conversation-list');
                     $list.css({
