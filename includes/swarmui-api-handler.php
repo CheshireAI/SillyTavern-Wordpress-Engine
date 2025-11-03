@@ -441,19 +441,6 @@ class PMV_SwarmUI_API_Handler extends PMV_API_Handler_Base {
             }
         }
 
-        // Use ListModels API endpoint (not ListT2IParams)
-        $url = trailingslashit($this->api_base_url) . 'API/ListModels';
-        $request_data = array(
-            'path' => '',
-            'depth' => 1,
-            'subtype' => 'Stable-Diffusion', // Default to Stable-Diffusion, but can include others
-            'sortBy' => 'Name',
-            'sortReverse' => false,
-            'allowRemote' => true,
-            'dataImages' => false,
-            'session_id' => $this->session_id // Include session_id in request body
-        );
-
         // Include user token cookie if available
         $user_token = get_option('pmv_swarmui_user_token', '');
         $headers = array('Content-Type' => 'application/json');
@@ -461,45 +448,106 @@ class PMV_SwarmUI_API_Handler extends PMV_API_Handler_Base {
             $headers['Cookie'] = 'swarm_user_token=' . $user_token;
         }
 
-        $response = wp_remote_post($url, array(
-            'body' => json_encode($request_data),
-            'timeout' => 30,
-            'sslverify' => false,
-            'headers' => $headers
-        ));
+        $url = trailingslashit($this->api_base_url) . 'API/ListModels';
+        
+        // Helper function to recursively fetch files from all subdirectories
+        $fetch_all_files = function($subtype) use ($url, $headers) {
+            // Helper function to fetch files from a specific path
+            $fetch_files = function($path = '', $subtype) use ($url, $headers) {
+                $request_data = array(
+                    'path' => $path,
+                    'depth' => 1, // Fetch one level at a time
+                    'subtype' => $subtype,
+                    'sortBy' => 'Name',
+                    'sortReverse' => false,
+                    'allowRemote' => true,
+                    'dataImages' => false,
+                    'session_id' => $this->session_id
+                );
 
-        if (is_wp_error($response)) {
-            return $response;
+                $response = wp_remote_post($url, array(
+                    'body' => json_encode($request_data),
+                    'timeout' => 30,
+                    'sslverify' => false,
+                    'headers' => $headers
+                ));
+
+                if (is_wp_error($response)) {
+                    return array('files' => array(), 'folders' => array());
+                }
+
+                return json_decode(wp_remote_retrieve_body($response), true);
+            };
+
+            // Start with root path
+            $all_files = array();
+            $all_folders = array();
+            $folders_to_process = array(''); // Start with root
+            
+            // Recursively fetch from all folders
+            while (!empty($folders_to_process)) {
+                $current_path = array_shift($folders_to_process);
+                $result = $fetch_files($current_path, $subtype);
+                
+                // Collect files
+                if (isset($result['files']) && is_array($result['files'])) {
+                    foreach ($result['files'] as $file) {
+                        // Construct full path: if in a subdirectory, prepend the path
+                        // API returns relative filenames, so we need to add the folder path
+                        if (!empty($current_path)) {
+                            // Only prepend if the filename doesn't already start with the path
+                            // This handles both relative and absolute paths from the API
+                            $separator = '/';
+                            if (strpos($file['name'], $current_path . $separator) !== 0 && 
+                                strpos($file['name'], $separator) !== 0) {
+                                $file['name'] = $current_path . $separator . $file['name'];
+                            }
+                        }
+                        $all_files[] = $file;
+                    }
+                }
+                
+                // Collect subfolders to process
+                if (isset($result['folders']) && is_array($result['folders'])) {
+                    foreach ($result['folders'] as $folder) {
+                        $folder_path = !empty($current_path) ? $current_path . '/' . $folder : $folder;
+                        if (!in_array($folder_path, $all_folders)) {
+                            $all_folders[] = $folder_path;
+                            $folders_to_process[] = $folder_path;
+                        }
+                    }
+                }
+            }
+
+            return array(
+                'folders' => $all_folders,
+                'files' => $all_files
+            );
+        };
+
+        // Fetch Stable-Diffusion models recursively
+        $sd_result = $fetch_all_files('Stable-Diffusion');
+        $all_models = isset($sd_result['files']) && is_array($sd_result['files']) ? $sd_result['files'] : array();
+        $all_folders = isset($sd_result['folders']) && is_array($sd_result['folders']) ? $sd_result['folders'] : array();
+        
+        // Fetch Flux models recursively and combine
+        $flux_result = $fetch_all_files('Flux');
+        if (isset($flux_result['files']) && is_array($flux_result['files'])) {
+            foreach ($flux_result['files'] as $file) {
+                $all_models[] = $file;
+            }
         }
-
-        $result = json_decode(wp_remote_retrieve_body($response), true);
-        
-        // ListModels returns {folders: [], files: []} structure for the specified subtype
-        // Fetch Flux models too if available
-        $all_models = isset($result['files']) && is_array($result['files']) ? $result['files'] : array();
-        
-        // Try to fetch Flux models as well
-        $flux_request_data = $request_data;
-        $flux_request_data['subtype'] = 'Flux';
-        $flux_response = wp_remote_post($url, array(
-            'body' => json_encode($flux_request_data),
-            'timeout' => 30,
-            'sslverify' => false,
-            'headers' => $headers
-        ));
-        
-        if (!is_wp_error($flux_response)) {
-            $flux_result = json_decode(wp_remote_retrieve_body($flux_response), true);
-            if (isset($flux_result['files']) && is_array($flux_result['files'])) {
-                foreach ($flux_result['files'] as $file) {
-                    $all_models[] = $file;
+        if (isset($flux_result['folders']) && is_array($flux_result['folders'])) {
+            foreach ($flux_result['folders'] as $folder) {
+                if (!in_array($folder, $all_folders)) {
+                    $all_folders[] = $folder;
                 }
             }
         }
         
         // Return combined results in the same format
         return array(
-            'folders' => $result['folders'] ?? array(),
+            'folders' => $all_folders,
             'files' => $all_models
         );
     }
@@ -512,19 +560,6 @@ class PMV_SwarmUI_API_Handler extends PMV_API_Handler_Base {
             }
         }
 
-        // Use ListModels API endpoint for LoRAs (not ListT2IParams)
-        $url = trailingslashit($this->api_base_url) . 'API/ListModels';
-        $request_data = array(
-            'path' => '',
-            'depth' => 1,
-            'subtype' => 'LoRA',
-            'sortBy' => 'Name',
-            'sortReverse' => false,
-            'allowRemote' => true,
-            'dataImages' => false,
-            'session_id' => $this->session_id // Include session_id in request body
-        );
-
         // Include user token cookie if available
         $user_token = get_option('pmv_swarmui_user_token', '');
         $headers = array('Content-Type' => 'application/json');
@@ -532,18 +567,72 @@ class PMV_SwarmUI_API_Handler extends PMV_API_Handler_Base {
             $headers['Cookie'] = 'swarm_user_token=' . $user_token;
         }
 
-        $response = wp_remote_post($url, array(
-            'body' => json_encode($request_data),
-            'timeout' => 30,
-            'sslverify' => false,
-            'headers' => $headers
-        ));
+        $url = trailingslashit($this->api_base_url) . 'API/ListModels';
+        
+        // Helper function to fetch files from a specific path
+        $fetch_files = function($path = '') use ($url, $headers) {
+            $request_data = array(
+                'path' => $path,
+                'depth' => 1, // Fetch one level at a time
+                'subtype' => 'LoRA',
+                'sortBy' => 'Name',
+                'sortReverse' => false,
+                'allowRemote' => true,
+                'dataImages' => false,
+                'session_id' => $this->session_id
+            );
 
-        if (is_wp_error($response)) {
-            return $response;
+            $response = wp_remote_post($url, array(
+                'body' => json_encode($request_data),
+                'timeout' => 30,
+                'sslverify' => false,
+                'headers' => $headers
+            ));
+
+            if (is_wp_error($response)) {
+                return array('files' => array(), 'folders' => array());
+            }
+
+            return json_decode(wp_remote_retrieve_body($response), true);
+        };
+
+        // Start with root path
+        $all_files = array();
+        $all_folders = array();
+        $folders_to_process = array(''); // Start with root
+        
+        // Recursively fetch from all folders
+        while (!empty($folders_to_process)) {
+            $current_path = array_shift($folders_to_process);
+            $result = $fetch_files($current_path);
+            
+            // Collect files
+            if (isset($result['files']) && is_array($result['files'])) {
+                foreach ($result['files'] as $file) {
+                    // Add path prefix if not already included in name
+                    if (!empty($current_path) && strpos($file['name'], $current_path) !== 0) {
+                        $file['name'] = $current_path . '/' . $file['name'];
+                    }
+                    $all_files[] = $file;
+                }
+            }
+            
+            // Collect subfolders to process
+            if (isset($result['folders']) && is_array($result['folders'])) {
+                foreach ($result['folders'] as $folder) {
+                    $folder_path = !empty($current_path) ? $current_path . '/' . $folder : $folder;
+                    if (!in_array($folder_path, $all_folders)) {
+                        $all_folders[] = $folder_path;
+                        $folders_to_process[] = $folder_path;
+                    }
+                }
+            }
         }
 
-        return json_decode(wp_remote_retrieve_body($response), true);
+        return array(
+            'folders' => $all_folders,
+            'files' => $all_files
+        );
     }
 
     public function ajax_get_available_loras() {
