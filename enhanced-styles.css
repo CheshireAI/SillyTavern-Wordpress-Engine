@@ -1674,11 +1674,11 @@ body .png-card .png-card-buttons,
     transition: none !important;
   }
   
-  /* Adjust info area to fit remaining space */
+  /* Adjust info area to fit remaining space - limit height so buttons stay at bottom */
   body .png-cards .png-card .png-card-info {
-    flex: 1 !important;
+    flex: 0 1 auto !important; /* Changed from flex: 1 to prevent expansion */
     height: auto !important;
-    max-height: none !important;
+    max-height: calc(500px - 180px - 80px) !important; /* Card height - image - buttons */
     overflow: visible !important;
     padding: 12px !important;
     display: flex !important;
@@ -1709,11 +1709,17 @@ body .png-card .png-card-buttons,
     overflow-y: auto !important;
   }
   
-  /* Ensure buttons stay at bottom */
+  /* Ensure buttons stay at bottom - use position sticky to keep them visible */
   body .png-cards .png-card .png-card-buttons {
     flex-shrink: 0 !important;
+    flex-grow: 0 !important;
     margin-top: auto !important;
     padding: 12px !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    background: #2a2a2a !important;
+    z-index: 10 !important;
+    border-top: 1px solid #404040 !important;
   }
 }
 
@@ -2529,6 +2535,19 @@ html body div.png-cards div.png-card div.png-card-description {
     flex-shrink: 0 !important;
     min-height: 60px !important;
     height: auto !important;
+  }
+  
+  /* Keep buttons at bottom of visible card area when scrolling */
+  html body .png-cards .png-card .png-card-buttons,
+  body .png-cards .png-card .png-card-buttons,
+  .png-cards .png-card .png-card-buttons {
+    position: sticky !important;
+    bottom: 0 !important;
+    background: #2a2a2a !important;
+    z-index: 10 !important;
+    border-top: 1px solid #404040 !important;
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
   }
 }
 
