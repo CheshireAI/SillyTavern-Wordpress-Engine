@@ -135,6 +135,10 @@ function png_metadata_viewer_shortcode($atts) {
         echo '</div>';
     }
     
+    // Top pagination container - Will be populated by AJAX
+    echo '<div class="pmv-pagination pmv-pagination-top">
+        <!-- Pagination will be loaded by AJAX -->
+    </div>';
 
     
     // Main gallery container - AJAX will populate this
@@ -154,8 +158,8 @@ function png_metadata_viewer_shortcode($atts) {
     
     echo '</div>'; // Close pmv-gallery-container
     
-    // Pagination container - Will be populated by AJAX
-    echo '<div class="pmv-pagination">
+    // Bottom pagination container - Will be populated by AJAX
+    echo '<div class="pmv-pagination pmv-pagination-bottom">
         <!-- Pagination will be loaded by AJAX -->
     </div>';
     

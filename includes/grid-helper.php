@@ -475,13 +475,19 @@ function pmv_add_simple_grid_js() {
         }
         
         function renderPagination(pagination) {
-            var $pagination = $('.pmv-pagination');
+            var $paginationTop = $('.pmv-pagination-top');
+            var $paginationBottom = $('.pmv-pagination-bottom');
+            var $pagination = $('.pmv-pagination'); // Fallback for backward compatibility
             
             if (pagination.total_pages <= 1) {
+                $paginationTop.hide();
+                $paginationBottom.hide();
                 $pagination.hide();
                 return;
             }
             
+            $paginationTop.show();
+            $paginationBottom.show();
             $pagination.show();
             
             // Calculate start and end items
@@ -519,7 +525,19 @@ function pmv_add_simple_grid_js() {
                 html += '<span class="pmv-page-disabled">Next &raquo;</span>';
             }
             
-            $pagination.html(infoHtml + html);
+            var paginationHtml = infoHtml + '<div class="pmv-pagination-links">' + html + '</div>';
+            
+            // Render in both top and bottom containers
+            if ($paginationTop.length) {
+                $paginationTop.html(paginationHtml);
+            }
+            if ($paginationBottom.length) {
+                $paginationBottom.html(paginationHtml);
+            }
+            // Fallback for backward compatibility
+            if ($pagination.length && !$paginationTop.length && !$paginationBottom.length) {
+                $pagination.html(paginationHtml);
+            }
             
             // Trigger pagination updated event for the main handler
             $(document).trigger('pmv_pagination_updated', [pagination]);

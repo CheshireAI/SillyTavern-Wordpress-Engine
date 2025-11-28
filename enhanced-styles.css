@@ -1164,8 +1164,35 @@ body .png-card .png-card-buttons,
     font-size: 13px !important;
   }
   
+  /* FIX: Ensure tags are visible on mobile with proper minimum height */
   .png-card-tags {
     font-size: 11px !important;
+    min-height: 80px !important; /* Minimum height to ensure visibility */
+    height: auto !important; /* Allow height to grow if needed */
+    max-height: 120px !important; /* Maximum height with scrolling */
+    overflow-y: auto !important; /* Enable scrolling for long tag lists */
+    overflow-x: hidden !important;
+    flex-shrink: 0 !important; /* Prevent tags from being compressed */
+    display: block !important; /* Ensure tags are displayed */
+    visibility: visible !important; /* Force visibility */
+    opacity: 1 !important; /* Ensure opacity is not hiding tags */
+  }
+  
+  /* Ensure card info section properly allocates space for tags */
+  .png-card-info {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important; /* Allow flexbox to work properly */
+    overflow: visible !important; /* Don't clip tags */
+  }
+  
+  /* Ensure description doesn't take all space, leaving room for tags */
+  .png-card-description {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: 200px !important;
+    overflow-y: auto !important;
   }
   
   .png-download-button,
@@ -1225,8 +1252,35 @@ body .png-card .png-card-buttons,
     font-size: 13px !important;
   }
   
+  /* FIX: Ensure tags are visible on mobile with proper minimum height */
   .png-card-tags {
     font-size: 11px !important;
+    min-height: 80px !important; /* Minimum height to ensure visibility */
+    height: auto !important; /* Allow height to grow if needed */
+    max-height: 120px !important; /* Maximum height with scrolling */
+    overflow-y: auto !important; /* Enable scrolling for long tag lists */
+    overflow-x: hidden !important;
+    flex-shrink: 0 !important; /* Prevent tags from being compressed */
+    display: block !important; /* Ensure tags are displayed */
+    visibility: visible !important; /* Force visibility */
+    opacity: 1 !important; /* Ensure opacity is not hiding tags */
+  }
+  
+  /* Ensure card info section properly allocates space for tags */
+  .png-card-info {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important; /* Allow flexbox to work properly */
+    overflow: visible !important; /* Don't clip tags */
+  }
+  
+  /* Ensure description doesn't take all space, leaving room for tags */
+  .png-card-description {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: 200px !important;
+    overflow-y: auto !important;
   }
   
   .png-download-button,
@@ -1662,10 +1716,35 @@ body .png-card .png-card-buttons,
     flex: 1 !important;
     height: auto !important;
     max-height: none !important;
-    overflow: hidden !important;
+    overflow: visible !important; /* Changed from hidden to visible to allow tags to show */
     padding: 12px !important;
     display: flex !important;
     flex-direction: column !important;
+    min-height: 0 !important; /* Allow flexbox to work properly */
+  }
+  
+  /* FIX: Ensure tags are visible on mobile with proper minimum height */
+  body .png-cards .png-card .png-card-tags {
+    min-height: 80px !important; /* Minimum height to ensure visibility */
+    height: auto !important; /* Allow height to grow if needed */
+    max-height: 120px !important; /* Maximum height with scrolling */
+    overflow-y: auto !important; /* Enable scrolling for long tag lists */
+    overflow-x: hidden !important;
+    flex-shrink: 0 !important; /* Prevent tags from being compressed */
+    display: block !important; /* Ensure tags are displayed */
+    visibility: visible !important; /* Force visibility */
+    opacity: 1 !important; /* Ensure opacity is not hiding tags */
+    font-size: 11px !important;
+    padding: 8px !important;
+    margin: 8px 0 !important;
+  }
+  
+  /* Ensure description doesn't take all space, leaving room for tags */
+  body .png-cards .png-card .png-card-description {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: 180px !important; /* Reduced to leave more room for tags */
+    overflow-y: auto !important;
   }
   
   /* Ensure buttons stay at bottom */

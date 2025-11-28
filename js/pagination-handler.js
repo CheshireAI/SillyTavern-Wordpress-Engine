@@ -15,14 +15,22 @@ jQuery(document).ready(function($) {
     // Function to render pagination links
     function renderPagination(pagination) {
         if (!pagination || pagination.total_pages <= 1) {
-            $('.pmv-pagination').hide();
+            $('.pmv-pagination-top').hide();
+            $('.pmv-pagination-bottom').hide();
+            $('.pmv-pagination').hide(); // Fallback for backward compatibility
             return;
         }
         
         console.log('PMV Pagination: Rendering pagination', pagination);
         
-        const $paginationContainer = $('.pmv-pagination');
-        $paginationContainer.empty().show();
+        const $paginationTop = $('.pmv-pagination-top');
+        const $paginationBottom = $('.pmv-pagination-bottom');
+        const $paginationContainer = $('.pmv-pagination'); // Fallback for backward compatibility
+        
+        // Show all pagination containers
+        $paginationTop.show();
+        $paginationBottom.show();
+        $paginationContainer.show();
         
         const pageNumber = pagination.current_page;
         const totalPagesCount = pagination.total_pages;
@@ -96,7 +104,19 @@ jQuery(document).ready(function($) {
         paginationHtml += '</div>';
         
         // Combine info and links
-        $paginationContainer.html(infoHtml + paginationHtml);
+        const fullPaginationHtml = infoHtml + paginationHtml;
+        
+        // Render in both top and bottom containers
+        if ($paginationTop.length) {
+            $paginationTop.html(fullPaginationHtml);
+        }
+        if ($paginationBottom.length) {
+            $paginationBottom.html(fullPaginationHtml);
+        }
+        // Fallback for backward compatibility
+        if ($paginationContainer.length && !$paginationTop.length && !$paginationBottom.length) {
+            $paginationContainer.html(fullPaginationHtml);
+        }
         
         // Store current pagination data
         currentPagination = pagination;
