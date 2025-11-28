@@ -737,19 +737,20 @@ body.pmv-debug-mode::before {
 @media (max-width: 480px) {
   .png-cards {
     grid-template-columns: 1fr !important;
-    grid-auto-rows: 650px !important; /* INCREASED: Larger height to accommodate tags */
+    grid-auto-rows: 550px !important; /* FIXED: Consistent larger height for small screens */
     gap: 15px !important;
     padding: 0 10px 40px 10px !important;
   }
   .png-card {
-    height: 650px !important; /* INCREASED: Larger height to accommodate tags */
-    min-height: 650px !important;
-    max-height: 650px !important;
+    height: 550px !important; /* FIXED: Consistent larger height for small screens */
+    min-height: 550px !important;
+    max-height: 550px !important;
+    overflow-y: auto !important; /* Make card scrollable */
+    overflow-x: hidden !important;
   }
   .png-card-info {
-    height: auto !important; /* Changed to auto to allow flexbox to work */
-    max-height: none !important;
-    overflow: visible !important; /* Allow tags to show */
+    height: calc(550px - 250px) !important;
+    max-height: calc(550px - 250px) !important;
   }
 }
 
@@ -1165,35 +1166,15 @@ body .png-card .png-card-buttons,
     font-size: 13px !important;
   }
   
-  /* FIX: Ensure tags are visible on mobile with proper minimum height */
   .png-card-tags {
     font-size: 11px !important;
-    min-height: 80px !important; /* Minimum height to ensure visibility */
-    height: auto !important; /* Allow height to grow if needed */
-    max-height: 120px !important; /* Maximum height with scrolling */
-    overflow-y: auto !important; /* Enable scrolling for long tag lists */
-    overflow-x: hidden !important;
-    flex-shrink: 0 !important; /* Prevent tags from being compressed */
-    display: block !important; /* Ensure tags are displayed */
-    visibility: visible !important; /* Force visibility */
-    opacity: 1 !important; /* Ensure opacity is not hiding tags */
   }
   
-  /* Ensure card info section properly allocates space for tags */
-  .png-card-info {
-    display: flex !important;
-    flex-direction: column !important;
-    flex: 1 1 auto !important;
-    min-height: 0 !important; /* Allow flexbox to work properly */
-    overflow: visible !important; /* Don't clip tags */
-  }
-  
-  /* Ensure description doesn't take all space, leaving room for tags */
-  .png-card-description {
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-    max-height: 200px !important;
+  /* Make cards scrollable on mobile so tags can be accessed */
+  .png-card {
     overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
   }
   
   .png-download-button,
@@ -1253,35 +1234,15 @@ body .png-card .png-card-buttons,
     font-size: 13px !important;
   }
   
-  /* FIX: Ensure tags are visible on mobile with proper minimum height */
   .png-card-tags {
     font-size: 11px !important;
-    min-height: 80px !important; /* Minimum height to ensure visibility */
-    height: auto !important; /* Allow height to grow if needed */
-    max-height: 120px !important; /* Maximum height with scrolling */
-    overflow-y: auto !important; /* Enable scrolling for long tag lists */
-    overflow-x: hidden !important;
-    flex-shrink: 0 !important; /* Prevent tags from being compressed */
-    display: block !important; /* Ensure tags are displayed */
-    visibility: visible !important; /* Force visibility */
-    opacity: 1 !important; /* Ensure opacity is not hiding tags */
   }
   
-  /* Ensure card info section properly allocates space for tags */
-  .png-card-info {
-    display: flex !important;
-    flex-direction: column !important;
-    flex: 1 1 auto !important;
-    min-height: 0 !important; /* Allow flexbox to work properly */
-    overflow: visible !important; /* Don't clip tags */
-  }
-  
-  /* Ensure description doesn't take all space, leaving room for tags */
-  .png-card-description {
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-    max-height: 200px !important;
+  /* Make cards scrollable on mobile so tags can be accessed */
+  .png-card {
     overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
   }
   
   .png-download-button,
@@ -1676,12 +1637,12 @@ body .png-card .png-card-buttons,
 
 @media screen and (max-width: 480px) {
   /* Force proper card layout on mobile with contained images */
-  /* INCREASED HEIGHT to ensure all elements fit including tags */
   body .png-cards .png-card {
-    height: 650px !important; /* Increased from 500px to 650px to accommodate tags */
-    min-height: 650px !important;
-    max-height: 650px !important;
-    overflow: visible !important; /* Changed from hidden to visible to prevent clipping tags */
+    height: 500px !important;
+    min-height: 500px !important;
+    max-height: 500px !important;
+    overflow-y: auto !important; /* Make card scrollable so tags can be accessed */
+    overflow-x: hidden !important;
     display: flex !important;
     flex-direction: column !important;
     background: #2a2a2a !important;
@@ -1713,59 +1674,43 @@ body .png-card .png-card-buttons,
     transition: none !important;
   }
   
-  /* Adjust info area to fit remaining space - CRITICAL: Must allow tags to show */
+  /* Adjust info area to fit remaining space */
   body .png-cards .png-card .png-card-info {
-    flex: 1 1 auto !important; /* Changed from flex: 1 to allow proper flex behavior */
+    flex: 1 !important;
     height: auto !important;
     max-height: none !important;
-    overflow: visible !important; /* CRITICAL: Changed from hidden to visible to allow tags to show */
+    overflow: visible !important;
     padding: 12px !important;
     display: flex !important;
     flex-direction: column !important;
-    min-height: 0 !important; /* Allow flexbox to work properly */
-    gap: 8px !important; /* Add gap between elements */
-  }
-  
-  /* Card name - fixed size */
-  body .png-cards .png-card .png-card-name {
-    flex: 0 0 auto !important;
-    margin-bottom: 8px !important;
-  }
-  
-  /* Description - flexible but limited */
-  body .png-cards .png-card .png-card-description {
-    flex: 1 1 0 !important; /* Take available space but allow shrinking */
     min-height: 0 !important;
-    max-height: 200px !important; /* Limit description height */
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    margin-bottom: 8px !important;
   }
   
-  /* FIX: Ensure tags are visible on mobile with proper minimum height - CRITICAL */
+  /* FIX: Ensure tags are visible on mobile */
   body .png-cards .png-card .png-card-tags {
-    flex: 0 0 100px !important; /* Fixed flex-basis to guarantee space allocation */
-    min-height: 100px !important; /* Increased minimum height to ensure visibility */
-    height: 100px !important; /* Fixed height for consistency */
-    max-height: 100px !important; /* Maximum height with scrolling */
-    overflow-y: auto !important; /* Enable scrolling for long tag lists */
+    min-height: 60px !important;
+    height: auto !important;
+    overflow-y: visible !important;
     overflow-x: hidden !important;
-    flex-shrink: 0 !important; /* CRITICAL: Prevent tags from being compressed */
-    flex-grow: 0 !important; /* Don't allow tags to grow beyond allocated space */
-    display: block !important; /* Ensure tags are displayed */
-    visibility: visible !important; /* Force visibility */
-    opacity: 1 !important; /* Ensure opacity is not hiding tags */
+    flex-shrink: 0 !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
     font-size: 11px !important;
     padding: 8px !important;
-    margin: 0 !important; /* Remove margin to maximize space */
-    background: #1a1a1a !important; /* Ensure background is visible */
-    border: 1px solid #404040 !important; /* Ensure border is visible */
-    border-radius: 6px !important;
+    margin: 8px 0 !important;
+  }
+  
+  /* Ensure description doesn't take all space, leaving room for tags */
+  body .png-cards .png-card .png-card-description {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: 180px !important;
+    overflow-y: auto !important;
   }
   
   /* Ensure buttons stay at bottom */
   body .png-cards .png-card .png-card-buttons {
-    flex: 0 0 auto !important; /* Fixed size for buttons */
     flex-shrink: 0 !important;
     margin-top: auto !important;
     padding: 12px !important;
@@ -2561,9 +2506,19 @@ html body div.png-cards div.png-card div.png-card-description {
     min-height: 200px !important;
 }
 
-/* ===== FINAL MOBILE TAGS FIX - MAXIMUM SPECIFICITY ===== */
+/* ===== FINAL MOBILE TAGS FIX - Make cards scrollable ===== */
 /* This rule must be at the very end to override all other conflicting rules */
 @media screen and (max-width: 480px) {
+  /* Make the card itself scrollable so users can scroll to see tags */
+  html body .png-cards .png-card,
+  body .png-cards .png-card,
+  .png-cards .png-card {
+    overflow-y: auto !important; /* Enable vertical scrolling on card */
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important; /* Smooth scrolling on iOS */
+  }
+  
+  /* Ensure tags are visible and not compressed */
   html body .png-cards .png-card .png-card-info .png-card-tags,
   html body .png-cards .png-card .png-card-tags,
   body .png-cards .png-card .png-card-tags,
@@ -2571,40 +2526,9 @@ html body div.png-cards div.png-card div.png-card-description {
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
-    flex: 0 0 100px !important;
-    min-height: 100px !important;
-    height: 100px !important;
-    max-height: 100px !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
     flex-shrink: 0 !important;
-    flex-grow: 0 !important;
-    position: relative !important;
-    z-index: 1 !important;
-    background: #1a1a1a !important;
-    border: 1px solid #404040 !important;
-    border-radius: 6px !important;
-    padding: 8px !important;
-    margin: 0 !important;
-    font-size: 11px !important;
-    line-height: 1.5 !important;
-    word-wrap: break-word !important;
-    white-space: normal !important;
-  }
-  
-  /* Ensure card info doesn't clip tags - use hidden for card, visible for info */
-  html body .png-cards .png-card .png-card-info,
-  body .png-cards .png-card .png-card-info {
-    overflow: visible !important; /* Allow tags to be visible within info section */
-    min-height: 0 !important;
-    display: flex !important;
-    flex-direction: column !important;
-  }
-  
-  /* Card can have hidden overflow to maintain shape, but info section handles visibility */
-  html body .png-cards .png-card,
-  body .png-cards .png-card {
-    overflow: hidden !important; /* Maintain card shape */
+    min-height: 60px !important;
+    height: auto !important;
   }
 }
 
