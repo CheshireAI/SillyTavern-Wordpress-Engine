@@ -1698,7 +1698,7 @@ body .png-card .png-card-buttons,
     -webkit-overflow-scrolling: touch;
   }
   
-  /* Tags - no individual scrolling, prevent squishing */
+  /* Tags - no individual scrolling, prevent squishing, make it look like its own box */
   body .png-cards .png-card .png-card-tags {
     min-height: 80px; /* Increased from 60px to prevent squishing */
     height: auto;
@@ -1708,10 +1708,13 @@ body .png-card .png-card-buttons,
     font-size: 11px;
     padding: 15px; /* Increased from 12px */
     padding-bottom: 18px; /* Increased from 16px */
-    margin: 10px 0; /* Increased from 8px */
+    margin: 12px 0; /* Increased margin for better separation */
     margin-bottom: 24px;
     line-height: 1.8;
     box-sizing: border-box;
+    background: #1a1a1a; /* Ensure distinct background */
+    border: 1px solid #404040; /* Ensure distinct border */
+    border-radius: 8px; /* Rounded corners for box appearance */
   }
   
   /* Description - no individual scrolling, prevent squishing */
@@ -2561,7 +2564,7 @@ html body div.png-cards div.png-card div.png-card-description {
     gap: 10px; /* Add gap between elements */
   }
   
-  /* Tags - fully visible, prevent squishing */
+  /* Tags - fully visible, prevent squishing, make it look like its own box */
   body .png-cards .png-card .png-card-tags {
     display: block;
     flex-shrink: 0;
@@ -2569,9 +2572,13 @@ html body div.png-cards div.png-card div.png-card-description {
     height: auto;
     padding: 15px;
     padding-bottom: 18px;
+    margin: 12px 0; /* Increased margin for better separation */
     margin-bottom: 24px;
     line-height: 1.8;
     box-sizing: border-box;
+    background: #1a1a1a; /* Ensure distinct background */
+    border: 1px solid #404040; /* Ensure distinct border */
+    border-radius: 8px; /* Rounded corners for box appearance */
   }
   
   /* Description - prevent squishing */
