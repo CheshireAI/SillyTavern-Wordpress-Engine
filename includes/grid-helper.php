@@ -10,6 +10,10 @@ if (!defined('ABSPATH')) {
 * Add CSS for grid layout
 */
 function pmv_add_simple_grid_css() {
+    // Only output on frontend
+    if (is_admin()) {
+        return;
+    }
     ?>
     <style>
     /* Filter Styles */
@@ -379,6 +383,10 @@ add_action('wp_head', 'pmv_add_simple_grid_css', 999);
 * Add JavaScript for grid functionality
 */
 function pmv_add_simple_grid_js() {
+    // Only output on frontend
+    if (is_admin()) {
+        return;
+    }
     ?>
     <script>
     jQuery(document).ready(function($) {
@@ -634,6 +642,10 @@ add_action('wp_footer', 'pmv_add_simple_grid_js', 999);
 * Add AJAX nonce
 */
 function pmv_add_ajax_nonce() {
+    // Only output on frontend
+    if (is_admin()) {
+        return;
+    }
     ?>
     <script>
     var ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>';
