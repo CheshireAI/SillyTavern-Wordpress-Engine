@@ -1631,7 +1631,7 @@ body .png-card .png-card-buttons,
     overflow-y: auto;
     overflow-x: hidden;
     padding: 15px; /* Increased from 12px for better spacing */
-    padding-bottom: 90px; /* Increased space for buttons */
+    padding-bottom: 180px; /* Large padding to ensure all content is scrollable, including tags margin */
     display: flex;
     flex-direction: column;
     gap: 10px; /* Add gap between elements */
