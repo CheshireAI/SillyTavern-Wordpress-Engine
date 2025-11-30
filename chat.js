@@ -1382,13 +1382,10 @@
                         e.stopPropagation();
                         e.stopImmediatePropagation();
                         
-                        console.log('Close button mousedown (native capture) - closing modal');
+                        console.log('Close button mousedown (native capture) - refreshing page');
                         
-                        // Set flag immediately
-                        chatState.modalClosing = true;
-                        
-                        // Close the modal immediately
-                        closeModalProperly($('#png-modal'));
+                        // Force immediate hard page refresh
+                        window.location.href = window.location.href;
                         return false;
                     }, true); // true = capture phase
                     
@@ -1398,13 +1395,10 @@
                         e.stopPropagation();
                         e.stopImmediatePropagation();
                         
-                        console.log('Close button click (native capture) - closing modal');
+                        console.log('Close button click (native capture) - refreshing page');
                         
-                        // Set flag immediately
-                        chatState.modalClosing = true;
-                        
-                        // Close the modal immediately
-                        closeModalProperly($('#png-modal'));
+                        // Force immediate hard page refresh
+                        window.location.href = window.location.href;
                         return false;
                     }, true); // true = capture phase
                     
@@ -1414,10 +1408,10 @@
                         e.stopPropagation();
                         e.stopImmediatePropagation();
                         
-                        console.log('Close button clicked (jQuery backup) - closing modal');
+                        console.log('Close button clicked (jQuery backup) - refreshing page');
                         
-                        chatState.modalClosing = true;
-                        closeModalProperly($('#png-modal'));
+                        // Force immediate hard page refresh
+                        window.location.href = window.location.href;
                         return false;
                     });
                 }
@@ -2002,10 +1996,17 @@
             // Set flag to prevent chat from starting
             chatState.modalClosing = true;
             
-            console.log('Closing modal and refreshing page...');
+            console.log('Closing modal and performing hard page refresh...');
             
-            // Simply refresh the page to reset all state
-            window.location.reload();
+            // Force immediate hard refresh - bypass cache completely
+            // Use setTimeout to ensure this runs after all event handlers
+            setTimeout(function() {
+                // Clear any pending operations
+                if (window.stop) window.stop();
+                
+                // Force a hard refresh by reloading the current URL
+                window.location.href = window.location.href;
+            }, 0);
         }
 
         // Event handlers (UPDATED to delegate conversation management)
@@ -2014,67 +2015,31 @@
             // CLOSE MODAL HANDLER - MUST BE FIRST with highest priority
             // Use mousedown in capture phase to catch BEFORE other handlers
             .on('mousedown.modalClose', '.close-modal', function(e) {
-                // Set flag immediately to prevent any other handlers
-                chatState.modalClosing = true;
-                
+                // Stop ALL event propagation immediately
                 e.preventDefault();
                 e.stopPropagation();
-                e.stopImmediatePropagation(); // Stop ALL other handlers
+                e.stopImmediatePropagation();
                 
-                console.log('Close button mousedown (delegated) - stopping all propagation');
+                console.log('Close button clicked - performing immediate hard page refresh');
                 
-                // Properly close the modal
-                const $modal = $('#png-modal');
-                if ($modal.length && $modal.is(':visible')) {
-                    // Prevent any chat triggers while closing
-                    const wasChatActive = chatState.chatModeActive;
-                    
-                    // If fullscreen chat is active, close it first
-                    if (wasChatActive) {
-                        console.log('Chat is active, closing chat first...');
-                        closeFullScreenChat();
-                        // Wait a bit for chat to close
-                        setTimeout(function() {
-                            closeModalProperly($modal);
-                        }, 100);
-                    } else {
-                        // Just close the modal
-                        closeModalProperly($modal);
-                    }
-                }
-                return false; // Additional safety
+                // Force immediate hard page refresh - no delays, no other code runs
+                window.location.href = window.location.href;
+                
+                return false;
             })
             // Also handle click as backup
             .on('click.modalClose', '.close-modal', function(e) {
-                // Set flag immediately to prevent any other handlers
-                chatState.modalClosing = true;
-                
+                // Stop ALL event propagation immediately
                 e.preventDefault();
                 e.stopPropagation();
-                e.stopImmediatePropagation(); // Stop ALL other handlers
+                e.stopImmediatePropagation();
                 
-                console.log('Close button clicked (delegated handler) - stopping all propagation');
+                console.log('Close button clicked - performing immediate hard page refresh');
                 
-                // Properly close the modal
-                const $modal = $('#png-modal');
-                if ($modal.length && $modal.is(':visible')) {
-                    // Prevent any chat triggers while closing
-                    const wasChatActive = chatState.chatModeActive;
-                    
-                    // If fullscreen chat is active, close it first
-                    if (wasChatActive) {
-                        console.log('Chat is active, closing chat first...');
-                        closeFullScreenChat();
-                        // Wait a bit for chat to close
-                        setTimeout(function() {
-                            closeModalProperly($modal);
-                        }, 100);
-                    } else {
-                        // Just close the modal
-                        closeModalProperly($modal);
-                    }
-                }
-                return false; // Additional safety
+                // Force immediate hard page refresh - no delays, no other code runs
+                window.location.href = window.location.href;
+                
+                return false;
             })
             // Modal overlay click handler
             .on('click.modalClose', '#png-modal', function(e) {
@@ -2084,11 +2049,10 @@
                     e.stopPropagation();
                     e.stopImmediatePropagation();
                     
-                    console.log('Modal overlay clicked - closing');
-                    const $modal = $('#png-modal');
-                    if ($modal.length && $modal.is(':visible')) {
-                        closeModalProperly($modal);
-                    }
+                    console.log('Modal overlay clicked - refreshing page');
+                    
+                    // Force immediate hard page refresh
+                    window.location.href = window.location.href;
                     return false;
                 }
             })
