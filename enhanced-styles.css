@@ -1683,13 +1683,13 @@ body .png-card .png-card-buttons,
     overflow-y: auto !important; /* Make info section scrollable - this is the only scrollbar */
     overflow-x: hidden !important;
     padding: 12px !important;
-    padding-bottom: 120px !important; /* Increased from 90px to ensure bottom of tags is fully visible */
+    padding-bottom: 85px !important; /* Space for buttons + extra to see bottom of tags */
     display: flex !important;
     flex-direction: column !important;
     -webkit-overflow-scrolling: touch !important; /* Smooth scrolling on iOS */
   }
   
-  /* FIX: Tags - no individual scrolling, contained within card-info */
+  /* FIX: Tags - no individual scrolling, contained within card-info, ensure bottom is visible */
   body .png-cards .png-card .png-card-tags {
     min-height: 60px !important;
     height: auto !important;
@@ -1702,7 +1702,7 @@ body .png-card .png-card-buttons,
     padding: 12px !important;
     padding-bottom: 16px !important;
     margin: 8px 0 !important;
-    margin-bottom: 16px !important;
+    margin-bottom: 20px !important; /* Increased from 16px to ensure bottom is fully visible when scrolling */
     line-height: 1.8 !important;
     box-sizing: border-box !important;
   }
@@ -1729,6 +1729,9 @@ body .png-card .png-card-buttons,
     margin: 0 !important;
     flex-shrink: 0 !important;
     flex-grow: 0 !important;
+    display: flex !important; /* Ensure buttons display properly */
+    flex-direction: column !important;
+    gap: 8px !important;
   }
 }
 
@@ -2539,7 +2542,7 @@ html body div.png-cards div.png-card div.png-card-description {
     overflow-y: auto !important; /* Info section scrolls */
     overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch !important; /* Smooth scrolling on iOS */
-    padding-bottom: 120px !important; /* Increased to ensure bottom of tags is fully visible */
+    padding-bottom: 85px !important; /* Space for buttons + extra to see bottom of tags */
   }
   
   /* Ensure tags are visible and not compressed with better spacing - ensure bottom is fully visible */
