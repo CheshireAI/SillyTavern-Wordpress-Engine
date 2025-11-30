@@ -2072,64 +2072,32 @@
                     openCharacterModal($card);
                 }
             })
-            // Chat button handler - works from grid or modal
-            // NOTE: Grid helper triggers 'pmv_start_chat' event, so we handle that instead
-            // This direct handler is for buttons in the modal
+            // Chat button handler - simple version that just works
             .on('click', '.png-chat-button, button[data-metadata]', function(e) {
-                console.log('Chat button direct click handler fired');
-                
                 // Skip if modal is closing
                 if (chatState.modalClosing) {
-                    console.log('Chat handler: Skipping because modal is closing');
-                    e.preventDefault();
-                    e.stopPropagation();
                     return false;
                 }
                 
                 // Skip if this is the close button
                 const $target = $(e.target);
-                const $button = $(this);
-                
-                if ($target.hasClass('close-modal') || 
-                    $button.hasClass('close-modal') ||
-                    $target.closest('.close-modal').length > 0 ||
-                    $target.closest('#png-modal .close-modal').length > 0) {
-                    console.log('Chat handler: Skipping because close button was clicked');
-                    e.preventDefault();
-                    e.stopPropagation();
+                if ($target.hasClass('close-modal') || $target.closest('.close-modal').length > 0) {
                     return false;
-                }
-                
-                // Only handle if this is from the modal (grid helper handles grid buttons)
-                const $modal = $(this).closest('#png-modal');
-                if (!$modal.length) {
-                    // This is from the grid, let grid-helper handle it via event
-                    console.log('Chat button from grid - letting grid-helper handle via pmv_start_chat event');
-                    return; // Don't prevent default, let grid-helper handle it
                 }
                 
                 e.preventDefault();
                 e.stopPropagation();
                 
-                // Get metadata - use data() method like grid-helper.php does
-                const $btn = $(this);
-                let metadata = $btn.data('metadata'); // jQuery data() method
-                
-                // Fallback to attr if data() doesn't work
-                if (!metadata) {
-                    metadata = $btn.attr('data-metadata') || $btn.closest('[data-metadata]').attr('data-metadata');
-                }
-                
-                console.log('Chat button clicked in modal, metadata:', metadata);
+                // Get metadata
+                const metadata = $(this).data('metadata') || $(this).attr('data-metadata') || $(this).closest('[data-metadata]').attr('data-metadata');
                 
                 if (metadata) {
-                    // Close modal if it's open before starting chat
+                    // Close modal if it's open
+                    const $modal = $('#png-modal');
                     if ($modal.length && $modal.is(':visible')) {
                         $modal.hide();
                     }
                     startFullScreenChat(metadata);
-                } else {
-                    console.error('No metadata found for chat button in modal');
                 }
             })
             .on('pmv_start_chat', function(e, metadata, fileUrl) {
