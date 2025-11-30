@@ -735,7 +735,7 @@ body.pmv-debug-mode::before {
   .png-cards {
     grid-template-columns: 1fr !important;
     grid-auto-rows: 650px !important;
-    gap: 15px !important;
+    gap: 20px !important; /* Increased gap to prevent button overlap */
     padding: 0 10px 40px 10px !important;
   }
   .png-card {
@@ -1683,7 +1683,7 @@ body .png-card .png-card-buttons,
     overflow-y: auto !important; /* Make info section scrollable - this is the only scrollbar */
     overflow-x: hidden !important;
     padding: 12px !important;
-    padding-bottom: 85px !important; /* Space for buttons + extra to see bottom of tags */
+    padding-bottom: 110px !important; /* Increased significantly to ensure bottom of tags is fully visible */
     display: flex !important;
     flex-direction: column !important;
     -webkit-overflow-scrolling: touch !important; /* Smooth scrolling on iOS */
@@ -1702,7 +1702,7 @@ body .png-card .png-card-buttons,
     padding: 12px !important;
     padding-bottom: 16px !important;
     margin: 8px 0 !important;
-    margin-bottom: 20px !important; /* Increased from 16px to ensure bottom is fully visible when scrolling */
+    margin-bottom: 24px !important; /* Increased to ensure bottom is fully visible when scrolling */
     line-height: 1.8 !important;
     box-sizing: border-box !important;
   }
@@ -1714,7 +1714,7 @@ body .png-card .png-card-buttons,
     overflow: hidden !important; /* Prevent overflow, parent handles scrolling */
   }
   
-  /* Ensure buttons stay fixed at bottom of card */
+  /* Ensure buttons stay fixed at bottom of card and don't overlap cards below */
   body .png-cards .png-card .png-card-buttons {
     position: absolute !important; /* Fixed at bottom */
     bottom: 0 !important;
@@ -1722,7 +1722,7 @@ body .png-card .png-card-buttons,
     right: 0 !important;
     padding: 12px !important;
     background: #2a2a2a !important;
-    z-index: 10 !important;
+    z-index: 1 !important; /* Lower z-index so it doesn't overlap cards below */
     border-top: 1px solid #404040 !important;
     width: 100% !important;
     box-sizing: border-box !important;
@@ -1732,6 +1732,12 @@ body .png-card .png-card-buttons,
     display: flex !important; /* Ensure buttons display properly */
     flex-direction: column !important;
     gap: 8px !important;
+  }
+  
+  /* Ensure cards have proper stacking and don't allow buttons to overflow */
+  body .png-cards .png-card {
+    z-index: 0 !important; /* Ensure proper stacking */
+    isolation: isolate !important; /* Create new stacking context */
   }
 }
 
@@ -2542,7 +2548,23 @@ html body div.png-cards div.png-card div.png-card-description {
     overflow-y: auto !important; /* Info section scrolls */
     overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch !important; /* Smooth scrolling on iOS */
-    padding-bottom: 85px !important; /* Space for buttons + extra to see bottom of tags */
+    padding-bottom: 110px !important; /* Increased to ensure bottom of tags is fully visible */
+  }
+  
+  /* Ensure cards don't allow buttons to overflow and overlap */
+  html body .png-cards .png-card,
+  body .png-cards .png-card,
+  .png-cards .png-card {
+    z-index: 0 !important;
+    isolation: isolate !important; /* Create new stacking context */
+    overflow: hidden !important; /* Prevent buttons from overlapping cards below */
+  }
+  
+  /* Ensure buttons don't overlap cards below */
+  html body .png-cards .png-card .png-card-buttons,
+  body .png-cards .png-card .png-card-buttons,
+  .png-cards .png-card .png-card-buttons {
+    z-index: 1 !important; /* Lower z-index so it doesn't overlap cards below */
   }
   
   /* Ensure tags are visible and not compressed with better spacing - ensure bottom is fully visible */
