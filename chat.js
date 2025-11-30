@@ -2098,8 +2098,25 @@
                 e.preventDefault();
                 e.stopPropagation();
                 
-                // Get metadata and start chat (works from grid or modal)
-                const metadata = $(this).attr('data-metadata') || $(this).closest('[data-metadata]').attr('data-metadata');
+                // Get metadata - use data() method like grid-helper.php does
+                const $btn = $(this);
+                let metadata = $btn.data('metadata'); // jQuery data() method
+                
+                // Fallback to attr if data() doesn't work
+                if (!metadata) {
+                    metadata = $btn.attr('data-metadata') || $btn.closest('[data-metadata]').attr('data-metadata');
+                }
+                
+                // Also try getting from closest card
+                if (!metadata) {
+                    const $card = $btn.closest('.png-card, [data-metadata]');
+                    if ($card.length) {
+                        metadata = $card.data('metadata') || $card.attr('data-metadata');
+                    }
+                }
+                
+                console.log('Chat button clicked, metadata:', metadata);
+                
                 if (metadata) {
                     // Close modal if it's open before starting chat
                     const $modal = $('#png-modal');
@@ -2107,6 +2124,8 @@
                         $modal.hide();
                     }
                     startFullScreenChat(metadata);
+                } else {
+                    console.error('No metadata found for chat button');
                 }
             })
             .on('pmv_start_chat', function(e, metadata, fileUrl) {
