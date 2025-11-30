@@ -1421,46 +1421,7 @@ body .png-card .png-card-buttons,
   box-sizing: border-box !important;
 }
 
-/* Desktop tag styles - using proper specificity, scoped to desktop only */
-@media (min-width: 481px) {
-  body .png-cards .png-card .png-card-info .png-card-tags {
-    font-size: clamp(10px, 1.2vw, 12px);
-    color: #888;
-    margin: 10px 0;
-    padding: 12px;
-    background: #1a1a1a;
-    border-radius: 8px;
-    border: 1px solid #404040;
-    overflow-y: auto;
-    overflow-x: hidden;
-    word-wrap: break-word;
-    white-space: normal;
-    line-height: 1.5;
-    height: auto;
-    min-height: auto;
-    max-height: none;
-    display: block;
-    hyphens: auto;
-    overflow-wrap: break-word;
-    text-align: left;
-    flex-shrink: 0;
-    box-sizing: border-box;
-  }
-
-  body .png-cards .png-card .png-card-info .png-card-tags::before {
-    content: "Tags: ";
-    font-weight: 600;
-    color: #f0f0f0;
-    display: inline;
-  }
-  
-  /* Override any conflicting !important rules for desktop tags */
-  body .png-cards .png-card .png-card-info .png-card-tags {
-    background: #1a1a1a !important;
-    border: 1px solid #404040 !important;
-    border-radius: 8px !important;
-  }
-}
+/* Desktop tag styles moved to after mobile section - see below */
 
 /* OVERRIDE ALL PREVIOUS BUTTON CONTAINER STYLES */
 .png-card-buttons {
@@ -1656,6 +1617,41 @@ body .png-card .png-card-buttons,
     margin: 0;
     flex-shrink: 0;
     flex-grow: 0;
+  }
+}
+
+/* ===== DESKTOP TAG STYLES - MUST COME AFTER MOBILE TO OVERRIDE ===== */
+/* Desktop tags with box styling - scoped to desktop only */
+@media (min-width: 481px) {
+  body .png-cards .png-card .png-card-info .png-card-tags {
+    font-size: clamp(10px, 1.2vw, 12px);
+    color: #888;
+    margin: 10px 0;
+    padding: 12px;
+    background: #1a1a1a !important;
+    border-radius: 8px !important;
+    border: 1px solid #404040 !important;
+    overflow-y: auto;
+    overflow-x: hidden;
+    word-wrap: break-word;
+    white-space: normal;
+    line-height: 1.5;
+    height: auto;
+    min-height: auto;
+    max-height: none;
+    display: block;
+    hyphens: auto;
+    overflow-wrap: break-word;
+    text-align: left;
+    flex-shrink: 0;
+    box-sizing: border-box;
+  }
+
+  body .png-cards .png-card .png-card-info .png-card-tags::before {
+    content: "Tags: ";
+    font-weight: 600;
+    color: #f0f0f0;
+    display: inline;
   }
 }
 
