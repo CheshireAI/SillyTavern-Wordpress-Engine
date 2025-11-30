@@ -1343,18 +1343,59 @@
                 
                 // CRITICAL: Attach close handler directly to the button immediately
                 // Remove any existing handlers first to prevent duplicates
-                $('#png-modal .close-modal').off('click.modalClose click');
-                $('#png-modal .close-modal').on('click.modalClose', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    e.stopImmediatePropagation();
+                const $closeBtn = $('#png-modal .close-modal');
+                const closeBtnElement = $closeBtn[0];
+                
+                if (closeBtnElement) {
+                    // Remove all existing event listeners by cloning the element
+                    const newCloseBtn = closeBtnElement.cloneNode(true);
+                    closeBtnElement.parentNode.replaceChild(newCloseBtn, closeBtnElement);
                     
-                    console.log('Close button clicked (direct handler) - closing modal');
+                    // Use native addEventListener with capture phase to catch event BEFORE anything else
+                    newCloseBtn.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        
+                        console.log('Close button mousedown (native capture) - closing modal');
+                        
+                        // Set flag immediately
+                        chatState.modalClosing = true;
+                        
+                        // Close the modal immediately
+                        closeModalProperly($('#png-modal'));
+                        return false;
+                    }, true); // true = capture phase
                     
-                    // Close the modal immediately
-                    closeModalProperly($('#png-modal'));
-                    return false;
-                });
+                    // Also handle click in capture phase
+                    newCloseBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        
+                        console.log('Close button click (native capture) - closing modal');
+                        
+                        // Set flag immediately
+                        chatState.modalClosing = true;
+                        
+                        // Close the modal immediately
+                        closeModalProperly($('#png-modal'));
+                        return false;
+                    }, true); // true = capture phase
+                    
+                    // jQuery handler as additional backup
+                    $(newCloseBtn).on('click.modalClose', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        
+                        console.log('Close button clicked (jQuery backup) - closing modal');
+                        
+                        chatState.modalClosing = true;
+                        closeModalProperly($('#png-modal'));
+                        return false;
+                    });
+                }
                 
                 $('#png-modal').show();
 
@@ -1970,6 +2011,39 @@
         // IMPORTANT: Close modal handler must be FIRST to prevent other handlers from firing
         $(document)
             // CLOSE MODAL HANDLER - MUST BE FIRST with highest priority
+            // Use mousedown in capture phase to catch BEFORE other handlers
+            .on('mousedown.modalClose', '.close-modal', function(e) {
+                // Set flag immediately to prevent any other handlers
+                chatState.modalClosing = true;
+                
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation(); // Stop ALL other handlers
+                
+                console.log('Close button mousedown (delegated) - stopping all propagation');
+                
+                // Properly close the modal
+                const $modal = $('#png-modal');
+                if ($modal.length && $modal.is(':visible')) {
+                    // Prevent any chat triggers while closing
+                    const wasChatActive = chatState.chatModeActive;
+                    
+                    // If fullscreen chat is active, close it first
+                    if (wasChatActive) {
+                        console.log('Chat is active, closing chat first...');
+                        closeFullScreenChat();
+                        // Wait a bit for chat to close
+                        setTimeout(function() {
+                            closeModalProperly($modal);
+                        }, 100);
+                    } else {
+                        // Just close the modal
+                        closeModalProperly($modal);
+                    }
+                }
+                return false; // Additional safety
+            })
+            // Also handle click as backup
             .on('click.modalClose', '.close-modal', function(e) {
                 // Set flag immediately to prevent any other handlers
                 chatState.modalClosing = true;
@@ -2032,9 +2106,20 @@
             })
             // Chat button handler - MUST check it's NOT the close button
             .on('click', '.png-chat-button, button[data-metadata]', function(e) {
-                // Skip if modal is closing
+                // CRITICAL: Skip if modal is closing or visible
                 if (chatState.modalClosing) {
                     console.log('Chat handler: Skipping because modal is closing');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                
+                // Skip if modal is visible - don't start chat from modal
+                const $modal = $('#png-modal');
+                if ($modal.length && $modal.is(':visible')) {
+                    console.log('Chat handler: Skipping because modal is visible');
+                    e.preventDefault();
+                    e.stopPropagation();
                     return false;
                 }
                 
@@ -2044,30 +2129,21 @@
                 
                 if ($target.hasClass('close-modal') || 
                     $button.hasClass('close-modal') ||
-                    $target.closest('.close-modal').length > 0) {
+                    $target.closest('.close-modal').length > 0 ||
+                    $target.closest('#png-modal .close-modal').length > 0) {
                     console.log('Chat handler: Skipping because close button was clicked');
+                    e.preventDefault();
+                    e.stopPropagation();
                     return false;
                 }
                 
                 e.preventDefault();
                 e.stopPropagation();
                 
-                // Close modal first if it's open
-                const $modal = $('#png-modal');
-                if ($modal.length && $modal.is(':visible')) {
-                    closeModalProperly($modal);
-                    // Wait for modal to close before starting chat
-                    setTimeout(function() {
-                        const metadata = $(e.target).closest('.png-chat-button, button[data-metadata]').attr('data-metadata') || 
-                                       $(e.target).closest('[data-metadata]').attr('data-metadata');
-                        if (metadata) {
-                            startFullScreenChat(metadata);
-                        }
-                    }, 350); // Wait for fadeOut animation to complete
-                } else {
-                    // Modal not open, start chat immediately
-                    const metadata = $(this).attr('data-metadata') || $(this).closest('[data-metadata]').attr('data-metadata');
-                    if (metadata) startFullScreenChat(metadata);
+                // Modal not open, start chat immediately
+                const metadata = $(this).attr('data-metadata') || $(this).closest('[data-metadata]').attr('data-metadata');
+                if (metadata) {
+                    startFullScreenChat(metadata);
                 }
             })
             .on('pmv_start_chat', function(e, metadata, fileUrl) {
