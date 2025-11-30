@@ -1327,6 +1327,31 @@
         // Open character modal
         function openCharacterModal(card) {
             try {
+                // CRITICAL: Reset state before opening modal to prevent errors
+                chatState.modalClosing = false;
+                
+                // Reset conversation manager if it exists
+                if (window.PMV_ConversationManager) {
+                    try {
+                        // Clear any previous character ID
+                        if (window.PMV_ConversationManager.characterId) {
+                            window.PMV_ConversationManager.characterId = null;
+                        }
+                        
+                        // Reset initialization state
+                        if (window.PMV_ConversationManager.isInitialized !== undefined) {
+                            window.PMV_ConversationManager.isInitialized = false;
+                        }
+                        
+                        // Clear any error messages
+                        $('.pmv-init-error, .conversation-error').hide();
+                        
+                        console.log('Conversation manager reset before opening modal');
+                    } catch (err) {
+                        console.warn('Error resetting conversation manager:', err);
+                    }
+                }
+                
                 const $card = $(card);
                 const metadataStr = $card.attr('data-metadata');
                 if (!metadataStr) {
@@ -1995,8 +2020,44 @@
                 chatState.chatModeActive = false;
             }
             
+            // CRITICAL: Reset conversation manager state
+            if (window.PMV_ConversationManager) {
+                try {
+                    // Clear character ID to prevent conversation loading errors
+                    window.PMV_ConversationManager.characterId = null;
+                    
+                    // Reset initialization state
+                    window.PMV_ConversationManager.isInitialized = false;
+                    
+                    // Clear any error messages and hide error displays
+                    $('.pmv-init-error, .conversation-error, .loading-container').hide();
+                    
+                    // Clear conversation list if it exists
+                    if (window.PMV_ConversationManager.clearConversationList) {
+                        window.PMV_ConversationManager.clearConversationList();
+                    }
+                    
+                    // Reset any pending operations
+                    if (window.PMV_ConversationManager.saveInProgress !== undefined) {
+                        window.PMV_ConversationManager.saveInProgress = false;
+                    }
+                    
+                    if (window.PMV_ConversationManager.hasUnsavedChangesFlag !== undefined) {
+                        window.PMV_ConversationManager.hasUnsavedChangesFlag = false;
+                    }
+                    
+                    console.log('Conversation manager state fully reset');
+                } catch (err) {
+                    console.warn('Error resetting conversation manager:', err);
+                }
+            }
+            
             // Remove body class if it exists
             $('body').removeClass('chat-modal-open');
+            
+            // Clear any fullscreen chat elements that might be lingering
+            $('.fullscreen-chat').remove();
+            $('.conversation-sidebar').remove();
             
             // Re-enable pointer events and reset flag after a short delay
             setTimeout(function() {
