@@ -1422,7 +1422,7 @@
                 ensureModalExists();
                 $('#modal-content').html(modalHtml);
                 
-                // CRITICAL: Make sure close button FORCES page reload
+                // CRITICAL: Make sure close button FORCES page reload on first click
                 const $closeBtn = $('#png-modal .close-modal');
                 if ($closeBtn.length) {
                     const currentUrl = window.location.href;
@@ -1430,7 +1430,7 @@
                     if ($closeBtn.is('button')) {
                         const $newBtn = $('<a>').attr('href', currentUrl)
                             .attr('class', 'close-modal')
-                            .attr('onclick', 'window.location.reload(); return false;')
+                            .attr('onclick', 'localStorage.removeItem("pmv_conversation_state"); sessionStorage.clear(); window.location.replace(window.location.href); return false;')
                             .css({'text-decoration': 'none', 'color': 'inherit', 'cursor': 'pointer', 'display': 'inline-block'})
                             .html('&times;');
                         $closeBtn.replaceWith($newBtn);
@@ -1438,9 +1438,12 @@
                         // Ensure href and onclick are set - use replace() for FORCED refresh
                         $closeBtn.attr('href', currentUrl);
                         $closeBtn.attr('onclick', 'localStorage.removeItem("pmv_conversation_state"); sessionStorage.clear(); window.location.replace(window.location.href); return false;');
-                        // Also set onclick property directly - this takes priority
+                        // Also set onclick property directly - this takes priority and fires FIRST
                         const closeBtnElement = $closeBtn[0];
                         if (closeBtnElement) {
+                            // Remove any existing onclick first
+                            closeBtnElement.onclick = null;
+                            // Set new onclick that fires immediately
                             closeBtnElement.onclick = function(e) {
                                 if (e) {
                                     e.preventDefault();
@@ -2047,6 +2050,7 @@
         // CLOSE MODAL HANDLER - Remove any handlers that might interfere with the link
         // The close button is now a link with onclick, so we don't need delegated handlers
         $(document).off('click.modalClose', '.close-modal');
+        $(document).off('click', '.close-modal');
         
         $(document)
             // Modal overlay click handler
@@ -2055,7 +2059,9 @@
                 if (e.target === this && !$(e.target).closest('.png-modal-content').length) {
                     e.preventDefault();
                     e.stopPropagation();
-                    window.location.reload();
+                    try { localStorage.removeItem('pmv_conversation_state'); } catch(e) {}
+                    try { sessionStorage.clear(); } catch(e) {}
+                    window.location.replace(window.location.href);
                     return false;
                 }
             })
