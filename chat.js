@@ -2002,73 +2002,10 @@
             // Set flag to prevent chat from starting
             chatState.modalClosing = true;
             
-            // Prevent any further clicks
-            $modal.css('pointer-events', 'none');
+            console.log('Closing modal and refreshing page...');
             
-            // Clear modal content first to prevent any button clicks
-            $('#modal-content').empty();
-            
-            // Hide the modal immediately (no animation to prevent double-click)
-            $modal.hide();
-            
-            // Reset all chat-related state
-            chatState.characterData = null;
-            chatState.characterId = null;
-            
-            // Ensure chat mode is not active
-            if (chatState.chatModeActive) {
-                chatState.chatModeActive = false;
-            }
-            
-            // CRITICAL: Reset conversation manager state BEFORE removing sidebar
-            if (window.PMV_ConversationManager) {
-                try {
-                    // Clear character ID and data to prevent conversation loading errors
-                    window.PMV_ConversationManager.characterId = null;
-                    window.PMV_ConversationManager.characterData = null;
-                    
-                    // Reset initialization state
-                    window.PMV_ConversationManager.isInitialized = false;
-                    
-                    // Clear conversation list content and hide error displays
-                    $('.conversation-list').html('');
-                    $('.pmv-init-error, .conversation-error, .loading-container').hide();
-                    $('.pmv-init-error').remove(); // Remove error elements completely
-                    
-                    // Clear conversation list if it exists
-                    if (window.PMV_ConversationManager.clearConversationList) {
-                        window.PMV_ConversationManager.clearConversationList();
-                    }
-                    
-                    // Reset any pending operations
-                    if (window.PMV_ConversationManager.saveInProgress !== undefined) {
-                        window.PMV_ConversationManager.saveInProgress = false;
-                    }
-                    
-                    if (window.PMV_ConversationManager.hasUnsavedChangesFlag !== undefined) {
-                        window.PMV_ConversationManager.hasUnsavedChangesFlag = false;
-                    }
-                    
-                    console.log('Conversation manager state fully reset');
-                } catch (err) {
-                    console.warn('Error resetting conversation manager:', err);
-                }
-            }
-            
-            // Remove body class if it exists
-            $('body').removeClass('chat-modal-open pmv-modal-open');
-            
-            // Clear any fullscreen chat elements that might be lingering
-            $('.fullscreen-chat').remove();
-            $('.conversation-sidebar').remove();
-            
-            // Re-enable pointer events and reset flag after a short delay
-            setTimeout(function() {
-                $modal.css('pointer-events', '');
-                chatState.modalClosing = false;
-            }, 300);
-            
-            console.log('Modal closed and state reset');
+            // Simply refresh the page to reset all state
+            window.location.reload();
         }
 
         // Event handlers (UPDATED to delegate conversation management)
