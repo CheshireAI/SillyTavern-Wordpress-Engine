@@ -1914,6 +1914,31 @@
             });
         };
 
+        // Helper function to properly close modal
+        function closeModalProperly($modal) {
+            // Clear modal content first to prevent any button clicks
+            $('#modal-content').empty();
+            
+            // Hide the modal with animation
+            $modal.fadeOut(300, function() {
+                $(this).hide();
+                
+                // Reset all chat-related state
+                chatState.characterData = null;
+                chatState.characterId = null;
+                
+                // Ensure chat mode is not active
+                if (chatState.chatModeActive) {
+                    chatState.chatModeActive = false;
+                }
+                
+                // Remove body class if it exists
+                $('body').removeClass('chat-modal-open');
+                
+                console.log('Modal closed and state reset');
+            });
+        }
+
         // Event handlers (UPDATED to delegate conversation management)
         $(document)
             // Character modal and chat button handlers (PRESERVED)
@@ -1932,8 +1957,24 @@
             .on('click', '.png-chat-button, button[data-metadata]', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                const metadata = $(this).attr('data-metadata') || $(this).closest('[data-metadata]').attr('data-metadata');
-                if (metadata) startFullScreenChat(metadata);
+                
+                // Close modal first if it's open
+                const $modal = $('#png-modal');
+                if ($modal.length && $modal.is(':visible')) {
+                    closeModalProperly($modal);
+                    // Wait for modal to close before starting chat
+                    setTimeout(function() {
+                        const metadata = $(e.target).closest('.png-chat-button, button[data-metadata]').attr('data-metadata') || 
+                                       $(e.target).closest('[data-metadata]').attr('data-metadata');
+                        if (metadata) {
+                            startFullScreenChat(metadata);
+                        }
+                    }, 350); // Wait for fadeOut animation to complete
+                } else {
+                    // Modal not open, start chat immediately
+                    const metadata = $(this).attr('data-metadata') || $(this).closest('[data-metadata]').attr('data-metadata');
+                    if (metadata) startFullScreenChat(metadata);
+                }
             })
             .on('pmv_start_chat', function(e, metadata, fileUrl) {
                 if (metadata) {
@@ -1949,8 +1990,36 @@
                 }
             })
             .on('click', '.close-modal, #png-modal', function(e) {
-                if (e.target === this || $(e.target).hasClass('close-modal')) {
-                    $('#png-modal').hide();
+                // Only close if clicking the close button or the modal overlay itself
+                const isCloseButton = $(e.target).hasClass('close-modal');
+                const isModalOverlay = $(e.target).is('#png-modal') && !$(e.target).closest('.png-modal-content').length;
+                
+                if (isCloseButton || isModalOverlay) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    
+                    console.log('Closing character modal...');
+                    
+                    // Properly close the modal
+                    const $modal = $('#png-modal');
+                    if ($modal.length && $modal.is(':visible')) {
+                        // Prevent any chat triggers while closing
+                        const wasChatActive = chatState.chatModeActive;
+                        
+                        // If fullscreen chat is active, close it first
+                        if (wasChatActive) {
+                            console.log('Chat is active, closing chat first...');
+                            closeFullScreenChat();
+                            // Wait a bit for chat to close
+                            setTimeout(function() {
+                                closeModalProperly($modal);
+                            }, 100);
+                        } else {
+                            // Just close the modal
+                            closeModalProperly($modal);
+                        }
+                    }
                 }
             })
             .on('click', '#image-gen-btn, .image-gen-btn', function(e) {
