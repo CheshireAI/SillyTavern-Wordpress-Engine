@@ -1940,7 +1940,53 @@
         }
 
         // Event handlers (UPDATED to delegate conversation management)
+        // IMPORTANT: Close modal handler must be FIRST to prevent other handlers from firing
         $(document)
+            // CLOSE MODAL HANDLER - MUST BE FIRST with highest priority
+            .on('click.modalClose', '.close-modal', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation(); // Stop ALL other handlers
+                
+                console.log('Close button clicked - stopping all propagation');
+                
+                // Properly close the modal
+                const $modal = $('#png-modal');
+                if ($modal.length && $modal.is(':visible')) {
+                    // Prevent any chat triggers while closing
+                    const wasChatActive = chatState.chatModeActive;
+                    
+                    // If fullscreen chat is active, close it first
+                    if (wasChatActive) {
+                        console.log('Chat is active, closing chat first...');
+                        closeFullScreenChat();
+                        // Wait a bit for chat to close
+                        setTimeout(function() {
+                            closeModalProperly($modal);
+                        }, 100);
+                    } else {
+                        // Just close the modal
+                        closeModalProperly($modal);
+                    }
+                }
+                return false; // Additional safety
+            })
+            // Modal overlay click handler
+            .on('click.modalClose', '#png-modal', function(e) {
+                // Only close if clicking the overlay itself, not content inside
+                if (e.target === this && !$(e.target).closest('.png-modal-content').length) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    
+                    console.log('Modal overlay clicked - closing');
+                    const $modal = $('#png-modal');
+                    if ($modal.length && $modal.is(':visible')) {
+                        closeModalProperly($modal);
+                    }
+                    return false;
+                }
+            })
             // Character modal and chat button handlers (PRESERVED)
             .on('click', '.png-image-container img, .png-card img, .character-card img, img[data-metadata]', function(e) {
                 e.preventDefault();
@@ -1954,7 +2000,19 @@
                     openCharacterModal($card);
                 }
             })
+            // Chat button handler - MUST check it's NOT the close button
             .on('click', '.png-chat-button, button[data-metadata]', function(e) {
+                // Skip if this is the close button or if close button was clicked
+                const $target = $(e.target);
+                const $button = $(this);
+                
+                if ($target.hasClass('close-modal') || 
+                    $button.hasClass('close-modal') ||
+                    $target.closest('.close-modal').length > 0) {
+                    console.log('Chat handler: Skipping because close button was clicked');
+                    return false;
+                }
+                
                 e.preventDefault();
                 e.stopPropagation();
                 
@@ -1987,39 +2045,6 @@
                         console.warn('Failed to decode metadata:', err);
                     }
                     startFullScreenChat(metadata, fileUrl);
-                }
-            })
-            .on('click', '.close-modal, #png-modal', function(e) {
-                // Only close if clicking the close button or the modal overlay itself
-                const isCloseButton = $(e.target).hasClass('close-modal');
-                const isModalOverlay = $(e.target).is('#png-modal') && !$(e.target).closest('.png-modal-content').length;
-                
-                if (isCloseButton || isModalOverlay) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    e.stopImmediatePropagation();
-                    
-                    console.log('Closing character modal...');
-                    
-                    // Properly close the modal
-                    const $modal = $('#png-modal');
-                    if ($modal.length && $modal.is(':visible')) {
-                        // Prevent any chat triggers while closing
-                        const wasChatActive = chatState.chatModeActive;
-                        
-                        // If fullscreen chat is active, close it first
-                        if (wasChatActive) {
-                            console.log('Chat is active, closing chat first...');
-                            closeFullScreenChat();
-                            // Wait a bit for chat to close
-                            setTimeout(function() {
-                                closeModalProperly($modal);
-                            }, 100);
-                        } else {
-                            // Just close the modal
-                            closeModalProperly($modal);
-                        }
-                    }
                 }
             })
             .on('click', '#image-gen-btn, .image-gen-btn', function(e) {
