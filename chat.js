@@ -34,7 +34,7 @@
                             <div id="modal-content">
                                 <!-- Modal content will be inserted here -->
                             </div>
-                            <a href="${currentUrl}" class="close-modal" onclick="window.location.reload(); return false;" style="text-decoration: none; color: inherit; cursor: pointer;">&times;</a>
+                            <a href="${currentUrl}" class="close-modal" onclick="localStorage.removeItem('pmv_conversation_state'); sessionStorage.clear(); window.location.replace(window.location.href); return false;" style="text-decoration: none; color: inherit; cursor: pointer;">&times;</a>
                         </div>
                     </div>
                 `);
@@ -52,12 +52,24 @@
                         $closeBtn.replaceWith($newBtn);
                     } else {
                         $closeBtn.attr('href', currentUrl);
-                        $closeBtn.attr('onclick', 'window.location.reload(); return false;');
-                        // Also set onclick property directly
-                        $closeBtn[0].onclick = function() {
-                            window.location.reload();
-                            return false;
-                        };
+                        $closeBtn.attr('onclick', 'localStorage.removeItem("pmv_conversation_state"); sessionStorage.clear(); window.location.replace(window.location.href); return false;');
+                        // Also set onclick property directly - FORCE RELOAD
+                        const closeBtnElement = $closeBtn[0];
+                        if (closeBtnElement) {
+                            closeBtnElement.onclick = function(e) {
+                                if (e) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    e.stopImmediatePropagation();
+                                }
+                                // Clear any stored state before reload
+                                try { localStorage.removeItem('pmv_conversation_state'); } catch(e) {}
+                                try { sessionStorage.clear(); } catch(e) {}
+                                // FORCE RELOAD
+                                window.location.replace(window.location.href);
+                                return false;
+                            };
+                        }
                     }
                 }
             }
@@ -1423,9 +1435,9 @@
                             .html('&times;');
                         $closeBtn.replaceWith($newBtn);
                     } else {
-                        // Ensure href and onclick are set - use reload() for full refresh
+                        // Ensure href and onclick are set - use replace() for FORCED refresh
                         $closeBtn.attr('href', currentUrl);
-                        $closeBtn.attr('onclick', 'window.location.reload(); return false;');
+                        $closeBtn.attr('onclick', 'localStorage.removeItem("pmv_conversation_state"); sessionStorage.clear(); window.location.replace(window.location.href); return false;');
                         // Also set onclick property directly - this takes priority
                         const closeBtnElement = $closeBtn[0];
                         if (closeBtnElement) {
@@ -1435,7 +1447,11 @@
                                     e.stopPropagation();
                                     e.stopImmediatePropagation();
                                 }
-                                window.location.reload();
+                                // Clear any stored state before reload
+                                try { localStorage.removeItem('pmv_conversation_state'); } catch(e) {}
+                                try { sessionStorage.clear(); } catch(e) {}
+                                // FORCE RELOAD - use replace to bypass cache
+                                window.location.replace(window.location.href);
                                 return false;
                             };
                         }
@@ -2019,7 +2035,11 @@
 
         // Helper function to properly close modal
         function closeModalProperly($modal) {
-            window.location.reload();
+            // Clear any stored state
+            try { localStorage.removeItem('pmv_conversation_state'); } catch(e) {}
+            try { sessionStorage.clear(); } catch(e) {}
+            // FORCE RELOAD - use replace to bypass cache completely
+            window.location.replace(window.location.href);
         }
 
         // Event handlers (UPDATED to delegate conversation management)
