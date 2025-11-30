@@ -34,7 +34,7 @@
                             <div id="modal-content">
                                 <!-- Modal content will be inserted here -->
                             </div>
-                            <a href="${currentUrl}" class="close-modal" onclick="window.location.href = window.location.href; return false;" style="text-decoration: none; color: inherit; cursor: pointer;">&times;</a>
+                            <a href="${currentUrl}" class="close-modal" onclick="window.location.reload(); return false;" style="text-decoration: none; color: inherit; cursor: pointer;">&times;</a>
                         </div>
                     </div>
                 `);
@@ -46,13 +46,18 @@
                     if ($closeBtn.is('button')) {
                         const $newBtn = $('<a>').attr('href', currentUrl)
                             .attr('class', 'close-modal')
-                            .attr('onclick', 'window.location.href = window.location.href; return false;')
+                            .attr('onclick', 'window.location.reload(); return false;')
                             .css({'text-decoration': 'none', 'color': 'inherit', 'cursor': 'pointer'})
                             .html('&times;');
                         $closeBtn.replaceWith($newBtn);
                     } else {
                         $closeBtn.attr('href', currentUrl);
-                        $closeBtn.attr('onclick', 'window.location.href = window.location.href; return false;');
+                        $closeBtn.attr('onclick', 'window.location.reload(); return false;');
+                        // Also set onclick property directly
+                        $closeBtn[0].onclick = function() {
+                            window.location.reload();
+                            return false;
+                        };
                     }
                 }
             }
@@ -1413,19 +1418,27 @@
                     if ($closeBtn.is('button')) {
                         const $newBtn = $('<a>').attr('href', currentUrl)
                             .attr('class', 'close-modal')
-                            .attr('onclick', 'window.location.href = window.location.href; return false;')
+                            .attr('onclick', 'window.location.reload(); return false;')
                             .css({'text-decoration': 'none', 'color': 'inherit', 'cursor': 'pointer', 'display': 'inline-block'})
                             .html('&times;');
                         $closeBtn.replaceWith($newBtn);
                     } else {
-                        // Ensure href and onclick are set
+                        // Ensure href and onclick are set - use reload() for full refresh
                         $closeBtn.attr('href', currentUrl);
-                        $closeBtn.attr('onclick', 'window.location.href = window.location.href; return false;');
-                        // Also set onclick property directly
-                        $closeBtn[0].onclick = function() {
-                            window.location.href = window.location.href;
-                            return false;
-                        };
+                        $closeBtn.attr('onclick', 'window.location.reload(); return false;');
+                        // Also set onclick property directly - this takes priority
+                        const closeBtnElement = $closeBtn[0];
+                        if (closeBtnElement) {
+                            closeBtnElement.onclick = function(e) {
+                                if (e) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    e.stopImmediatePropagation();
+                                }
+                                window.location.reload();
+                                return false;
+                            };
+                        }
                     }
                 }
                 
@@ -2012,8 +2025,9 @@
         // Event handlers (UPDATED to delegate conversation management)
         // IMPORTANT: Close modal handler must be FIRST to prevent other handlers from firing
         $(document)
-            // CLOSE MODAL HANDLER - Now it's a link, so just let it navigate naturally
-            // Don't prevent default - let the link work!
+            // CLOSE MODAL HANDLER - Remove any handlers that might interfere with the link
+            // The close button is now a link with onclick, so we don't need delegated handlers
+            $(document).off('click.modalClose', '.close-modal');
             // Modal overlay click handler
             .on('click.modalClose', '#png-modal', function(e) {
                 // Only close if clicking the overlay itself, not content inside
