@@ -1634,8 +1634,9 @@ body .png-card .png-card-buttons,
     gap: 10px;
   }
   
-  /* Tags - fully visible, prevent squishing */
-  body .png-cards .png-card .png-card-tags {
+  /* Tags - fully visible, prevent squishing, NO box styling on mobile */
+  body .png-cards .png-card .png-card-tags,
+  body .png-cards .png-card .png-card-info .png-card-tags {
     display: block;
     flex-shrink: 0;
     min-height: 80px;
@@ -1646,6 +1647,9 @@ body .png-card .png-card-buttons,
     margin-bottom: 24px;
     line-height: 1.8;
     box-sizing: border-box;
+    background: transparent;
+    border: none;
+    border-radius: 0;
   }
   
   /* Description - prevent squishing */
