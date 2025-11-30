@@ -27,21 +27,29 @@
         // Ensure modal HTML exists for character details
         function ensureModalExists() {
             if ($('#png-modal').length === 0) {
+                const currentUrl = window.location.href;
                 $('body').append(`
                     <div id="png-modal" class="png-modal" style="display: none;">
                         <div class="png-modal-content">
                             <div id="modal-content">
                                 <!-- Modal content will be inserted here -->
                             </div>
-                            <button class="close-modal" onclick="window.location.reload(); return false;">&times;</button>
+                            <a href="${currentUrl}" class="close-modal" style="text-decoration: none; color: inherit; cursor: pointer;">&times;</a>
                         </div>
                     </div>
                 `);
             } else {
-                // If modal exists, ensure close button has inline onclick
+                // If modal exists, ensure close button is a link
                 const $closeBtn = $('#png-modal .close-modal');
-                if ($closeBtn.length) {
-                    $closeBtn.attr('onclick', 'window.location.reload(); return false;');
+                if ($closeBtn.length && $closeBtn.is('button')) {
+                    const currentUrl = window.location.href;
+                    const $newBtn = $('<a>').attr('href', currentUrl)
+                        .attr('class', 'close-modal')
+                        .css({'text-decoration': 'none', 'color': 'inherit', 'cursor': 'pointer'})
+                        .html('&times;');
+                    $closeBtn.replaceWith($newBtn);
+                } else if ($closeBtn.length) {
+                    $closeBtn.attr('href', window.location.href);
                 }
             }
 
@@ -1372,16 +1380,21 @@
                 ensureModalExists();
                 $('#modal-content').html(modalHtml);
                 
-                // CRITICAL: Force inline onclick on close button - can't be overridden
+                // CRITICAL: Make sure close button is a link that reloads the page
                 const $closeBtn = $('#png-modal .close-modal');
                 if ($closeBtn.length) {
-                    // Set inline onclick - this takes priority over all other handlers
-                    $closeBtn.attr('onclick', 'window.location.reload(); return false;');
-                    // Also set onclick property directly
-                    $closeBtn[0].onclick = function() {
-                        window.location.reload();
-                        return false;
-                    };
+                    const currentUrl = window.location.href;
+                    // Convert to link if it's a button
+                    if ($closeBtn.is('button')) {
+                        const $newBtn = $('<a>').attr('href', currentUrl)
+                            .attr('class', 'close-modal')
+                            .css({'text-decoration': 'none', 'color': 'inherit', 'cursor': 'pointer', 'display': 'inline-block'})
+                            .html('&times;');
+                        $closeBtn.replaceWith($newBtn);
+                    } else {
+                        // Ensure href is set to current URL
+                        $closeBtn.attr('href', currentUrl);
+                    }
                 }
                 
                 $('#png-modal').show();
@@ -1967,14 +1980,8 @@
         // Event handlers (UPDATED to delegate conversation management)
         // IMPORTANT: Close modal handler must be FIRST to prevent other handlers from firing
         $(document)
-            // CLOSE MODAL HANDLER - Inline onclick is set, but keep this as backup
-            .on('click.modalClose', '.close-modal', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-                window.location.reload();
-                return false;
-            })
+            // CLOSE MODAL HANDLER - Now it's a link, so just let it navigate naturally
+            // Don't prevent default - let the link work!
             // Modal overlay click handler
             .on('click.modalClose', '#png-modal', function(e) {
                 // Only close if clicking the overlay itself, not content inside
