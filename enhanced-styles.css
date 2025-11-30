@@ -1641,13 +1641,13 @@ body .png-card .png-card-buttons,
     height: 500px !important;
     min-height: 500px !important;
     max-height: 500px !important;
-    overflow-y: auto !important; /* Make card scrollable so tags can be accessed */
-    overflow-x: hidden !important;
+    overflow: hidden !important; /* Card itself doesn't scroll */
     display: flex !important;
     flex-direction: column !important;
     background: #2a2a2a !important;
     border: 1px solid #404040 !important;
     border-radius: 12px !important;
+    position: relative !important; /* For absolute positioning of buttons */
   }
   
   body .png-cards .png-card .png-image-container {
@@ -1674,16 +1674,19 @@ body .png-card .png-card-buttons,
     transition: none !important;
   }
   
-  /* Adjust info area to fit remaining space - limit height so buttons stay at bottom */
+  /* Adjust info area - make it scrollable, limit height so buttons stay at bottom */
   body .png-cards .png-card .png-card-info {
-    flex: 0 1 auto !important; /* Changed from flex: 1 to prevent expansion */
-    height: auto !important;
-    max-height: calc(500px - 180px - 80px) !important; /* Card height - image - buttons */
-    overflow: visible !important;
+    flex: 1 1 auto !important;
+    height: calc(500px - 180px - 70px) !important; /* Card height (500px) - image (180px) - buttons (~70px) */
+    max-height: calc(500px - 180px - 70px) !important;
+    overflow-y: auto !important; /* Make info section scrollable instead of entire card */
+    overflow-x: hidden !important;
     padding: 12px !important;
+    padding-bottom: 80px !important; /* Space for buttons */
     display: flex !important;
     flex-direction: column !important;
     min-height: 0 !important;
+    -webkit-overflow-scrolling: touch !important; /* Smooth scrolling on iOS */
   }
   
   /* FIX: Ensure tags are visible on mobile */
@@ -1709,17 +1712,26 @@ body .png-card .png-card-buttons,
     overflow-y: auto !important;
   }
   
-  /* Ensure buttons stay at bottom - use position sticky to keep them visible */
+  /* Ensure buttons stay at bottom of visible card - remove margin-top: auto, use fixed positioning */
   body .png-cards .png-card .png-card-buttons {
     flex-shrink: 0 !important;
     flex-grow: 0 !important;
-    margin-top: auto !important;
+    margin-top: 0 !important; /* Remove auto margin */
     padding: 12px !important;
-    position: sticky !important;
+    position: absolute !important; /* Use absolute positioning */
     bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
     background: #2a2a2a !important;
     z-index: 10 !important;
     border-top: 1px solid #404040 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Add padding to card-info to prevent content from being hidden behind buttons */
+  body .png-cards .png-card .png-card-info {
+    padding-bottom: 80px !important; /* Space for buttons */
   }
 }
 
@@ -2515,13 +2527,22 @@ html body div.png-cards div.png-card div.png-card-description {
 /* ===== FINAL MOBILE TAGS FIX - Make cards scrollable ===== */
 /* This rule must be at the very end to override all other conflicting rules */
 @media screen and (max-width: 480px) {
-  /* Make the card itself scrollable so users can scroll to see tags */
+  /* Card doesn't scroll - only the info section scrolls */
   html body .png-cards .png-card,
   body .png-cards .png-card,
   .png-cards .png-card {
-    overflow-y: auto !important; /* Enable vertical scrolling on card */
+    overflow: hidden !important; /* Card itself doesn't scroll */
+    position: relative !important; /* For absolute positioning of buttons */
+  }
+  
+  /* Make the card-info section scrollable instead */
+  html body .png-cards .png-card .png-card-info,
+  body .png-cards .png-card .png-card-info,
+  .png-cards .png-card .png-card-info {
+    overflow-y: auto !important; /* Info section scrolls */
     overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch !important; /* Smooth scrolling on iOS */
+    padding-bottom: 80px !important; /* Space for fixed buttons */
   }
   
   /* Ensure tags are visible and not compressed */
@@ -2541,13 +2562,32 @@ html body div.png-cards div.png-card div.png-card-description {
   html body .png-cards .png-card .png-card-buttons,
   body .png-cards .png-card .png-card-buttons,
   .png-cards .png-card .png-card-buttons {
-    position: sticky !important;
+    position: absolute !important; /* Use absolute to fix at bottom */
     bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
     background: #2a2a2a !important;
     z-index: 10 !important;
     border-top: 1px solid #404040 !important;
     flex-shrink: 0 !important;
     flex-grow: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin-top: 0 !important; /* Remove auto margin */
+  }
+  
+  /* Ensure card has relative positioning for absolute buttons */
+  html body .png-cards .png-card,
+  body .png-cards .png-card,
+  .png-cards .png-card {
+    position: relative !important; /* Needed for absolute positioning of buttons */
+  }
+  
+  /* Add padding to card-info to prevent content from being hidden behind buttons */
+  html body .png-cards .png-card .png-card-info,
+  body .png-cards .png-card .png-card-info,
+  .png-cards .png-card .png-card-info {
+    padding-bottom: 80px !important; /* Space for buttons */
   }
 }
 
