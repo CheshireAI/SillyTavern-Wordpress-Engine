@@ -2044,10 +2044,11 @@
 
         // Event handlers (UPDATED to delegate conversation management)
         // IMPORTANT: Close modal handler must be FIRST to prevent other handlers from firing
+        // CLOSE MODAL HANDLER - Remove any handlers that might interfere with the link
+        // The close button is now a link with onclick, so we don't need delegated handlers
+        $(document).off('click.modalClose', '.close-modal');
+        
         $(document)
-            // CLOSE MODAL HANDLER - Remove any handlers that might interfere with the link
-            // The close button is now a link with onclick, so we don't need delegated handlers
-            $(document).off('click.modalClose', '.close-modal');
             // Modal overlay click handler
             .on('click.modalClose', '#png-modal', function(e) {
                 // Only close if clicking the overlay itself, not content inside
@@ -2072,7 +2073,11 @@
                 }
             })
             // Chat button handler - works from grid or modal
+            // NOTE: Grid helper triggers 'pmv_start_chat' event, so we handle that instead
+            // This direct handler is for buttons in the modal
             .on('click', '.png-chat-button, button[data-metadata]', function(e) {
+                console.log('Chat button direct click handler fired');
+                
                 // Skip if modal is closing
                 if (chatState.modalClosing) {
                     console.log('Chat handler: Skipping because modal is closing');
@@ -2095,6 +2100,14 @@
                     return false;
                 }
                 
+                // Only handle if this is from the modal (grid helper handles grid buttons)
+                const $modal = $(this).closest('#png-modal');
+                if (!$modal.length) {
+                    // This is from the grid, let grid-helper handle it via event
+                    console.log('Chat button from grid - letting grid-helper handle via pmv_start_chat event');
+                    return; // Don't prevent default, let grid-helper handle it
+                }
+                
                 e.preventDefault();
                 e.stopPropagation();
                 
@@ -2107,28 +2120,20 @@
                     metadata = $btn.attr('data-metadata') || $btn.closest('[data-metadata]').attr('data-metadata');
                 }
                 
-                // Also try getting from closest card
-                if (!metadata) {
-                    const $card = $btn.closest('.png-card, [data-metadata]');
-                    if ($card.length) {
-                        metadata = $card.data('metadata') || $card.attr('data-metadata');
-                    }
-                }
-                
-                console.log('Chat button clicked, metadata:', metadata);
+                console.log('Chat button clicked in modal, metadata:', metadata);
                 
                 if (metadata) {
                     // Close modal if it's open before starting chat
-                    const $modal = $('#png-modal');
                     if ($modal.length && $modal.is(':visible')) {
                         $modal.hide();
                     }
                     startFullScreenChat(metadata);
                 } else {
-                    console.error('No metadata found for chat button');
+                    console.error('No metadata found for chat button in modal');
                 }
             })
             .on('pmv_start_chat', function(e, metadata, fileUrl) {
+                console.log('pmv_start_chat event received:', metadata, fileUrl);
                 if (metadata) {
                     // Decode if URL encoded
                     try {
@@ -2138,7 +2143,10 @@
                     } catch (err) {
                         console.warn('Failed to decode metadata:', err);
                     }
+                    console.log('Starting fullscreen chat with metadata:', metadata);
                     startFullScreenChat(metadata, fileUrl);
+                } else {
+                    console.error('pmv_start_chat event received but no metadata provided');
                 }
             })
             .on('click', '#image-gen-btn, .image-gen-btn', function(e) {
