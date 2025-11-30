@@ -33,10 +33,16 @@
                             <div id="modal-content">
                                 <!-- Modal content will be inserted here -->
                             </div>
-                            <button class="close-modal">&times;</button>
+                            <button class="close-modal" onclick="window.location.reload(); return false;">&times;</button>
                         </div>
                     </div>
                 `);
+            } else {
+                // If modal exists, ensure close button has inline onclick
+                const $closeBtn = $('#png-modal .close-modal');
+                if ($closeBtn.length) {
+                    $closeBtn.attr('onclick', 'window.location.reload(); return false;');
+                }
             }
 
             // Add FULL SCREEN CSS
@@ -1366,18 +1372,13 @@
                 ensureModalExists();
                 $('#modal-content').html(modalHtml);
                 
-                // CRITICAL: Attach close handler directly to the button immediately
-                // Remove any existing handlers first to prevent duplicates
+                // CRITICAL: Force inline onclick on close button - can't be overridden
                 const $closeBtn = $('#png-modal .close-modal');
-                const closeBtnElement = $closeBtn[0];
-                
-                if (closeBtnElement) {
-                    // Remove all existing handlers by cloning
-                    const newCloseBtn = closeBtnElement.cloneNode(true);
-                    closeBtnElement.parentNode.replaceChild(newCloseBtn, closeBtnElement);
-                    
-                    // SIMPLE: Just reload the page on any click
-                    newCloseBtn.onclick = function() {
+                if ($closeBtn.length) {
+                    // Set inline onclick - this takes priority over all other handlers
+                    $closeBtn.attr('onclick', 'window.location.reload(); return false;');
+                    // Also set onclick property directly
+                    $closeBtn[0].onclick = function() {
                         window.location.reload();
                         return false;
                     };
@@ -1966,10 +1967,11 @@
         // Event handlers (UPDATED to delegate conversation management)
         // IMPORTANT: Close modal handler must be FIRST to prevent other handlers from firing
         $(document)
-            // CLOSE MODAL HANDLER - SIMPLE: Just reload page
+            // CLOSE MODAL HANDLER - Inline onclick is set, but keep this as backup
             .on('click.modalClose', '.close-modal', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
+                e.stopImmediatePropagation();
                 window.location.reload();
                 return false;
             })
