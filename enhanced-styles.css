@@ -1426,36 +1426,38 @@ body .png-card .png-card-buttons,
   box-sizing: border-box !important;
 }
 
-/* Desktop tag styles - using proper specificity */
-.png-card .png-card-info .png-card-tags {
-  font-size: clamp(10px, 1.2vw, 12px);
-  color: #888;
-  margin: 10px 0;
-  padding: 12px;
-  background: #1a1a1a;
-  border-radius: 8px;
-  border: 1px solid #404040;
-  overflow-y: auto;
-  overflow-x: hidden;
-  word-wrap: break-word;
-  white-space: normal;
-  line-height: 1.5;
-  height: auto;
-  min-height: auto;
-  max-height: none;
-  display: block;
-  hyphens: auto;
-  overflow-wrap: break-word;
-  text-align: left;
-  flex-shrink: 0;
-  box-sizing: border-box;
-}
+/* Desktop tag styles - using proper specificity, scoped to desktop only */
+@media (min-width: 481px) {
+  .png-card .png-card-info .png-card-tags {
+    font-size: clamp(10px, 1.2vw, 12px);
+    color: #888;
+    margin: 10px 0;
+    padding: 12px;
+    background: #1a1a1a;
+    border-radius: 8px;
+    border: 1px solid #404040;
+    overflow-y: auto;
+    overflow-x: hidden;
+    word-wrap: break-word;
+    white-space: normal;
+    line-height: 1.5;
+    height: auto;
+    min-height: auto;
+    max-height: none;
+    display: block;
+    hyphens: auto;
+    overflow-wrap: break-word;
+    text-align: left;
+    flex-shrink: 0;
+    box-sizing: border-box;
+  }
 
-.png-card .png-card-info .png-card-tags::before {
-  content: "Tags: ";
-  font-weight: 600;
-  color: #f0f0f0;
-  display: inline;
+  .png-card .png-card-info .png-card-tags::before {
+    content: "Tags: ";
+    font-weight: 600;
+    color: #f0f0f0;
+    display: inline;
+  }
 }
 
 /* OVERRIDE ALL PREVIOUS BUTTON CONTAINER STYLES */
