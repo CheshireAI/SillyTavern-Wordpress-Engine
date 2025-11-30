@@ -1587,19 +1587,35 @@ body .png-card .png-card-buttons,
 /* This section must be at the very end to override all other rules */
 
 @media screen and (max-width: 480px) {
-  /* Grid - cards size to content */
+  /* Grid - cards size to content, prevent overlapping */
   body .png-cards {
     grid-auto-rows: min-content;
     gap: 20px;
+    display: grid;
+    grid-template-columns: 1fr;
+    position: relative;
+    z-index: 0;
   }
   
-  /* Card structure - flexible height, prevent squishing */
+  /* Card structure - flexible height, prevent squishing, prevent overlapping */
   body .png-cards .png-card {
     overflow: hidden;
     position: relative;
     height: auto;
     min-height: 600px;
     max-height: 90vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    z-index: 1;
+    isolation: isolate;
+    background: #2a2a2a;
+    border: 1px solid #404040;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-sizing: border-box;
+    touch-action: pan-y;
+    pointer-events: auto;
   }
   
   /* Card info - scrollable with enough padding, flexible height, prevent squishing */
