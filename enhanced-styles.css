@@ -734,20 +734,20 @@ body.pmv-debug-mode::before {
 @media (max-width: 480px) {
   .png-cards {
     grid-template-columns: 1fr !important;
-    grid-auto-rows: 700px !important; /* Increased from 650px to allow scrolling to bottom */
+    grid-auto-rows: 650px !important;
     gap: 15px !important;
     padding: 0 10px 40px 10px !important;
   }
   .png-card {
-    height: 700px !important; /* Increased from 650px to allow scrolling to bottom */
-    min-height: 700px !important;
-    max-height: 700px !important;
+    height: 650px !important;
+    min-height: 650px !important;
+    max-height: 650px !important;
     overflow-y: auto !important; /* Make card scrollable */
     overflow-x: hidden !important;
   }
   .png-card-info {
-    height: calc(700px - 250px) !important;
-    max-height: calc(700px - 250px) !important;
+    height: calc(650px - 250px) !important;
+    max-height: calc(650px - 250px) !important;
   }
 }
 
@@ -1601,10 +1601,10 @@ body .png-card .png-card-buttons,
     transform: none !important; /* Disable any transforms that might affect sizing */
   }
   
-  /* Ensure card height accommodates larger image area - taller to reduce scrolling */
+  /* Ensure card height accommodates larger image area */
   .png-cards .png-card {
     height: auto !important;
-    min-height: 700px !important; /* Increased from 650px to allow scrolling to bottom */
+    min-height: 650px !important;
     max-height: none !important;
   }
 }
@@ -1637,11 +1637,11 @@ body .png-card .png-card-buttons,
 /* This section must be at the very end to override all other rules */
 
 @media screen and (max-width: 480px) {
-  /* Force proper card layout on mobile with contained images - taller to reduce scrolling */
+  /* Force proper card layout on mobile with contained images */
   body .png-cards .png-card {
-    height: 700px !important; /* Increased from 650px to allow scrolling to bottom of tags */
-    min-height: 700px !important;
-    max-height: 700px !important;
+    height: 650px !important;
+    min-height: 650px !important;
+    max-height: 650px !important;
     overflow: hidden !important; /* Card itself doesn't scroll */
     display: flex !important;
     flex-direction: column !important;
@@ -1675,16 +1675,15 @@ body .png-card .png-card-buttons,
     transition: none !important;
   }
   
-  /* Adjust info area - make it scrollable, limit height so buttons stay at bottom */
+  /* Adjust info area - make it scrollable, buttons are absolutely positioned so they don't take flex space */
   body .png-cards .png-card .png-card-info {
-    flex: 0 1 auto !important; /* Changed from flex: 1 to prevent expansion */
-    height: calc(700px - 180px - 70px) !important; /* Card height (700px) - image (180px) - buttons (~70px) */
-    max-height: calc(700px - 180px - 70px) !important;
-    min-height: calc(700px - 180px - 70px) !important; /* Ensure minimum height */
+    flex: 1 1 auto !important;
+    height: calc(650px - 180px) !important; /* Card height (650px) - image (180px), buttons are absolute so don't subtract */
+    max-height: calc(650px - 180px) !important;
     overflow-y: auto !important; /* Make info section scrollable - this is the only scrollbar */
     overflow-x: hidden !important;
     padding: 12px !important;
-    padding-bottom: 100px !important; /* Increased from 80px to ensure tags are fully scrollable */
+    padding-bottom: 90px !important; /* Space for absolutely positioned buttons at bottom */
     display: flex !important;
     flex-direction: column !important;
     -webkit-overflow-scrolling: touch !important; /* Smooth scrolling on iOS */
@@ -1717,8 +1716,6 @@ body .png-card .png-card-buttons,
   
   /* Ensure buttons stay fixed at bottom of card */
   body .png-cards .png-card .png-card-buttons {
-    flex-shrink: 0 !important;
-    flex-grow: 0 !important;
     position: absolute !important; /* Fixed at bottom */
     bottom: 0 !important;
     left: 0 !important;
@@ -1730,6 +1727,8 @@ body .png-card .png-card-buttons,
     width: 100% !important;
     box-sizing: border-box !important;
     margin: 0 !important;
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
   }
 }
 
@@ -2540,7 +2539,7 @@ html body div.png-cards div.png-card div.png-card-description {
     overflow-y: auto !important; /* Info section scrolls */
     overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch !important; /* Smooth scrolling on iOS */
-    padding-bottom: 100px !important; /* Increased from 80px to ensure tags are fully scrollable */
+    padding-bottom: 90px !important; /* Space for fixed buttons */
   }
   
   /* Ensure tags are visible and not compressed with better spacing - ensure bottom is fully visible */
