@@ -20,7 +20,8 @@
             characterData: null,
             characterId: null,
             originalBodyContent: null,
-            sidebarOpen: true
+            sidebarOpen: true,
+            modalClosing: false // Flag to prevent chat from starting while modal is closing
         };
 
         // Ensure modal HTML exists for character details
@@ -1339,6 +1340,22 @@
 
                 ensureModalExists();
                 $('#modal-content').html(modalHtml);
+                
+                // CRITICAL: Attach close handler directly to the button immediately
+                // Remove any existing handlers first to prevent duplicates
+                $('#png-modal .close-modal').off('click.modalClose click');
+                $('#png-modal .close-modal').on('click.modalClose', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    
+                    console.log('Close button clicked (direct handler) - closing modal');
+                    
+                    // Close the modal immediately
+                    closeModalProperly($('#png-modal'));
+                    return false;
+                });
+                
                 $('#png-modal').show();
 
                 // FIXED: Proper modal height calculation to prevent card cutoff
@@ -1916,27 +1933,37 @@
 
         // Helper function to properly close modal
         function closeModalProperly($modal) {
+            // Set flag to prevent chat from starting
+            chatState.modalClosing = true;
+            
+            // Prevent any further clicks
+            $modal.css('pointer-events', 'none');
+            
             // Clear modal content first to prevent any button clicks
             $('#modal-content').empty();
             
-            // Hide the modal with animation
-            $modal.fadeOut(300, function() {
-                $(this).hide();
-                
-                // Reset all chat-related state
-                chatState.characterData = null;
-                chatState.characterId = null;
-                
-                // Ensure chat mode is not active
-                if (chatState.chatModeActive) {
-                    chatState.chatModeActive = false;
-                }
-                
-                // Remove body class if it exists
-                $('body').removeClass('chat-modal-open');
-                
-                console.log('Modal closed and state reset');
-            });
+            // Hide the modal immediately (no animation to prevent double-click)
+            $modal.hide();
+            
+            // Reset all chat-related state
+            chatState.characterData = null;
+            chatState.characterId = null;
+            
+            // Ensure chat mode is not active
+            if (chatState.chatModeActive) {
+                chatState.chatModeActive = false;
+            }
+            
+            // Remove body class if it exists
+            $('body').removeClass('chat-modal-open');
+            
+            // Re-enable pointer events and reset flag after a short delay
+            setTimeout(function() {
+                $modal.css('pointer-events', '');
+                chatState.modalClosing = false;
+            }, 300);
+            
+            console.log('Modal closed and state reset');
         }
 
         // Event handlers (UPDATED to delegate conversation management)
@@ -1944,11 +1971,14 @@
         $(document)
             // CLOSE MODAL HANDLER - MUST BE FIRST with highest priority
             .on('click.modalClose', '.close-modal', function(e) {
+                // Set flag immediately to prevent any other handlers
+                chatState.modalClosing = true;
+                
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation(); // Stop ALL other handlers
                 
-                console.log('Close button clicked - stopping all propagation');
+                console.log('Close button clicked (delegated handler) - stopping all propagation');
                 
                 // Properly close the modal
                 const $modal = $('#png-modal');
@@ -2002,6 +2032,12 @@
             })
             // Chat button handler - MUST check it's NOT the close button
             .on('click', '.png-chat-button, button[data-metadata]', function(e) {
+                // Skip if modal is closing
+                if (chatState.modalClosing) {
+                    console.log('Chat handler: Skipping because modal is closing');
+                    return false;
+                }
+                
                 // Skip if this is the close button or if close button was clicked
                 const $target = $(e.target);
                 const $button = $(this);
