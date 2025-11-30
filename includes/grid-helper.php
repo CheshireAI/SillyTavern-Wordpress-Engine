@@ -60,13 +60,38 @@ function pmv_add_simple_grid_css() {
     /* Grid Layout */
     .png-cards {
         display: grid !important;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important; /* REDUCED from 240px to allow more cards per row */
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important; /* Base mobile-friendly size */
         gap: 15px !important;
         padding: 20px !important;
         background: #1a1a1a !important;
     }
     
-    /* Responsive */
+    /* Desktop improvements - larger cards and spacing */
+    @media (min-width: 1025px) {
+        .png-cards {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+            gap: 24px !important;
+            padding: 24px !important;
+        }
+    }
+    
+    @media (min-width: 1400px) {
+        .png-cards {
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+            gap: 28px !important;
+            padding: 28px !important;
+        }
+    }
+    
+    @media (min-width: 1920px) {
+        .png-cards {
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)) !important;
+            gap: 32px !important;
+            padding: 32px !important;
+        }
+    }
+    
+    /* Responsive - Mobile stays single column */
     @media (max-width: 768px) {
         .png-cards { grid-template-columns: 1fr !important; }
     }

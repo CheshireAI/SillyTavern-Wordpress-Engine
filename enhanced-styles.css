@@ -1214,25 +1214,27 @@ body .png-card .png-card-buttons,
 
 @media (min-width: 1025px) and (max-width: 1400px) {
   .png-cards {
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important; /* Reduced for more cards */
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important; /* Larger cards for better desktop display */
     grid-auto-rows: var(--card-height) !important;
-    gap: 20px !important;
+    gap: 24px !important;
   }
 }
 
 @media (min-width: 1401px) and (max-width: 1800px) {
   .png-cards {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)) !important; /* FURTHER REDUCED for more cards */
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important; /* Even larger cards for wide screens */
     grid-auto-rows: var(--card-height) !important;
-    gap: 22px !important;
+    gap: 28px !important;
+    max-width: 2400px !important;
   }
 }
 
 @media (min-width: 1801px) {
   .png-cards {
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important; /* REDUCED to allow more cards per row */
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)) !important; /* Largest cards for ultra-wide displays */
     grid-auto-rows: var(--card-height) !important;
-    gap: 24px !important;
+    gap: 32px !important;
+    max-width: 2600px !important;
   }
 }
 
@@ -1304,12 +1306,12 @@ body .png-card .png-card-buttons,
 /* OVERRIDE ALL PREVIOUS CARD DEFINITIONS */
 .png-cards {
   display: grid !important;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important; /* REDUCED from 240px to allow more cards per row */
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important; /* Base mobile-friendly size */
   grid-auto-rows: var(--card-height) !important;
-  gap: 15px !important; /* REDUCED gap to fit more cards */
+  gap: 15px !important; /* Base gap for mobile/tablet */
   padding: 20px !important;
   margin: 0 auto !important;
-  max-width: 2000px !important; /* INCREASED max-width for wider displays */
+  max-width: 2000px !important; /* Base max-width */
   background-color: #1a1a1a !important;
   min-height: 400px !important;
   align-items: start !important;
@@ -1538,8 +1540,28 @@ body .png-card .png-card-buttons,
 
 @media (min-width: 1025px) {
   .png-cards {
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
-    gap: 20px !important;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+    gap: 24px !important;
+    padding: 24px !important;
+  }
+}
+
+/* Enhanced desktop layout for larger screens */
+@media (min-width: 1400px) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+    gap: 28px !important;
+    padding: 28px !important;
+    max-width: 2400px !important;
+  }
+}
+
+/* Ultra-wide desktop layout */
+@media (min-width: 1920px) {
+  .png-cards {
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)) !important;
+    gap: 32px !important;
+    padding: 32px !important;
   }
 }
 
