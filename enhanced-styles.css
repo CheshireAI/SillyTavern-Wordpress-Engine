@@ -1428,7 +1428,7 @@ body .png-card .png-card-buttons,
 
 /* Desktop tag styles - using proper specificity, scoped to desktop only */
 @media (min-width: 481px) {
-  .png-card .png-card-info .png-card-tags {
+  body .png-cards .png-card .png-card-info .png-card-tags {
     font-size: clamp(10px, 1.2vw, 12px);
     color: #888;
     margin: 10px 0;
@@ -1452,7 +1452,7 @@ body .png-card .png-card-buttons,
     box-sizing: border-box;
   }
 
-  .png-card .png-card-info .png-card-tags::before {
+  body .png-cards .png-card .png-card-info .png-card-tags::before {
     content: "Tags: ";
     font-weight: 600;
     color: #f0f0f0;
