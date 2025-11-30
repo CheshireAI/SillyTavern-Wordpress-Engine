@@ -34,48 +34,75 @@
                             <div id="modal-content">
                                 <!-- Modal content will be inserted here -->
                             </div>
-                            <a href="${currentUrl}" class="close-modal" onclick="localStorage.removeItem('pmv_conversation_state'); sessionStorage.clear(); window.location.replace(window.location.href); return false;" style="text-decoration: none; color: inherit; cursor: pointer;">&times;</a>
+                            <a href="${currentUrl}" class="close-modal" style="text-decoration: none; color: inherit; cursor: pointer;">&times;</a>
                         </div>
                     </div>
                 `);
-            } else {
-                // If modal exists, ensure close button is a link with onclick
+                
+                // Set up close button immediately after creating modal
                 const $closeBtn = $('#png-modal .close-modal');
-                if ($closeBtn.length) {
-                    const currentUrl = window.location.href;
-                    if ($closeBtn.is('button')) {
-                        const $newBtn = $('<a>').attr('href', currentUrl)
-                            .attr('class', 'close-modal')
-                            .attr('onclick', 'window.location.reload(); return false;')
-                            .css({'text-decoration': 'none', 'color': 'inherit', 'cursor': 'pointer'})
-                            .html('&times;');
-                        $closeBtn.replaceWith($newBtn);
-                    } else {
-                        $closeBtn.attr('href', currentUrl);
-                        $closeBtn.attr('onclick', 'localStorage.removeItem("pmv_conversation_state"); sessionStorage.clear(); window.location.replace(window.location.href); return false;');
-                        // Also set onclick property directly - FORCE RELOAD
-                        const closeBtnElement = $closeBtn[0];
-                        if (closeBtnElement) {
-                            closeBtnElement.onclick = function(e) {
-                                if (e) {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    e.stopImmediatePropagation();
-                                }
-                                // Clear any stored state before reload
-                                try { localStorage.removeItem('pmv_conversation_state'); } catch(e) {}
-                                try { sessionStorage.clear(); } catch(e) {}
-                                // FORCE RELOAD
-                                window.location.replace(window.location.href);
-                                return false;
-                            };
-                        }
-                    }
+                if ($closeBtn.length && $closeBtn[0]) {
+                    setupCloseButton($closeBtn[0]);
+                }
+            } else {
+                // If modal exists, ensure close button is set up
+                const $closeBtn = $('#png-modal .close-modal');
+                if ($closeBtn.length && $closeBtn[0]) {
+                    setupCloseButton($closeBtn[0]);
                 }
             }
 
             // Add FULL SCREEN CSS
             addFullScreenCSS();
+        }
+        
+        // Helper function to set up close button with aggressive reload
+        function setupCloseButton(closeBtnElement) {
+            if (!closeBtnElement) return;
+            
+            const currentUrl = window.location.href;
+            
+            // Remove ALL existing handlers by cloning
+            const newCloseBtn = closeBtnElement.cloneNode(true);
+            closeBtnElement.parentNode.replaceChild(newCloseBtn, closeBtnElement);
+            
+            // Set href
+            $(newCloseBtn).attr('href', currentUrl);
+            
+            // Set onclick property - fires FIRST
+            newCloseBtn.onclick = function(e) {
+                if (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                }
+                try { localStorage.removeItem('pmv_conversation_state'); } catch(e) {}
+                try { sessionStorage.clear(); } catch(e) {}
+                window.location.replace(window.location.href);
+                return false;
+            };
+            
+            // Add mousedown in capture phase - fires BEFORE click
+            newCloseBtn.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                try { localStorage.removeItem('pmv_conversation_state'); } catch(e) {}
+                try { sessionStorage.clear(); } catch(e) {}
+                window.location.replace(window.location.href);
+                return false;
+            }, true);
+            
+            // Add click in capture phase as backup
+            newCloseBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                try { localStorage.removeItem('pmv_conversation_state'); } catch(e) {}
+                try { sessionStorage.clear(); } catch(e) {}
+                window.location.replace(window.location.href);
+                return false;
+            }, true);
         }
 
         // Add FULL SCREEN CSS (keep existing CSS - it's good)
@@ -1424,48 +1451,8 @@
                 
                 // CRITICAL: Make sure close button FORCES page reload on first click
                 const $closeBtn = $('#png-modal .close-modal');
-                if ($closeBtn.length) {
-                    const currentUrl = window.location.href;
-                    const closeBtnElement = $closeBtn[0];
-                    
-                    // Remove ALL existing event listeners by cloning
-                    if (closeBtnElement) {
-                        const newCloseBtn = closeBtnElement.cloneNode(true);
-                        closeBtnElement.parentNode.replaceChild(newCloseBtn, closeBtnElement);
-                        const $newCloseBtn = $(newCloseBtn);
-                        
-                        // Set href
-                        $newCloseBtn.attr('href', currentUrl);
-                        
-                        // Set inline onclick attribute
-                        $newCloseBtn.attr('onclick', 'localStorage.removeItem("pmv_conversation_state"); sessionStorage.clear(); window.location.replace(window.location.href); return false;');
-                        
-                        // Set onclick property directly - fires FIRST
-                        newCloseBtn.onclick = function(e) {
-                            if (e) {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                e.stopImmediatePropagation();
-                            }
-                            // Clear any stored state before reload
-                            try { localStorage.removeItem('pmv_conversation_state'); } catch(e) {}
-                            try { sessionStorage.clear(); } catch(e) {}
-                            // FORCE RELOAD - use replace to bypass cache
-                            window.location.replace(window.location.href);
-                            return false;
-                        };
-                        
-                        // Also add mousedown handler as backup - fires before click
-                        newCloseBtn.addEventListener('mousedown', function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            e.stopImmediatePropagation();
-                            try { localStorage.removeItem('pmv_conversation_state'); } catch(e) {}
-                            try { sessionStorage.clear(); } catch(e) {}
-                            window.location.replace(window.location.href);
-                            return false;
-                        }, true); // Capture phase
-                    }
+                if ($closeBtn.length && $closeBtn[0]) {
+                    setupCloseButton($closeBtn[0]);
                 }
                 
                 $('#png-modal').show();
