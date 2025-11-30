@@ -1683,7 +1683,7 @@ body .png-card .png-card-buttons,
     overflow-y: auto !important; /* Make info section scrollable - this is the only scrollbar */
     overflow-x: hidden !important;
     padding: 12px !important;
-    padding-bottom: 110px !important; /* Increased significantly to ensure bottom of tags is fully visible */
+    padding-bottom: 140px !important; /* Significantly increased to ensure bottom of tags is fully visible */
     display: flex !important;
     flex-direction: column !important;
     -webkit-overflow-scrolling: touch !important; /* Smooth scrolling on iOS */
@@ -1702,7 +1702,7 @@ body .png-card .png-card-buttons,
     padding: 12px !important;
     padding-bottom: 16px !important;
     margin: 8px 0 !important;
-    margin-bottom: 24px !important; /* Increased to ensure bottom is fully visible when scrolling */
+    margin-bottom: 30px !important; /* Significantly increased to ensure bottom is fully visible when scrolling */
     line-height: 1.8 !important;
     box-sizing: border-box !important;
   }
@@ -1714,7 +1714,7 @@ body .png-card .png-card-buttons,
     overflow: hidden !important; /* Prevent overflow, parent handles scrolling */
   }
   
-  /* Ensure buttons stay fixed at bottom of card and don't overlap cards below */
+  /* Ensure buttons stay fixed at bottom of card and are visible */
   body .png-cards .png-card .png-card-buttons {
     position: absolute !important; /* Fixed at bottom */
     bottom: 0 !important;
@@ -1722,7 +1722,7 @@ body .png-card .png-card-buttons,
     right: 0 !important;
     padding: 12px !important;
     background: #2a2a2a !important;
-    z-index: 1 !important; /* Lower z-index so it doesn't overlap cards below */
+    z-index: 5 !important; /* High enough to be visible, but contained within card */
     border-top: 1px solid #404040 !important;
     width: 100% !important;
     box-sizing: border-box !important;
@@ -1734,10 +1734,11 @@ body .png-card .png-card-buttons,
     gap: 8px !important;
   }
   
-  /* Ensure cards have proper stacking and don't allow buttons to overflow */
+  /* Ensure cards have proper stacking - buttons are contained within card */
   body .png-cards .png-card {
-    z-index: 0 !important; /* Ensure proper stacking */
-    isolation: isolate !important; /* Create new stacking context */
+    position: relative !important; /* Needed for absolute positioning of buttons */
+    z-index: auto !important; /* Let cards stack naturally */
+    overflow: hidden !important; /* Contain buttons within card boundaries */
   }
 }
 
@@ -2548,23 +2549,23 @@ html body div.png-cards div.png-card div.png-card-description {
     overflow-y: auto !important; /* Info section scrolls */
     overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch !important; /* Smooth scrolling on iOS */
-    padding-bottom: 110px !important; /* Increased to ensure bottom of tags is fully visible */
+    padding-bottom: 140px !important; /* Significantly increased to ensure bottom of tags is fully visible */
   }
   
-  /* Ensure cards don't allow buttons to overflow and overlap */
+  /* Ensure cards contain buttons properly */
   html body .png-cards .png-card,
   body .png-cards .png-card,
   .png-cards .png-card {
-    z-index: 0 !important;
-    isolation: isolate !important; /* Create new stacking context */
-    overflow: hidden !important; /* Prevent buttons from overlapping cards below */
+    position: relative !important; /* Needed for absolute positioning */
+    overflow: hidden !important; /* Contain buttons within card boundaries */
+    z-index: auto !important; /* Let cards stack naturally */
   }
   
-  /* Ensure buttons don't overlap cards below */
+  /* Ensure buttons are visible but contained within their card */
   html body .png-cards .png-card .png-card-buttons,
   body .png-cards .png-card .png-card-buttons,
   .png-cards .png-card .png-card-buttons {
-    z-index: 1 !important; /* Lower z-index so it doesn't overlap cards below */
+    z-index: 5 !important; /* High enough to be visible within card */
   }
   
   /* Ensure tags are visible and not compressed with better spacing - ensure bottom is fully visible */
