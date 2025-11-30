@@ -1106,7 +1106,7 @@ body .png-card .png-card-buttons,
   .png-card {
     height: auto !important;
     min-height: auto !important;
-    max-height: 90vh !important;
+    max-height: none !important; /* Remove max-height to allow full expansion */
     overflow: visible !important;
   }
   
@@ -1116,16 +1116,21 @@ body .png-card .png-card-buttons,
   
   .png-card-description {
     font-size: 13px !important;
-    max-height: 200px !important;
-    overflow-y: auto !important;
+    max-height: none !important; /* Remove max-height to show all content */
+    overflow-y: visible !important; /* Show all content */
+    overflow-x: hidden !important;
+    height: auto !important;
+    min-height: auto !important;
   }
   
   .png-card-tags {
-    font-size: 11px !important;
-    padding: 12px !important;
-    padding-bottom: 16px !important;
-    line-height: 1.8 !important;
-    margin-bottom: 12px !important;
+    font-size: 12px !important;
+    padding: 10px 0 !important;
+    line-height: 1.6 !important;
+    margin-bottom: 8px !important;
+    overflow: visible !important;
+    word-wrap: break-word !important;
+    white-space: normal !important;
   }
   
   .png-download-button,
@@ -1496,11 +1501,11 @@ body .png-card .png-card-buttons,
     padding: 15px !important;
   }
   
-  /* Card - Flexible height, prevent overflow */
+  /* Card - Flexible height, expand to fit content */
   .png-cards .png-card {
     height: auto !important;
     min-height: auto !important;
-    max-height: 90vh !important;
+    max-height: none !important; /* Remove max-height restriction to allow full expansion */
     overflow: visible !important;
     position: relative !important;
   }
@@ -1509,7 +1514,7 @@ body .png-card .png-card-buttons,
   .png-cards .png-card .png-image-container {
     height: auto !important;
     min-height: 200px !important;
-    max-height: 300px !important;
+    max-height: 350px !important; /* Slightly increased for better image display */
     overflow: visible !important;
     display: flex !important;
     align-items: center !important;
@@ -1532,27 +1537,38 @@ body .png-card .png-card-buttons,
     border-radius: 8px !important;
   }
   
-  /* Card info - Scrollable with proper spacing */
+  /* Card info - Expand to fit all content */
   .png-cards .png-card .png-card-info {
     flex: 1 1 auto !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    -webkit-overflow-scrolling: touch !important;
+    overflow: visible !important; /* Changed from auto to visible to show all content */
     padding: 15px !important;
     padding-bottom: 80px !important; /* Space for buttons */
     display: flex !important;
     flex-direction: column !important;
-    gap: 10px !important;
-    min-height: 200px !important;
+    gap: 12px !important; /* Increased gap for better spacing */
+    min-height: auto !important;
   }
   
-  /* Description - Scrollable with max height */
+  /* Description - Expand to fit content, scroll only if extremely long */
   .png-cards .png-card .png-card-description {
-    max-height: 200px !important;
-    overflow-y: auto !important;
+    max-height: none !important; /* Remove max-height to allow full expansion */
+    overflow-y: visible !important; /* Show all content */
     overflow-x: hidden !important;
     font-size: 13px !important;
     padding: 12px !important;
+    min-height: auto !important;
+    height: auto !important;
+  }
+  
+  /* Tags - Ensure full visibility */
+  .png-cards .png-card .png-card-tags {
+    overflow: visible !important;
+    font-size: 12px !important;
+    padding: 10px 0 !important;
+    margin: 0 !important;
+    line-height: 1.6 !important;
+    word-wrap: break-word !important;
+    white-space: normal !important;
   }
   
   /* Buttons - Fixed at bottom */
@@ -1636,12 +1652,12 @@ body .png-card .png-card-buttons,
     padding: 15px !important;
   }
   
-  /* Card - Flexible height */
+  /* Card - Flexible height, expand to fit all content */
   body .png-cards .png-card,
   html body .png-cards .png-card {
     height: auto !important;
     min-height: auto !important;
-    max-height: 90vh !important;
+    max-height: none !important; /* Remove max-height to allow full expansion */
     overflow: visible !important;
     position: relative !important;
   }
@@ -1651,29 +1667,44 @@ body .png-card .png-card-buttons,
   html body .png-cards .png-card .png-image-container {
     height: auto !important;
     min-height: 200px !important;
-    max-height: 300px !important;
+    max-height: 350px !important; /* Increased for better image display */
     flex: 0 0 auto !important;
   }
   
-  /* Card info - Scrollable */
+  /* Card info - Expand to show all content */
   body .png-cards .png-card .png-card-info,
   html body .png-cards .png-card .png-card-info {
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    -webkit-overflow-scrolling: touch !important;
+    overflow: visible !important; /* Changed to visible to show all content */
     padding: 15px !important;
     padding-bottom: 80px !important;
     flex: 1 1 auto !important;
-    min-height: 200px !important;
+    min-height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
   }
   
-  /* Description */
+  /* Description - Expand to fit content */
   body .png-cards .png-card .png-card-description,
   html body .png-cards .png-card .png-card-description {
-    max-height: 200px !important;
-    overflow-y: auto !important;
+    max-height: none !important; /* Remove max-height restriction */
+    overflow-y: visible !important; /* Show all content */
+    overflow-x: hidden !important;
     font-size: 13px !important;
     padding: 12px !important;
+    height: auto !important;
+    min-height: auto !important;
+  }
+  
+  /* Tags - Ensure full visibility */
+  body .png-cards .png-card .png-card-tags,
+  html body .png-cards .png-card .png-card-tags {
+    overflow: visible !important;
+    font-size: 12px !important;
+    padding: 10px 0 !important;
+    line-height: 1.6 !important;
+    word-wrap: break-word !important;
+    white-space: normal !important;
   }
   
   /* Buttons - Fixed at bottom */
