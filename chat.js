@@ -1372,47 +1372,15 @@
                 const closeBtnElement = $closeBtn[0];
                 
                 if (closeBtnElement) {
-                    console.log('Setting up close button handlers...');
-                    
-                    // Remove all existing event listeners by cloning the element
+                    // Remove all existing handlers by cloning
                     const newCloseBtn = closeBtnElement.cloneNode(true);
                     closeBtnElement.parentNode.replaceChild(newCloseBtn, closeBtnElement);
                     
-                    // Create a simple reload function that ALWAYS executes
-                    const forceReload = function(e) {
-                        if (e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            e.stopImmediatePropagation();
-                        }
-                        console.log('FORCE RELOAD FUNCTION CALLED - reloading page NOW');
-                        const targetWindow = window.top || window;
-                        // Use reload() - most reliable method
-                        targetWindow.location.reload();
+                    // SIMPLE: Just reload the page on any click
+                    newCloseBtn.onclick = function() {
+                        window.location.reload();
                         return false;
                     };
-                    
-                    // Global flag to prevent multiple refresh attempts
-                    if (window._pmv_refreshing) {
-                        return; // Already refreshing, don't attach more handlers
-                    }
-                    
-                    // Use native addEventListener with capture phase to catch event BEFORE anything else
-                    newCloseBtn.addEventListener('mousedown', forceReload, true); // true = capture phase
-                    
-                    // Also handle click in capture phase
-                    newCloseBtn.addEventListener('click', forceReload, true); // true = capture phase
-                    
-                    // jQuery handler as additional backup
-                    $(newCloseBtn).on('click.modalClose', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        e.stopImmediatePropagation();
-                        forceReload();
-                        return false;
-                    });
-                    
-                    console.log('Close button handlers attached successfully');
                 }
                 
                 $('#png-modal').show();
@@ -1992,72 +1960,17 @@
 
         // Helper function to properly close modal
         function closeModalProperly($modal) {
-            // Set flag to prevent chat from starting
-            chatState.modalClosing = true;
-            
-            console.log('closeModalProperly called - FORCING PAGE RELOAD NOW');
-            
-            // FORCE RELOAD - use top window if in frame
-            const targetWindow = window.top || window;
-            const currentUrl = targetWindow.location.href;
-            
-            // Direct reload - this should work
-            targetWindow.location.reload();
-            
-            // Backup: if reload doesn't work, set href
-            setTimeout(function() {
-                targetWindow.location.href = currentUrl;
-            }, 10);
+            window.location.reload();
         }
 
         // Event handlers (UPDATED to delegate conversation management)
         // IMPORTANT: Close modal handler must be FIRST to prevent other handlers from firing
         $(document)
-            // CLOSE MODAL HANDLER - MUST BE FIRST with highest priority
-            // Use mousedown in capture phase to catch BEFORE other handlers
-            .on('mousedown.modalClose', '.close-modal', function(e) {
-                // Stop ALL event propagation immediately
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-                
-                console.log('Close button mousedown - FORCING PAGE RELOAD NOW');
-                
-                // FORCE RELOAD - use top window if in frame
-                const targetWindow = window.top || window;
-                const currentUrl = targetWindow.location.href;
-                
-                // Direct reload - this should work
-                targetWindow.location.reload();
-                
-                // Backup: if reload doesn't work, set href
-                setTimeout(function() {
-                    targetWindow.location.href = currentUrl;
-                }, 10);
-                
-                return false;
-            })
-            // Also handle click as backup
+            // CLOSE MODAL HANDLER - SIMPLE: Just reload page
             .on('click.modalClose', '.close-modal', function(e) {
-                // Stop ALL event propagation immediately
                 e.preventDefault();
                 e.stopPropagation();
-                e.stopImmediatePropagation();
-                
-                console.log('Close button clicked - FORCING PAGE RELOAD NOW');
-                
-                // FORCE RELOAD - use top window if in frame
-                const targetWindow = window.top || window;
-                const currentUrl = targetWindow.location.href;
-                
-                // Direct reload - this should work
-                targetWindow.location.reload();
-                
-                // Backup: if reload doesn't work, set href
-                setTimeout(function() {
-                    targetWindow.location.href = currentUrl;
-                }, 10);
-                
+                window.location.reload();
                 return false;
             })
             // Modal overlay click handler
@@ -2066,20 +1979,7 @@
                 if (e.target === this && !$(e.target).closest('.png-modal-content').length) {
                     e.preventDefault();
                     e.stopPropagation();
-                    e.stopImmediatePropagation();
-                    
-                    console.log('Modal overlay clicked - FORCING PAGE RELOAD NOW');
-                    
-                    // MULTIPLE METHODS TO ENSURE REFRESH HAPPENS
-                    try {
-                        window.location.reload(true); // Force reload, bypass cache
-                    } catch(err) {
-                        try {
-                            window.location.href = window.location.href;
-                        } catch(err2) {
-                            window.location.replace(window.location.href);
-                        }
-                    }
+                    window.location.reload();
                     return false;
                 }
             })
