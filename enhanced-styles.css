@@ -590,30 +590,28 @@ body.pmv-debug-mode::before {
   align-items: center !important;
 }
 
-/* Description - FIXED TEXT WRAPPING */
+/* Description - No individual scrolling, parent container handles it */
 .png-card-description {
   font-size: 14px !important;
   color: #b0b0b0 !important;
   line-height: 1.5 !important;
   margin: 0 !important;
   flex-grow: 0 !important; /* do not consume extra space pushing other elements */
-  height: 200px !important; /* explicit fixed height */
-  max-height: 200px !important; /* reinforce height cap */
-  overflow-y: auto !important; /* enable internal scroll for long text */
-  overflow-x: hidden !important; /* avoid horizontal scroll */
+  height: auto !important; /* Allow natural height */
+  max-height: none !important; /* Remove height restriction */
+  overflow: visible !important; /* No individual scrolling - parent handles it */
   white-space: normal !important;
   text-align: left !important;
   padding: 12px !important;
   background: #1a1a1a !important;
   border-radius: 8px !important;
   border: 1px solid #404040 !important;
-  height: 200px !important; /* FIXED: Consistent height for descriptions */
   hyphens: auto !important;
   overflow-wrap: break-word !important;
   -webkit-line-clamp: unset !important;
 }
 
-/* Tags - Fixed height with internal scrolling */
+/* Tags - No individual scrolling, parent container handles it */
 .png-card-tags {
   font-size: 12px !important;
   color: #888 !important;
@@ -622,14 +620,13 @@ body.pmv-debug-mode::before {
   background: #1a1a1a !important;
   border-radius: 8px !important;
   border: 1px solid #404040 !important;
-  overflow-y: auto !important; /* Allow scrolling within tags area */
-  overflow-x: hidden !important;
+  overflow: visible !important; /* No individual scrolling - parent handles it */
   word-wrap: break-word !important;
   white-space: normal !important;
   line-height: 1.5 !important;
-  height: var(--tags-height) !important; /* Fixed height for consistency - now 100px */
-  min-height: var(--tags-height) !important;
-  max-height: var(--tags-height) !important;
+  height: auto !important; /* Allow natural height */
+  min-height: auto !important;
+  max-height: none !important; /* Remove height restriction */
   display: block !important;
   hyphens: auto !important;
   overflow-wrap: break-word !important;
@@ -1694,11 +1691,11 @@ body .png-card .png-card-buttons,
   }
   
   /* FIX: Ensure tags are visible on mobile with more vertical spacing - ensure bottom is visible */
+  /* Remove individual scrollbar - card-info section handles all scrolling */
   body .png-cards .png-card .png-card-tags {
     min-height: 60px !important;
     height: auto !important;
-    overflow-y: visible !important;
-    overflow-x: hidden !important;
+    overflow: visible !important; /* No individual scrolling - parent handles it */
     flex-shrink: 0 !important;
     display: block !important;
     visibility: visible !important;
@@ -1712,12 +1709,12 @@ body .png-card .png-card-buttons,
     box-sizing: border-box !important; /* Ensure padding is included in height */
   }
   
-  /* Ensure description doesn't take all space, leaving room for tags */
+  /* Ensure description doesn't have individual scrollbar - card-info section handles all scrolling */
   body .png-cards .png-card .png-card-description {
     flex: 1 1 auto !important;
     min-height: 0 !important;
-    max-height: 180px !important;
-    overflow-y: auto !important;
+    max-height: none !important; /* Remove max-height restriction */
+    overflow: visible !important; /* No individual scrolling - parent handles it */
   }
   
   /* Ensure buttons stay at bottom of visible card - remove margin-top: auto, use fixed positioning */
