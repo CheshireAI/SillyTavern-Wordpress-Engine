@@ -136,9 +136,12 @@
                         this.characterData = characterData;
                         this.characterId = characterId;
                         
-                        // Validate inputs
-                        if (!characterId) {
-                            throw new Error('Character ID is required');
+                        // Validate inputs - don't throw error, just skip initialization
+                        if (!characterId || characterId === 'null' || characterId === 'undefined') {
+                            console.warn('PMV: Cannot initialize conversation manager - invalid characterId:', characterId);
+                            // Clear any existing error messages
+                            $('.conversation-list').html('<div style="text-align: center; padding: 20px; color: #888;">No character selected</div>');
+                            return false;
                         }
                         
                         // Check system prerequisites
@@ -152,11 +155,17 @@
                         this.setupMessageObserver();
                         
                         // Wait for sidebar DOM to be ready before showing content
+                        // Only load conversations if we have a valid characterId
                         setTimeout(() => {
-                            if (pmv_ajax_object.is_logged_in) {
-                                this.loadConversationList();
+                            if (this.characterId && this.characterId !== 'null' && this.characterId !== 'undefined') {
+                                if (pmv_ajax_object.is_logged_in) {
+                                    this.loadConversationList();
+                                } else {
+                                    this.showGuestMessage();
+                                }
                             } else {
-                                this.showGuestMessage();
+                                console.warn('PMV: Skipping conversation load - invalid characterId');
+                                $('.conversation-list').html('<div style="text-align: center; padding: 20px; color: #888;">No character selected</div>');
                             }
                         }, 100);
                         
@@ -963,12 +972,20 @@
                 // Load conversation list
                 loadConversationList: function() {
                     try {
+                        // CRITICAL: Don't load if characterId is missing or invalid
+                        if (!this.characterId || this.characterId === 'null' || this.characterId === 'undefined') {
+                            console.log('PMV: Skipping conversation load - invalid characterId:', this.characterId);
+                            const $list = $('.conversation-list');
+                            $list.html('<div style="text-align: center; padding: 20px; color: #888;">No character selected</div>');
+                            return;
+                        }
+                        
                         if (!pmv_ajax_object.is_logged_in) {
                             this.showGuestMessage();
                             return;
                         }
                         
-                        console.log('PMV: Loading conversation list...');
+                        console.log('PMV: Loading conversation list for character:', this.characterId);
                         
                         const $list = $('.conversation-list');
                         $list.html(`

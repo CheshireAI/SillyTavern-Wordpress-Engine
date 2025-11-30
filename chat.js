@@ -2020,17 +2020,20 @@
                 chatState.chatModeActive = false;
             }
             
-            // CRITICAL: Reset conversation manager state
+            // CRITICAL: Reset conversation manager state BEFORE removing sidebar
             if (window.PMV_ConversationManager) {
                 try {
-                    // Clear character ID to prevent conversation loading errors
+                    // Clear character ID and data to prevent conversation loading errors
                     window.PMV_ConversationManager.characterId = null;
+                    window.PMV_ConversationManager.characterData = null;
                     
                     // Reset initialization state
                     window.PMV_ConversationManager.isInitialized = false;
                     
-                    // Clear any error messages and hide error displays
+                    // Clear conversation list content and hide error displays
+                    $('.conversation-list').html('');
                     $('.pmv-init-error, .conversation-error, .loading-container').hide();
+                    $('.pmv-init-error').remove(); // Remove error elements completely
                     
                     // Clear conversation list if it exists
                     if (window.PMV_ConversationManager.clearConversationList) {
@@ -2053,7 +2056,7 @@
             }
             
             // Remove body class if it exists
-            $('body').removeClass('chat-modal-open');
+            $('body').removeClass('chat-modal-open pmv-modal-open');
             
             // Clear any fullscreen chat elements that might be lingering
             $('.fullscreen-chat').remove();
