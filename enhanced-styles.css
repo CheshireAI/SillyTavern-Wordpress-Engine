@@ -1094,13 +1094,20 @@ body .png-card .png-card-buttons,
   transform: translateY(-1px) !important;
 }
 
-/* Responsive Grid Adjustments */
+/* Responsive Grid Adjustments - Mobile */
 @media (max-width: 480px) {
   .png-cards {
     grid-template-columns: 1fr !important;
-    grid-auto-rows: var(--card-height) !important;
+    grid-auto-rows: min-content !important; /* Flexible height on mobile */
     gap: 15px !important;
     padding: 15px !important;
+  }
+  
+  .png-card {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: 90vh !important;
+    overflow: visible !important;
   }
   
   .png-card-name {
@@ -1109,21 +1116,16 @@ body .png-card .png-card-buttons,
   
   .png-card-description {
     font-size: 13px !important;
+    max-height: 200px !important;
+    overflow-y: auto !important;
   }
   
   .png-card-tags {
     font-size: 11px !important;
-    padding: 12px !important; /* Increased padding */
-    padding-bottom: 16px !important; /* Extra bottom padding */
-    line-height: 1.8 !important; /* More vertical spacing */
-    margin-bottom: 12px !important; /* More space after tags */
-  }
-  
-  /* Make cards scrollable on mobile so tags can be accessed */
-  .png-card {
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    -webkit-overflow-scrolling: touch !important;
+    padding: 12px !important;
+    padding-bottom: 16px !important;
+    line-height: 1.8 !important;
+    margin-bottom: 12px !important;
   }
   
   .png-download-button,
@@ -1160,13 +1162,20 @@ body .png-card .png-card-buttons,
 
 /* Legacy tag rule - replaced by desktop-specific rules below */
 
-/* Responsive Grid Adjustments - Updated to allow more cards per row */
+/* Responsive Grid Adjustments - Mobile single column */
 @media (max-width: 480px) {
   .png-cards {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important; /* Reduced for more cards */
-    grid-auto-rows: var(--card-height) !important;
+    grid-template-columns: 1fr !important; /* Single column on mobile */
+    grid-auto-rows: min-content !important; /* Let cards size to content */
     gap: 15px !important;
     padding: 15px !important;
+  }
+  
+  .png-card {
+    height: auto !important; /* Flexible height on mobile */
+    min-height: auto !important;
+    max-height: 90vh !important; /* Prevent cards from being too tall */
+    overflow: visible !important; /* Allow content to show */
   }
   
   .png-card-name {
@@ -1176,17 +1185,12 @@ body .png-card .png-card-buttons,
   
   .png-card-description {
     font-size: 13px !important;
+    max-height: 200px !important; /* Limit description height */
+    overflow-y: auto !important;
   }
   
   .png-card-tags {
     font-size: 11px !important;
-  }
-  
-  /* Make cards scrollable on mobile so tags can be accessed */
-  .png-card {
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    -webkit-overflow-scrolling: touch !important;
   }
   
   .png-download-button,
@@ -1482,52 +1486,103 @@ body .png-card .png-card-buttons,
   transform: translateY(-1px) !important;
 }
 
-/* MOBILE RESPONSIVE OVERRIDES */
+/* MOBILE RESPONSIVE OVERRIDES - Consolidated and Fixed */
 @media (max-width: 480px) {
+  /* Grid - Single column, flexible rows */
   .png-cards {
     grid-template-columns: 1fr !important;
+    grid-auto-rows: min-content !important;
     gap: 15px !important;
     padding: 15px !important;
   }
   
-  /* Fix image cropping on mobile - Higher specificity to override main rules */
+  /* Card - Flexible height, prevent overflow */
+  .png-cards .png-card {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: 90vh !important;
+    overflow: visible !important;
+    position: relative !important;
+  }
+  
+  /* Image container - Proper sizing for mobile */
   .png-cards .png-card .png-image-container {
-    height: var(--image-height) !important;
-    min-height: 180px !important; /* Increased minimum height for better mobile display */
-    max-height: 250px !important; /* Cap maximum height */
-    overflow: visible !important; /* Allow image to show fully */
+    height: auto !important;
+    min-height: 200px !important;
+    max-height: 300px !important;
+    overflow: visible !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     background: #1a1a1a !important;
     border-radius: 12px 12px 0 0 !important;
-    flex: none !important; /* Don't let flexbox shrink this */
+    flex: 0 0 auto !important;
+    padding: 10px !important;
   }
   
+  /* Image - Responsive sizing */
   .png-cards .png-card .png-image-container img {
-    width: auto !important; /* Let width adjust naturally */
-    height: auto !important; /* Let height adjust naturally */
-    max-width: 100% !important; /* Don't exceed container width */
-    max-height: 100% !important; /* Don't exceed container height */
-    object-fit: contain !important; /* Ensure full image is visible */
+    width: 100% !important;
+    height: auto !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain !important;
     object-position: center !important;
     background: transparent !important;
     border-radius: 8px !important;
-    transform: none !important; /* Disable any transforms that might affect sizing */
   }
   
-  /* Ensure card height accommodates larger image area */
-  .png-cards .png-card {
-    height: auto !important;
-    min-height: 650px !important;
-    max-height: none !important;
+  /* Card info - Scrollable with proper spacing */
+  .png-cards .png-card .png-card-info {
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 15px !important;
+    padding-bottom: 80px !important; /* Space for buttons */
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    min-height: 200px !important;
+  }
+  
+  /* Description - Scrollable with max height */
+  .png-cards .png-card .png-card-description {
+    max-height: 200px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    font-size: 13px !important;
+    padding: 12px !important;
+  }
+  
+  /* Buttons - Fixed at bottom */
+  .png-cards .png-card .png-card-buttons {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 10 !important;
+    background: #2a2a2a !important;
+    border-top: 1px solid #404040 !important;
+    padding: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin: 0 !important;
   }
 }
 
 @media (min-width: 481px) and (max-width: 768px) {
   .png-cards {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+    grid-template-columns: 1fr !important; /* Single column on tablets too for better mobile experience */
     gap: 16px !important;
+    padding: 16px !important;
+  }
+  
+  .png-card {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: 90vh !important;
   }
 }
 
@@ -1568,77 +1623,74 @@ body .png-card .png-card-buttons,
 /* REMOVE ALL CONFLICTING FIXED HEIGHT OVERRIDES */
 /* This ensures percentage-based system takes precedence */
 
-/* ===== FINAL MOBILE IMAGE FIX - MAXIMUM SPECIFICITY ===== */
-/* This section must be at the very end to override all other rules */
+/* ===== FINAL MOBILE FIX - MAXIMUM SPECIFICITY ===== */
+/* This section ensures mobile works correctly with highest priority */
 
 @media screen and (max-width: 480px) {
-  /* Grid - cards size to content */
-  body .png-cards {
-    grid-auto-rows: min-content;
-    gap: 20px;
+  /* Grid - Single column, flexible sizing */
+  body .png-cards,
+  html body .png-cards {
+    grid-template-columns: 1fr !important;
+    grid-auto-rows: min-content !important;
+    gap: 15px !important;
+    padding: 15px !important;
   }
   
-  /* Card structure - flexible height, prevent squishing */
-  body .png-cards .png-card {
-    overflow: hidden;
-    position: relative;
-    height: auto;
-    min-height: 600px;
-    max-height: 90vh;
+  /* Card - Flexible height */
+  body .png-cards .png-card,
+  html body .png-cards .png-card {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: 90vh !important;
+    overflow: visible !important;
+    position: relative !important;
   }
   
-  /* Card info - scrollable with enough padding, flexible height, prevent squishing */
-  body .png-cards .png-card .png-card-info {
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    min-height: 300px;
-    max-height: calc(90vh - 200px - 80px);
-    padding: 15px;
-    padding-bottom: 90px; /* Space for buttons */
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+  /* Image container */
+  body .png-cards .png-card .png-image-container,
+  html body .png-cards .png-card .png-image-container {
+    height: auto !important;
+    min-height: 200px !important;
+    max-height: 300px !important;
+    flex: 0 0 auto !important;
   }
   
-  /* Tags - fully visible, prevent squishing */
-  body .png-cards .png-card .png-card-tags {
-    display: block;
-    flex-shrink: 0;
-    min-height: 80px;
-    height: auto;
-    padding: 15px;
-    padding-bottom: 18px;
-    margin: 12px 0;
-    margin-bottom: 24px;
-    line-height: 1.8;
-    box-sizing: border-box;
+  /* Card info - Scrollable */
+  body .png-cards .png-card .png-card-info,
+  html body .png-cards .png-card .png-card-info {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 15px !important;
+    padding-bottom: 80px !important;
+    flex: 1 1 auto !important;
+    min-height: 200px !important;
   }
   
-  /* Description - prevent squishing */
-  body .png-cards .png-card .png-card-description {
-    min-height: 150px;
-    padding: 15px;
+  /* Description */
+  body .png-cards .png-card .png-card-description,
+  html body .png-cards .png-card .png-card-description {
+    max-height: 200px !important;
+    overflow-y: auto !important;
+    font-size: 13px !important;
+    padding: 12px !important;
   }
   
-  /* Buttons - fixed at bottom, visible */
-  body .png-cards .png-card .png-card-buttons {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 5;
-    background: #2a2a2a;
-    border-top: 1px solid #404040;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin: 0;
-    flex-shrink: 0;
-    flex-grow: 0;
+  /* Buttons - Fixed at bottom */
+  body .png-cards .png-card .png-card-buttons,
+  html body .png-cards .png-card .png-card-buttons {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 10 !important;
+    background: #2a2a2a !important;
+    border-top: 1px solid #404040 !important;
+    padding: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin: 0 !important;
   }
 }
 

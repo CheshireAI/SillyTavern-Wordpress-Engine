@@ -91,9 +91,20 @@ function pmv_add_simple_grid_css() {
         }
     }
     
-    /* Responsive - Mobile stays single column */
+    /* Responsive - Mobile and tablet stay single column */
     @media (max-width: 768px) {
-        .png-cards { grid-template-columns: 1fr !important; }
+        .png-cards { 
+            grid-template-columns: 1fr !important;
+            grid-auto-rows: min-content !important;
+            gap: 15px !important;
+            padding: 15px !important;
+        }
+        
+        .png-card {
+            height: auto !important;
+            min-height: auto !important;
+            max-height: 90vh !important;
+        }
     }
     
     /* Card Styles */
