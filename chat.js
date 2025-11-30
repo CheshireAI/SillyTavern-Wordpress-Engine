@@ -2071,9 +2071,9 @@
                     openCharacterModal($card);
                 }
             })
-            // Chat button handler - MUST check it's NOT the close button
+            // Chat button handler - works from grid or modal
             .on('click', '.png-chat-button, button[data-metadata]', function(e) {
-                // CRITICAL: Skip if modal is closing or visible
+                // Skip if modal is closing
                 if (chatState.modalClosing) {
                     console.log('Chat handler: Skipping because modal is closing');
                     e.preventDefault();
@@ -2081,16 +2081,7 @@
                     return false;
                 }
                 
-                // Skip if modal is visible - don't start chat from modal
-                const $modal = $('#png-modal');
-                if ($modal.length && $modal.is(':visible')) {
-                    console.log('Chat handler: Skipping because modal is visible');
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
-                }
-                
-                // Skip if this is the close button or if close button was clicked
+                // Skip if this is the close button
                 const $target = $(e.target);
                 const $button = $(this);
                 
@@ -2107,9 +2098,14 @@
                 e.preventDefault();
                 e.stopPropagation();
                 
-                // Modal not open, start chat immediately
+                // Get metadata and start chat (works from grid or modal)
                 const metadata = $(this).attr('data-metadata') || $(this).closest('[data-metadata]').attr('data-metadata');
                 if (metadata) {
+                    // Close modal if it's open before starting chat
+                    const $modal = $('#png-modal');
+                    if ($modal.length && $modal.is(':visible')) {
+                        $modal.hide();
+                    }
                     startFullScreenChat(metadata);
                 }
             })
