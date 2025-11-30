@@ -591,55 +591,27 @@ body.pmv-debug-mode::before {
 }
 
 /* Description - No individual scrolling, parent container handles it */
-.png-card-description {
-  font-size: 14px !important;
-  color: #b0b0b0 !important;
-  line-height: 1.5 !important;
-  margin: 0 !important;
-  flex-grow: 0 !important; /* do not consume extra space pushing other elements */
-  height: auto !important; /* Allow natural height */
-  max-height: none !important; /* Remove height restriction */
-  overflow: hidden !important; /* Prevent overflow, parent handles scrolling */
-  white-space: normal !important;
-  text-align: left !important;
-  padding: 12px !important;
-  background: #1a1a1a !important;
-  border-radius: 8px !important;
-  border: 1px solid #404040 !important;
-  hyphens: auto !important;
-  overflow-wrap: break-word !important;
-  -webkit-line-clamp: unset !important;
+.png-card .png-card-info .png-card-description {
+  font-size: 14px;
+  color: #b0b0b0;
+  line-height: 1.5;
+  margin: 0;
+  flex-grow: 0;
+  height: auto;
+  max-height: none;
+  overflow: hidden;
+  white-space: normal;
+  text-align: left;
+  padding: 12px;
+  background: #1a1a1a;
+  border-radius: 8px;
+  border: 1px solid #404040;
+  hyphens: auto;
+  overflow-wrap: break-word;
+  -webkit-line-clamp: unset;
 }
 
-/* Tags - No individual scrolling, parent container handles it */
-.png-card-tags {
-  font-size: 12px !important;
-  color: #888 !important;
-  margin: 0 !important;
-  padding: 12px !important;
-  background: #1a1a1a !important;
-  border-radius: 8px !important;
-  border: 1px solid #404040 !important;
-  overflow: hidden !important; /* Prevent overflow, parent handles scrolling */
-  word-wrap: break-word !important;
-  white-space: normal !important;
-  line-height: 1.5 !important;
-  height: auto !important; /* Allow natural height */
-  min-height: auto !important;
-  max-height: none !important; /* Remove height restriction */
-  display: block !important;
-  hyphens: auto !important;
-  overflow-wrap: break-word !important;
-  text-align: left !important;
-  flex-shrink: 0 !important; /* Don't compress tags section */
-}
-
-.png-card-tags::before {
-  content: "Tags: " !important;
-  font-weight: 600 !important;
-  color: #f0f0f0 !important;
-  display: inline !important; /* CRITICAL: Inline for text flow */
-}
+/* Tags styles - see desktop styles below for complete definition */
 
 /* BUTTON CONTAINER - GUARANTEED VISIBILITY */
 .png-card-buttons {
@@ -800,12 +772,7 @@ body .png-card .png-chat-button {
   overflow-x: hidden !important;
 }
 
-.png-card-tags {
-  height: 80px !important;
-  max-height: 80px !important;
-  overflow: hidden !important;
-  overflow-y: auto !important;
-}
+/* Legacy tag height rule - replaced by more specific rules */
 
 /* FIX: Let flexbox allocate leftover height so buttons remain visible */
 .png-card-info {
@@ -1071,36 +1038,7 @@ body .png-card .png-card-buttons,
   word-break: break-word !important;
 }
 
-/* Tags - Percentage-based height with internal scrolling */
-.png-card-tags {
-  font-size: 12px !important;
-  color: #888 !important;
-  margin: 0 !important;
-  padding: 2% !important; /* Use percentage padding */
-  background: #1a1a1a !important;
-  border-radius: 8px !important;
-  border: 1px solid #404040 !important;
-  overflow-y: auto !important; /* Allow scrolling within tags area */
-  overflow-x: hidden !important;
-  word-wrap: break-word !important;
-  white-space: normal !important;
-  line-height: 1.5 !important;
-  height: var(--tags-height) !important; /* Use percentage variable */
-  min-height: var(--tags-height) !important;
-  max-height: var(--tags-height) !important;
-  display: block !important;
-  hyphens: auto !important;
-  overflow-wrap: break-word !important;
-  text-align: left !important;
-  flex: 0 0 var(--tags-height) !important; /* Fixed percentage space for tags */
-}
-
-.png-card-tags::before {
-  content: "Tags: " !important;
-  font-weight: 600 !important;
-  color: #f0f0f0 !important;
-  display: inline !important;
-}
+/* Legacy tag styles - replaced by more specific rules above */
 
 /* Button Container - Always visible at bottom */
 .png-card-buttons {
@@ -1488,36 +1426,36 @@ body .png-card .png-card-buttons,
   box-sizing: border-box !important;
 }
 
-/* OVERRIDE ALL PREVIOUS TAG STYLES */
-.png-card-tags {
-  font-size: clamp(10px, 1.2vw, 12px) !important;
-  color: #888 !important;
-  margin: 0 !important;
-  padding: var(--card-padding) !important;
-  background: #1a1a1a !important;
-  border-radius: 8px !important;
-  border: 1px solid #404040 !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  word-wrap: break-word !important;
-  white-space: normal !important;
-  line-height: 1.5 !important;
-  height: var(--tags-height) !important;
-  min-height: var(--tags-height) !important;
-  max-height: var(--tags-height) !important;
-  display: block !important;
-  hyphens: auto !important;
-  overflow-wrap: break-word !important;
-  text-align: left !important;
-  flex: 0 0 var(--tags-height) !important;
-  box-sizing: border-box !important;
+/* Desktop tag styles - using proper specificity */
+.png-card .png-card-info .png-card-tags {
+  font-size: clamp(10px, 1.2vw, 12px);
+  color: #888;
+  margin: 10px 0;
+  padding: 12px;
+  background: #1a1a1a;
+  border-radius: 8px;
+  border: 1px solid #404040;
+  overflow-y: auto;
+  overflow-x: hidden;
+  word-wrap: break-word;
+  white-space: normal;
+  line-height: 1.5;
+  height: auto;
+  min-height: auto;
+  max-height: none;
+  display: block;
+  hyphens: auto;
+  overflow-wrap: break-word;
+  text-align: left;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
-.png-card-tags::before {
-  content: "Tags: " !important;
-  font-weight: 600 !important;
-  color: #f0f0f0 !important;
-  display: inline !important;
+.png-card .png-card-info .png-card-tags::before {
+  content: "Tags: ";
+  font-weight: 600;
+  color: #f0f0f0;
+  display: inline;
 }
 
 /* OVERRIDE ALL PREVIOUS BUTTON CONTAINER STYLES */
