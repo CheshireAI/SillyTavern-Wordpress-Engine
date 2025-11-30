@@ -1376,42 +1376,56 @@
                     const newCloseBtn = closeBtnElement.cloneNode(true);
                     closeBtnElement.parentNode.replaceChild(newCloseBtn, closeBtnElement);
                     
+                    // Global flag to prevent multiple refresh attempts
+                    if (window._pmv_refreshing) {
+                        return; // Already refreshing, don't attach more handlers
+                    }
+                    
                     // Use native addEventListener with capture phase to catch event BEFORE anything else
                     newCloseBtn.addEventListener('mousedown', function(e) {
+                        if (window._pmv_refreshing) return;
+                        window._pmv_refreshing = true;
+                        
                         e.preventDefault();
                         e.stopPropagation();
                         e.stopImmediatePropagation();
                         
                         console.log('Close button mousedown (native capture) - refreshing page');
                         
-                        // Force immediate hard page refresh
-                        window.location.href = window.location.href;
+                        // Force immediate hard page refresh - use replace for more aggressive redirect
+                        window.location.replace(window.location.href);
                         return false;
                     }, true); // true = capture phase
                     
                     // Also handle click in capture phase
                     newCloseBtn.addEventListener('click', function(e) {
+                        if (window._pmv_refreshing) return;
+                        window._pmv_refreshing = true;
+                        
                         e.preventDefault();
                         e.stopPropagation();
                         e.stopImmediatePropagation();
                         
                         console.log('Close button click (native capture) - refreshing page');
                         
-                        // Force immediate hard page refresh
-                        window.location.href = window.location.href;
+                        // Force immediate hard page refresh - use replace for more aggressive redirect
+                        window.location.replace(window.location.href);
                         return false;
                     }, true); // true = capture phase
                     
                     // jQuery handler as additional backup
                     $(newCloseBtn).on('click.modalClose', function(e) {
+                        if (window._pmv_refreshing) return;
+                        window._pmv_refreshing = true;
+                        
                         e.preventDefault();
                         e.stopPropagation();
                         e.stopImmediatePropagation();
                         
                         console.log('Close button clicked (jQuery backup) - refreshing page');
                         
-                        // Force immediate hard page refresh
-                        window.location.href = window.location.href;
+                        // Force immediate hard page refresh - use replace for more aggressive redirect
+                        window.location.replace(window.location.href);
                         return false;
                     });
                 }
@@ -1993,20 +2007,19 @@
 
         // Helper function to properly close modal
         function closeModalProperly($modal) {
+            // Prevent multiple refresh attempts
+            if (window._pmv_refreshing) {
+                return;
+            }
+            window._pmv_refreshing = true;
+            
             // Set flag to prevent chat from starting
             chatState.modalClosing = true;
             
             console.log('Closing modal and performing hard page refresh...');
             
-            // Force immediate hard refresh - bypass cache completely
-            // Use setTimeout to ensure this runs after all event handlers
-            setTimeout(function() {
-                // Clear any pending operations
-                if (window.stop) window.stop();
-                
-                // Force a hard refresh by reloading the current URL
-                window.location.href = window.location.href;
-            }, 0);
+            // Force immediate hard refresh - use replace for more aggressive redirect
+            window.location.replace(window.location.href);
         }
 
         // Event handlers (UPDATED to delegate conversation management)
@@ -2015,6 +2028,15 @@
             // CLOSE MODAL HANDLER - MUST BE FIRST with highest priority
             // Use mousedown in capture phase to catch BEFORE other handlers
             .on('mousedown.modalClose', '.close-modal', function(e) {
+                // Prevent multiple refresh attempts
+                if (window._pmv_refreshing) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    return false;
+                }
+                window._pmv_refreshing = true;
+                
                 // Stop ALL event propagation immediately
                 e.preventDefault();
                 e.stopPropagation();
@@ -2022,13 +2044,22 @@
                 
                 console.log('Close button clicked - performing immediate hard page refresh');
                 
-                // Force immediate hard page refresh - no delays, no other code runs
-                window.location.href = window.location.href;
+                // Force immediate hard page refresh - use replace for more aggressive redirect
+                window.location.replace(window.location.href);
                 
                 return false;
             })
             // Also handle click as backup
             .on('click.modalClose', '.close-modal', function(e) {
+                // Prevent multiple refresh attempts
+                if (window._pmv_refreshing) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    return false;
+                }
+                window._pmv_refreshing = true;
+                
                 // Stop ALL event propagation immediately
                 e.preventDefault();
                 e.stopPropagation();
@@ -2036,8 +2067,8 @@
                 
                 console.log('Close button clicked - performing immediate hard page refresh');
                 
-                // Force immediate hard page refresh - no delays, no other code runs
-                window.location.href = window.location.href;
+                // Force immediate hard page refresh - use replace for more aggressive redirect
+                window.location.replace(window.location.href);
                 
                 return false;
             })
@@ -2045,14 +2076,23 @@
             .on('click.modalClose', '#png-modal', function(e) {
                 // Only close if clicking the overlay itself, not content inside
                 if (e.target === this && !$(e.target).closest('.png-modal-content').length) {
+                    // Prevent multiple refresh attempts
+                    if (window._pmv_refreshing) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        return false;
+                    }
+                    window._pmv_refreshing = true;
+                    
                     e.preventDefault();
                     e.stopPropagation();
                     e.stopImmediatePropagation();
                     
                     console.log('Modal overlay clicked - refreshing page');
                     
-                    // Force immediate hard page refresh
-                    window.location.href = window.location.href;
+                    // Force immediate hard page refresh - use replace for more aggressive redirect
+                    window.location.replace(window.location.href);
                     return false;
                 }
             })
