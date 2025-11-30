@@ -69,6 +69,23 @@
             // Set href
             $(newCloseBtn).attr('href', currentUrl);
             
+            // CRITICAL: Set flag immediately to prevent chat from starting
+            chatState.modalClosing = true;
+            
+            // Reload function - IMMEDIATE, no delays
+            const doReload = function() {
+                // Set flag FIRST to prevent anything else from running
+                chatState.modalClosing = true;
+                chatState.chatModeActive = false;
+                
+                // Clear storage
+                try { localStorage.removeItem('pmv_conversation_state'); } catch(e) {}
+                try { sessionStorage.clear(); } catch(e) {}
+                
+                // IMMEDIATE reload - no setTimeout, no delays
+                window.location.replace(window.location.href);
+            };
+            
             // Set onclick property - fires FIRST
             newCloseBtn.onclick = function(e) {
                 if (e) {
@@ -76,20 +93,16 @@
                     e.stopPropagation();
                     e.stopImmediatePropagation();
                 }
-                try { localStorage.removeItem('pmv_conversation_state'); } catch(e) {}
-                try { sessionStorage.clear(); } catch(e) {}
-                window.location.replace(window.location.href);
+                doReload();
                 return false;
             };
             
-            // Add mousedown in capture phase - fires BEFORE click
+            // Add mousedown in capture phase - fires BEFORE anything else
             newCloseBtn.addEventListener('mousedown', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation();
-                try { localStorage.removeItem('pmv_conversation_state'); } catch(e) {}
-                try { sessionStorage.clear(); } catch(e) {}
-                window.location.replace(window.location.href);
+                doReload();
                 return false;
             }, true);
             
@@ -98,11 +111,12 @@
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation();
-                try { localStorage.removeItem('pmv_conversation_state'); } catch(e) {}
-                try { sessionStorage.clear(); } catch(e) {}
-                window.location.replace(window.location.href);
+                doReload();
                 return false;
             }, true);
+            
+            // Also prevent any other handlers from attaching
+            $(newCloseBtn).off('click mousedown mouseup');
         }
 
         // Add FULL SCREEN CSS (keep existing CSS - it's good)
