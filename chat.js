@@ -34,22 +34,26 @@
                             <div id="modal-content">
                                 <!-- Modal content will be inserted here -->
                             </div>
-                            <a href="${currentUrl}" class="close-modal" style="text-decoration: none; color: inherit; cursor: pointer;">&times;</a>
+                            <a href="${currentUrl}" class="close-modal" onclick="window.location.href = window.location.href; return false;" style="text-decoration: none; color: inherit; cursor: pointer;">&times;</a>
                         </div>
                     </div>
                 `);
             } else {
-                // If modal exists, ensure close button is a link
+                // If modal exists, ensure close button is a link with onclick
                 const $closeBtn = $('#png-modal .close-modal');
-                if ($closeBtn.length && $closeBtn.is('button')) {
+                if ($closeBtn.length) {
                     const currentUrl = window.location.href;
-                    const $newBtn = $('<a>').attr('href', currentUrl)
-                        .attr('class', 'close-modal')
-                        .css({'text-decoration': 'none', 'color': 'inherit', 'cursor': 'pointer'})
-                        .html('&times;');
-                    $closeBtn.replaceWith($newBtn);
-                } else if ($closeBtn.length) {
-                    $closeBtn.attr('href', window.location.href);
+                    if ($closeBtn.is('button')) {
+                        const $newBtn = $('<a>').attr('href', currentUrl)
+                            .attr('class', 'close-modal')
+                            .attr('onclick', 'window.location.href = window.location.href; return false;')
+                            .css({'text-decoration': 'none', 'color': 'inherit', 'cursor': 'pointer'})
+                            .html('&times;');
+                        $closeBtn.replaceWith($newBtn);
+                    } else {
+                        $closeBtn.attr('href', currentUrl);
+                        $closeBtn.attr('onclick', 'window.location.href = window.location.href; return false;');
+                    }
                 }
             }
 
@@ -1341,26 +1345,47 @@
         // Open character modal
         function openCharacterModal(card) {
             try {
-                // CRITICAL: Reset state before opening modal to prevent errors
+                // CRITICAL: COMPLETELY RESET EVERYTHING before opening modal
                 chatState.modalClosing = false;
+                chatState.chatModeActive = false;
+                chatState.characterData = null;
+                chatState.characterId = null;
                 
-                // Reset conversation manager if it exists
+                // Remove any lingering fullscreen chat elements
+                $('.fullscreen-chat').remove();
+                $('.conversation-sidebar').remove();
+                $('.pmv-init-error, .conversation-error').remove();
+                
+                // COMPLETELY DESTROY conversation manager state if it exists
                 if (window.PMV_ConversationManager) {
                     try {
-                        // Clear any previous character ID
-                        if (window.PMV_ConversationManager.characterId) {
-                            window.PMV_ConversationManager.characterId = null;
+                        // Clear ALL state
+                        window.PMV_ConversationManager.characterId = null;
+                        window.PMV_ConversationManager.characterData = null;
+                        window.PMV_ConversationManager.currentConversationId = null;
+                        window.PMV_ConversationManager.isInitialized = false;
+                        window.PMV_ConversationManager.saveInProgress = false;
+                        window.PMV_ConversationManager.hasUnsavedChanges = false;
+                        
+                        // Clear any timers
+                        if (window.PMV_ConversationManager.autoSaveTimer) {
+                            clearTimeout(window.PMV_ConversationManager.autoSaveTimer);
+                            window.PMV_ConversationManager.autoSaveTimer = null;
+                        }
+                        if (window.PMV_ConversationManager.saveDebounceTimer) {
+                            clearTimeout(window.PMV_ConversationManager.saveDebounceTimer);
+                            window.PMV_ConversationManager.saveDebounceTimer = null;
                         }
                         
-                        // Reset initialization state
-                        if (window.PMV_ConversationManager.isInitialized !== undefined) {
-                            window.PMV_ConversationManager.isInitialized = false;
+                        // Disconnect observer if it exists
+                        if (window.PMV_ConversationManager.messageObserver) {
+                            try {
+                                window.PMV_ConversationManager.messageObserver.disconnect();
+                            } catch(e) {}
+                            window.PMV_ConversationManager.messageObserver = null;
                         }
                         
-                        // Clear any error messages
-                        $('.pmv-init-error, .conversation-error').hide();
-                        
-                        console.log('Conversation manager reset before opening modal');
+                        console.log('Conversation manager COMPLETELY reset before opening modal');
                     } catch (err) {
                         console.warn('Error resetting conversation manager:', err);
                     }
@@ -1380,7 +1405,7 @@
                 ensureModalExists();
                 $('#modal-content').html(modalHtml);
                 
-                // CRITICAL: Make sure close button is a link that reloads the page
+                // CRITICAL: Make sure close button FORCES page reload
                 const $closeBtn = $('#png-modal .close-modal');
                 if ($closeBtn.length) {
                     const currentUrl = window.location.href;
@@ -1388,12 +1413,19 @@
                     if ($closeBtn.is('button')) {
                         const $newBtn = $('<a>').attr('href', currentUrl)
                             .attr('class', 'close-modal')
+                            .attr('onclick', 'window.location.href = window.location.href; return false;')
                             .css({'text-decoration': 'none', 'color': 'inherit', 'cursor': 'pointer', 'display': 'inline-block'})
                             .html('&times;');
                         $closeBtn.replaceWith($newBtn);
                     } else {
-                        // Ensure href is set to current URL
+                        // Ensure href and onclick are set
                         $closeBtn.attr('href', currentUrl);
+                        $closeBtn.attr('onclick', 'window.location.href = window.location.href; return false;');
+                        // Also set onclick property directly
+                        $closeBtn[0].onclick = function() {
+                            window.location.href = window.location.href;
+                            return false;
+                        };
                     }
                 }
                 
