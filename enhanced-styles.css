@@ -1158,12 +1158,7 @@ body .png-card .png-card-buttons,
   overflow: hidden !important;
 }
 
-.png-card-tags {
-  height: var(--tags-height) !important;
-  max-height: var(--tags-height) !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-}
+/* Legacy tag rule - replaced by desktop-specific rules below */
 
 /* Responsive Grid Adjustments - Updated to allow more cards per row */
 @media (max-width: 480px) {
@@ -1457,6 +1452,13 @@ body .png-card .png-card-buttons,
     font-weight: 600;
     color: #f0f0f0;
     display: inline;
+  }
+  
+  /* Override any conflicting !important rules for desktop tags */
+  body .png-cards .png-card .png-card-info .png-card-tags {
+    background: #1a1a1a !important;
+    border: 1px solid #404040 !important;
+    border-radius: 8px !important;
   }
 }
 
