@@ -69,9 +69,6 @@
             // Set href
             $(newCloseBtn).attr('href', currentUrl);
             
-            // CRITICAL: Set flag immediately to prevent chat from starting
-            chatState.modalClosing = true;
-            
             // Reload function - IMMEDIATE, no delays
             const doReload = function() {
                 // Set flag FIRST to prevent anything else from running
@@ -1404,7 +1401,7 @@
         function openCharacterModal(card) {
             try {
                 // CRITICAL: COMPLETELY RESET EVERYTHING before opening modal
-                chatState.modalClosing = false;
+                chatState.modalClosing = false; // Reset flag so chat button works
                 chatState.chatModeActive = false;
                 chatState.characterData = null;
                 chatState.characterId = null;
@@ -2088,14 +2085,18 @@
             })
             // Chat button handler - simple version that just works
             .on('click', '.png-chat-button, button[data-metadata]', function(e) {
+                console.log('Chat button clicked, modalClosing:', chatState.modalClosing);
+                
                 // Skip if modal is closing
                 if (chatState.modalClosing) {
+                    console.log('Chat button blocked - modal is closing');
                     return false;
                 }
                 
                 // Skip if this is the close button
                 const $target = $(e.target);
                 if ($target.hasClass('close-modal') || $target.closest('.close-modal').length > 0) {
+                    console.log('Chat button blocked - is close button');
                     return false;
                 }
                 
@@ -2104,6 +2105,7 @@
                 
                 // Get metadata
                 const metadata = $(this).data('metadata') || $(this).attr('data-metadata') || $(this).closest('[data-metadata]').attr('data-metadata');
+                console.log('Chat button metadata:', metadata);
                 
                 if (metadata) {
                     // Close modal if it's open
@@ -2111,7 +2113,10 @@
                     if ($modal.length && $modal.is(':visible')) {
                         $modal.hide();
                     }
+                    console.log('Starting fullscreen chat...');
                     startFullScreenChat(metadata);
+                } else {
+                    console.error('No metadata found for chat button');
                 }
             })
             .on('pmv_start_chat', function(e, metadata, fileUrl) {
