@@ -1426,38 +1426,45 @@
                 const $closeBtn = $('#png-modal .close-modal');
                 if ($closeBtn.length) {
                     const currentUrl = window.location.href;
-                    // Convert to link if it's a button
-                    if ($closeBtn.is('button')) {
-                        const $newBtn = $('<a>').attr('href', currentUrl)
-                            .attr('class', 'close-modal')
-                            .attr('onclick', 'localStorage.removeItem("pmv_conversation_state"); sessionStorage.clear(); window.location.replace(window.location.href); return false;')
-                            .css({'text-decoration': 'none', 'color': 'inherit', 'cursor': 'pointer', 'display': 'inline-block'})
-                            .html('&times;');
-                        $closeBtn.replaceWith($newBtn);
-                    } else {
-                        // Ensure href and onclick are set - use replace() for FORCED refresh
-                        $closeBtn.attr('href', currentUrl);
-                        $closeBtn.attr('onclick', 'localStorage.removeItem("pmv_conversation_state"); sessionStorage.clear(); window.location.replace(window.location.href); return false;');
-                        // Also set onclick property directly - this takes priority and fires FIRST
-                        const closeBtnElement = $closeBtn[0];
-                        if (closeBtnElement) {
-                            // Remove any existing onclick first
-                            closeBtnElement.onclick = null;
-                            // Set new onclick that fires immediately
-                            closeBtnElement.onclick = function(e) {
-                                if (e) {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    e.stopImmediatePropagation();
-                                }
-                                // Clear any stored state before reload
-                                try { localStorage.removeItem('pmv_conversation_state'); } catch(e) {}
-                                try { sessionStorage.clear(); } catch(e) {}
-                                // FORCE RELOAD - use replace to bypass cache
-                                window.location.replace(window.location.href);
-                                return false;
-                            };
-                        }
+                    const closeBtnElement = $closeBtn[0];
+                    
+                    // Remove ALL existing event listeners by cloning
+                    if (closeBtnElement) {
+                        const newCloseBtn = closeBtnElement.cloneNode(true);
+                        closeBtnElement.parentNode.replaceChild(newCloseBtn, closeBtnElement);
+                        const $newCloseBtn = $(newCloseBtn);
+                        
+                        // Set href
+                        $newCloseBtn.attr('href', currentUrl);
+                        
+                        // Set inline onclick attribute
+                        $newCloseBtn.attr('onclick', 'localStorage.removeItem("pmv_conversation_state"); sessionStorage.clear(); window.location.replace(window.location.href); return false;');
+                        
+                        // Set onclick property directly - fires FIRST
+                        newCloseBtn.onclick = function(e) {
+                            if (e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.stopImmediatePropagation();
+                            }
+                            // Clear any stored state before reload
+                            try { localStorage.removeItem('pmv_conversation_state'); } catch(e) {}
+                            try { sessionStorage.clear(); } catch(e) {}
+                            // FORCE RELOAD - use replace to bypass cache
+                            window.location.replace(window.location.href);
+                            return false;
+                        };
+                        
+                        // Also add mousedown handler as backup - fires before click
+                        newCloseBtn.addEventListener('mousedown', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            e.stopImmediatePropagation();
+                            try { localStorage.removeItem('pmv_conversation_state'); } catch(e) {}
+                            try { sessionStorage.clear(); } catch(e) {}
+                            window.location.replace(window.location.href);
+                            return false;
+                        }, true); // Capture phase
                     }
                 }
                 
