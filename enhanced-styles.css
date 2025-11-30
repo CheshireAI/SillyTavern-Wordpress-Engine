@@ -1168,6 +1168,10 @@ body .png-card .png-card-buttons,
   
   .png-card-tags {
     font-size: 11px !important;
+    padding: 12px !important; /* Increased padding */
+    padding-bottom: 16px !important; /* Extra bottom padding */
+    line-height: 1.8 !important; /* More vertical spacing */
+    margin-bottom: 12px !important; /* More space after tags */
   }
   
   /* Make cards scrollable on mobile so tags can be accessed */
@@ -1689,7 +1693,7 @@ body .png-card .png-card-buttons,
     -webkit-overflow-scrolling: touch !important; /* Smooth scrolling on iOS */
   }
   
-  /* FIX: Ensure tags are visible on mobile */
+  /* FIX: Ensure tags are visible on mobile with more vertical spacing */
   body .png-cards .png-card .png-card-tags {
     min-height: 60px !important;
     height: auto !important;
@@ -1700,8 +1704,11 @@ body .png-card .png-card-buttons,
     visibility: visible !important;
     opacity: 1 !important;
     font-size: 11px !important;
-    padding: 8px !important;
+    padding: 12px !important; /* Increased from 8px */
+    padding-bottom: 16px !important; /* Extra bottom padding */
     margin: 8px 0 !important;
+    margin-bottom: 12px !important; /* More space after tags */
+    line-height: 1.8 !important; /* Increased from default for more vertical spacing */
   }
   
   /* Ensure description doesn't take all space, leaving room for tags */
@@ -2545,7 +2552,7 @@ html body div.png-cards div.png-card div.png-card-description {
     padding-bottom: 80px !important; /* Space for fixed buttons */
   }
   
-  /* Ensure tags are visible and not compressed */
+  /* Ensure tags are visible and not compressed with better spacing */
   html body .png-cards .png-card .png-card-info .png-card-tags,
   html body .png-cards .png-card .png-card-tags,
   body .png-cards .png-card .png-card-tags,
@@ -2556,6 +2563,10 @@ html body div.png-cards div.png-card div.png-card-description {
     flex-shrink: 0 !important;
     min-height: 60px !important;
     height: auto !important;
+    padding: 12px !important; /* Increased padding */
+    padding-bottom: 16px !important; /* Extra bottom padding */
+    line-height: 1.8 !important; /* More vertical spacing between lines */
+    margin-bottom: 12px !important; /* More space after tags */
   }
   
   /* Keep buttons at bottom of visible card area when scrolling */
