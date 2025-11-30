@@ -1537,38 +1537,43 @@ body .png-card .png-card-buttons,
     border-radius: 8px !important;
   }
   
-  /* Card info - Expand to fit all content */
+  /* Card info - Scrollable to access all content including tags */
   .png-cards .png-card .png-card-info {
     flex: 1 1 auto !important;
-    overflow: visible !important; /* Changed from auto to visible to show all content */
+    overflow-y: auto !important; /* Enable scrolling to access all content */
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important; /* Smooth scrolling on iOS */
     padding: 15px !important;
-    padding-bottom: 80px !important; /* Space for buttons */
+    padding-bottom: 90px !important; /* Extra space for buttons */
     display: flex !important;
     flex-direction: column !important;
     gap: 12px !important; /* Increased gap for better spacing */
-    min-height: auto !important;
+    min-height: 200px !important;
+    max-height: calc(100vh - 200px) !important; /* Allow scrolling within viewport */
   }
   
-  /* Description - Expand to fit content, scroll only if extremely long */
+  /* Description - Scrollable if needed */
   .png-cards .png-card .png-card-description {
-    max-height: none !important; /* Remove max-height to allow full expansion */
-    overflow-y: visible !important; /* Show all content */
+    max-height: 300px !important; /* Reasonable max height, scrollable if longer */
+    overflow-y: auto !important; /* Enable scrolling for long descriptions */
     overflow-x: hidden !important;
     font-size: 13px !important;
     padding: 12px !important;
     min-height: auto !important;
-    height: auto !important;
+    -webkit-overflow-scrolling: touch !important;
   }
   
-  /* Tags - Ensure full visibility */
+  /* Tags - Fully visible and accessible */
   .png-cards .png-card .png-card-tags {
     overflow: visible !important;
     font-size: 12px !important;
-    padding: 10px 0 !important;
+    padding: 12px !important;
     margin: 0 !important;
+    margin-bottom: 10px !important; /* Space before buttons */
     line-height: 1.6 !important;
     word-wrap: break-word !important;
     white-space: normal !important;
+    flex-shrink: 0 !important; /* Prevent tags from being compressed */
   }
   
   /* Buttons - Fixed at bottom */
@@ -1671,40 +1676,45 @@ body .png-card .png-card-buttons,
     flex: 0 0 auto !important;
   }
   
-  /* Card info - Expand to show all content */
+  /* Card info - Scrollable to access all content including tags */
   body .png-cards .png-card .png-card-info,
   html body .png-cards .png-card .png-card-info {
-    overflow: visible !important; /* Changed to visible to show all content */
+    overflow-y: auto !important; /* Enable scrolling to access all content */
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important; /* Smooth scrolling on iOS */
     padding: 15px !important;
-    padding-bottom: 80px !important;
+    padding-bottom: 90px !important; /* Extra space for buttons */
     flex: 1 1 auto !important;
-    min-height: auto !important;
+    min-height: 200px !important;
+    max-height: calc(100vh - 200px) !important; /* Allow scrolling within viewport */
     display: flex !important;
     flex-direction: column !important;
     gap: 12px !important;
   }
   
-  /* Description - Expand to fit content */
+  /* Description - Scrollable if needed */
   body .png-cards .png-card .png-card-description,
   html body .png-cards .png-card .png-card-description {
-    max-height: none !important; /* Remove max-height restriction */
-    overflow-y: visible !important; /* Show all content */
+    max-height: 300px !important; /* Reasonable max height, scrollable if longer */
+    overflow-y: auto !important; /* Enable scrolling for long descriptions */
     overflow-x: hidden !important;
     font-size: 13px !important;
     padding: 12px !important;
-    height: auto !important;
     min-height: auto !important;
+    -webkit-overflow-scrolling: touch !important;
   }
   
-  /* Tags - Ensure full visibility */
+  /* Tags - Fully visible and accessible */
   body .png-cards .png-card .png-card-tags,
   html body .png-cards .png-card .png-card-tags {
     overflow: visible !important;
     font-size: 12px !important;
-    padding: 10px 0 !important;
+    padding: 12px !important;
+    margin-bottom: 10px !important; /* Space before buttons */
     line-height: 1.6 !important;
     word-wrap: break-word !important;
     white-space: normal !important;
+    flex-shrink: 0 !important; /* Prevent tags from being compressed */
   }
   
   /* Buttons - Fixed at bottom */
