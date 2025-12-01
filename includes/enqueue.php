@@ -510,7 +510,7 @@ function png_metadata_viewer_dynamic_styles() {
             flex: 1;
             overflow-y: auto;
             padding: 15px;
-            background-color: #f8f9fa;
+            background-color: #222;
         }
         
         #chat-input-row {
