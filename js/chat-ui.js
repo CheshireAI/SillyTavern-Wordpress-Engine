@@ -512,7 +512,16 @@
             $('.close-sidebar-btn').off('click.direct').on('click.direct', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                window.forceCloseSidebar();
+                e.stopImmediatePropagation();
+                if (window.forceCloseSidebar) {
+                    window.forceCloseSidebar();
+                } else {
+                    $('.conversation-sidebar').removeClass('open').css({
+                        'transform': 'translateX(-100%)',
+                        'transition': 'transform 0.3s ease'
+                    });
+                }
+                return false;
             });
         }, 200);
     }

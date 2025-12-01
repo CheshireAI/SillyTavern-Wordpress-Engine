@@ -300,12 +300,17 @@
                         $(document).on('click.pmvConv', '.close-sidebar-btn', function(e) {
                             e.preventDefault();
                             e.stopPropagation();
+                            e.stopImmediatePropagation();
                             console.log('PMV: Close sidebar button clicked');
                             if (window.forceCloseSidebar) {
                                 window.forceCloseSidebar();
                             } else {
-                                $('.conversation-sidebar').removeClass('open');
+                                $('.conversation-sidebar').removeClass('open').css({
+                                    'transform': 'translateX(-100%)',
+                                    'transition': 'transform 0.3s ease'
+                                });
                             }
+                            return false;
                         });
                         
                         // Keyboard shortcuts

@@ -2218,35 +2218,16 @@
             .on('click', '.close-sidebar-btn', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                window.forceCloseSidebar();
-            })
-            
-            // Add additional event handler for close button with different selector
-            .on('click', '.conversation-sidebar .close-sidebar-btn', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Close sidebar button clicked (alternative handler)!');
-                window.forceCloseSidebar();
-            })
-            
-            // Add event delegation for dynamically created close button
-            .on('click', '.close-sidebar-btn', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Close sidebar button clicked (delegated handler)!');
-                console.log('Button element:', this);
-                console.log('Button text:', $(this).text());
-                window.forceCloseSidebar();
-            })
-            
-            // Add click handler for any element with close-sidebar-btn class
-            .on('click', '[class*="close-sidebar-btn"]', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Close sidebar button clicked (wildcard handler)!');
-                console.log('Element:', this);
-                console.log('Classes:', $(this).attr('class'));
-                window.forceCloseSidebar();
+                e.stopImmediatePropagation();
+                if (window.forceCloseSidebar) {
+                    window.forceCloseSidebar();
+                } else {
+                    $('.conversation-sidebar').removeClass('open').css({
+                        'transform': 'translateX(-100%)',
+                        'transition': 'transform 0.3s ease'
+                    });
+                }
+                return false;
             })
             
             // Chat input handlers - UPDATED WITH REAL API CALL
